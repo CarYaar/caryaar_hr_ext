@@ -8,26 +8,24 @@ app_email = "sahaib.singh@caryaar.com"
 app_license = "MIT"
 
 # ─── Asset injection ──────────────────────────────────────────────────────
-# The HRMS PWA (/hrms/*) is a Vue SPA loaded from a single HTML shell that
-# Frappe serves via the `www/hrms` page controller. The quick-access tiles
-# on the Home view are hardcoded in the HRMS frontend build, so we can't
-# modify them via any doctype. Instead we inject a small JS patch that
-# waits for the Quick Links section to mount, then appends our custom tile.
+# The HRMS PWA (/hrms/*) ships as a Vue SPA loaded from a single HTML shell
+# rendered by `hrms/www/hrms.py`. That template doesn't extend Frappe's
+# standard base and therefore does NOT pick up `app_include_js` /
+# `web_include_js` hooks. To inject our tile script we use the
+# `after_request` hook to rewrite the HTML response before it's sent.
 #
-# Using `app_include_js` so the asset is bundled into Frappe's standard
-# website JS bundle — this is loaded on every HRMS PWA route without us
-# having to override the HRMS Vue source or rebuild the PWA bundle.
-#
-# `web_include_js` would also work but only runs on portal pages; the PWA
-# is considered a "desk app" for asset-loading purposes, so app_include_js
-# is the correct hook. Both are kept here so the script survives either
-# way HRMS chooses to serve its shell across upgrades.
+# We still register app_include_js as a fallback so the asset loads on any
+# Desk page (e.g. if someone opens /app), but it's not the mechanism that
+# gets it into the PWA — that's done by the HTML rewrite below.
 app_include_js = [
     "/assets/caryaar_hr_ext/js/hrms_handbook_tile.js",
 ]
-web_include_js = [
-    "/assets/caryaar_hr_ext/js/hrms_handbook_tile.js",
-]
+
+# ─── HRMS HTML rewrite ────────────────────────────────────────────────────
+# Injects a <script> tag for our tile loader into the HRMS PWA index
+# response. Runs on every request but only rewrites when the path matches
+# /hrms or /hrms/* AND the response is HTML.
+after_request = ["caryaar_hr_ext.api.inject_hrms_script"]
 
 # ─── Handbook config ─────────────────────────────────────────────────────
 # Exposed as a whitelisted server method so the JS can fetch the current
