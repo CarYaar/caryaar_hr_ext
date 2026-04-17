@@ -1,0 +1,22 @@
+[project]
+name = "caryaar_hr_ext"
+version = "0.1.0"
+description = "CarYaar HR Extensions — small customizations on top of frappe/hrms (handbook tile, future PWA tweaks)"
+authors = [{ name = "CarYaar", email = "sahaib.singh@caryaar.com" }]
+license = "MIT"
+readme = "README.md"
+requires-python = ">=3.10"
+
+# Frappe installs this via `bench get-app` + `bench install-app`, which
+# runs `pip install` under the hood. Only the runtime deps below are
+# needed — Frappe / HRMS are provided by the bench environment.
+dependencies = [
+  # intentionally empty — this app is pure JS + a tiny whitelisted API
+]
+
+[build-system]
+requires = ["flit_core >=3.4,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "caryaar_hr_ext"

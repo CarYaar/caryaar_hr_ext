@@ -1,0 +1,15 @@
+include MANIFEST.in
+include requirements.txt
+include *.md
+include LICENSE
+recursive-include caryaar_hr_ext *.css
+recursive-include caryaar_hr_ext *.csv
+recursive-include caryaar_hr_ext *.html
+recursive-include caryaar_hr_ext *.ico
+recursive-include caryaar_hr_ext *.js
+recursive-include caryaar_hr_ext *.json
+recursive-include caryaar_hr_ext *.md
+recursive-include caryaar_hr_ext *.png
+recursive-include caryaar_hr_ext *.py
+recursive-include caryaar_hr_ext *.svg
+recursive-include caryaar_hr_ext *.txt

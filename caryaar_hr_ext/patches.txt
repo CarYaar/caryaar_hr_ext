@@ -1,0 +1,2 @@
+# Patches added to this list will be run once when installed or upgraded.
+# Nothing yet — handbook tile injection is runtime-only, needs no DB migration.
