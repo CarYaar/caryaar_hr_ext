@@ -1,0 +1,17 @@
+{
+    "projects": {
+        "caryaar": {
+            "vapid_public_key": "<VAPID_PUBLIC_KEY>",
+            "firebase_config": {
+                "apiKey": "<FIREBASE_API_KEY>",
+                "authDomain": "<PROJECT_ID>.firebaseapp.com",
+                "projectId": "<PROJECT_ID>",
+                "storageBucket": "<PROJECT_ID>.firebasestorage.app",
+                "messagingSenderId": "<MESSAGING_SENDER_ID>",
+                "appId": "<FIREBASE_APP_ID>"
+            }
+        }
+    },
+    "trusted_proxies": "127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16",
+    "allowed_origins": ["https://erp.caryaar.com"]
+}

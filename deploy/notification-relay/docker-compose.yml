@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  notification-relay:
+    image: metalmon/notification-relay:latest
+    restart: unless-stopped
+    expose:
+      - "5000"
+    environment:
+      - LISTEN_PORT=5000
+      - NOTIFICATION_RELAY_CONFIG=/etc/notification-relay/config.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/etc/notification-relay/service-account.json
+      - TRUSTED_PROXIES=127.0.0.1/32,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+      - ALLOWED_ORIGINS=https://erp.caryaar.com
+    volumes:
+      - /opt/notification-relay/config:/etc/notification-relay:ro
+    user: "1000:1000"
+    labels:
+      traefik.docker.network: traefik-public
+      traefik.enable: "true"
+      traefik.http.routers.push-relay-http.entrypoints: http
+      traefik.http.routers.push-relay-http.middlewares: https-redirect
+      traefik.http.routers.push-relay-http.rule: Host(`push.caryaar.com`)
+      traefik.http.routers.push-relay-http.service: push-relay
+      traefik.http.routers.push-relay-https.entrypoints: https
+      traefik.http.routers.push-relay-https.rule: Host(`push.caryaar.com`)
+      traefik.http.routers.push-relay-https.service: push-relay
+      traefik.http.routers.push-relay-https.tls: "true"
+      traefik.http.routers.push-relay-https.tls.certresolver: le
+      traefik.http.services.push-relay.loadbalancer.server.port: "5000"
+      traefik.http.services.push-relay.loadbalancer.passHostHeader: "true"
+    networks:
+      - traefik-public
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  traefik-public:
+    external: true
