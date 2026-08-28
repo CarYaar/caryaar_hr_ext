@@ -4,8 +4,8 @@
   "name": "Employee-cy_identity_sec",
   "dt": "Employee",
   "fieldname": "cy_identity_sec",
-  "fieldtype": "Section Break",
-  "label": "CarYaar identity card",
+  "fieldtype": "Tab Break",
+  "label": "ID card",
   "insert_after": "attendance_device_id",
   "collapsible": 1
  },
