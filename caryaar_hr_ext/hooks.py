@@ -35,6 +35,17 @@ after_request = ["caryaar_hr_ext.api.inject_hrms_script"]
 # Also lets future tiles be added by dropping rows in a Singles doctype
 # (not built yet — starting with just the handbook).
 
+# ─── Identity: fixtures ──────────────────────────────────────────────────
+# Card fields on Employee + the Identity Manager role ship as fixtures so
+# `bench migrate` recreates them on any site this app is installed on.
+fixtures = [
+    {
+        "dt": "Custom Field",
+        "filters": [["fieldname", "like", "cy_%"], ["dt", "=", "Employee"]],
+    },
+    {"dt": "Role", "filters": [["role_name", "in", ["Identity Manager"]]]},
+]
+
 from . import api  # noqa: E402, F401 — registers the whitelisted method
 
 # If you want to add more tiles later, extend `api.get_custom_tiles()` to

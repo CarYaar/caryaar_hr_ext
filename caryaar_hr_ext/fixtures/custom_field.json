@@ -1,0 +1,71 @@
+[
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_identity_sec",
+  "dt": "Employee",
+  "fieldname": "cy_identity_sec",
+  "fieldtype": "Section Break",
+  "label": "CarYaar identity card",
+  "insert_after": "attendance_device_id",
+  "collapsible": 1
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_card_serial",
+  "dt": "Employee",
+  "fieldname": "cy_card_serial",
+  "fieldtype": "Data",
+  "label": "Card serial",
+  "unique": 1,
+  "bold": 1,
+  "description": "Printed on the card front, e.g. 2026-0042. Drives the verify QR.",
+  "insert_after": "cy_identity_sec"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_card_status",
+  "dt": "Employee",
+  "fieldname": "cy_card_status",
+  "fieldtype": "Select",
+  "label": "Card status",
+  "options": "Active\nSuspended\nLost\nReturned",
+  "default": "Active",
+  "insert_after": "cy_card_serial"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_col_1",
+  "dt": "Employee",
+  "fieldname": "cy_col_1",
+  "fieldtype": "Column Break",
+  "insert_after": "cy_card_status"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_rfid_uid",
+  "dt": "Employee",
+  "fieldname": "cy_rfid_uid",
+  "fieldtype": "Data",
+  "label": "RFID UID (factory number on card back)",
+  "description": "The number typed into the door machine when enrolling this card.",
+  "insert_after": "cy_col_1"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_card_issued_on",
+  "dt": "Employee",
+  "fieldname": "cy_card_issued_on",
+  "fieldtype": "Date",
+  "label": "Card issued on",
+  "insert_after": "cy_rfid_uid"
+ },
+ {
+  "doctype": "Custom Field",
+  "name": "Employee-cy_card_valid_through",
+  "dt": "Employee",
+  "fieldname": "cy_card_valid_through",
+  "fieldtype": "Date",
+  "label": "Card valid through",
+  "insert_after": "cy_card_issued_on"
+ }
+]
