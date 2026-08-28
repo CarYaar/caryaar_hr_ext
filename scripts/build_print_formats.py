@@ -110,6 +110,9 @@ PERSON_ICON = (
 
 def page_css(w: str, h: str, extra: str = "") -> str:
     return (
+        # @page: how the CHROME pdf generator sizes the page (wkhtmltopdf
+        # ignores it and reads the .print-format rule below instead)
+        f"@page {{ size: {w} {h}; margin: 0; }}\n"
         f".print-format {{ page-width: {w}; page-height: {h}; margin-top: 0mm; "
         f"margin-bottom: 0mm; margin-left: 0mm; margin-right: 0mm; {extra} }}\n"
         ".print-format { padding: 0 !important; }\n"
@@ -131,9 +134,9 @@ def card_front(fonts_dir: pathlib.Path) -> str:
 .shadow {{ position: absolute; left: 0.5mm; top: 0.5mm; right: -0.5mm; bottom: -0.5mm;
   background: {INK}; }}
 .face {{ position: relative; background: #FFFFFF; border: 0.3mm solid {INK}; }}
-.lbl {{ font-size: 6pt; font-weight: 700; letter-spacing: 0.1mm; color: {GREY};
-  text-transform: uppercase; white-space: nowrap; line-height: 1.25; }}
-.val {{ font-size: 6.5pt; font-weight: normal; white-space: nowrap; line-height: 1.25; }}
+.lbl {{ font-size: 4.5pt; font-weight: 700; letter-spacing: 0.16mm; color: {GREY};
+  text-transform: uppercase; white-space: nowrap; line-height: 1.3; }}
+.val {{ font-size: 5.7pt; font-weight: normal; white-space: nowrap; line-height: 1.3; }}
 </style>
 <div class="print-format">
 <div class="card">
@@ -143,28 +146,28 @@ def card_front(fonts_dir: pathlib.Path) -> str:
       <div style="width: 25.7mm; margin: 2.5mm auto 0;">{wm}</div>
     </div>
   </div>
-  <div style="position: absolute; left: 16.75mm; top: 17.4mm; width: 24.5mm; height: 23.6mm;">
+  <div style="position: absolute; left: 16.75mm; top: 18mm; width: 24.5mm; height: 29mm;">
     <div class="shadow" style="border-radius: 1.8mm; left: 0.6mm; top: 0.6mm; right: -0.6mm; bottom: -0.6mm;"></div>
     <div class="face" style="border-radius: 1.8mm; height: 100%; text-align: center;">
       {{% if doc.image and doc.image.startswith("/files/") %}}
         <img src="{{{{ doc.image }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
       {{% else %}}
-        <div style="margin-top: 6.4mm;">{PERSON_ICON}</div>
+        <div style="margin-top: 9mm;">{PERSON_ICON}</div>
       {{% endif %}}
     </div>
   </div>
-  <div style="position: absolute; left: 0; top: 43.6mm; width: 58mm; text-align: center;
+  <div style="position: absolute; left: 0; top: 49.4mm; width: 58mm; text-align: center;
        font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 10.6pt;">
     {{{{ doc.employee_name }}}}</div>
-  <div style="position: absolute; left: 5mm; top: 49.2mm; width: 48mm; text-align: center;">
+  <div style="position: absolute; left: 5mm; top: 55.2mm; width: 48mm; text-align: center;">
     <span style="display: inline-block; position: relative;">
       <span class="shadow" style="left: 0.35mm; top: 0.35mm; right: -0.35mm; bottom: -0.35mm; border-radius: 1mm;"></span>
       <span style="display: inline-block; position: relative; background: {AMBER}; border: 0.3mm solid {INK};
-        border-radius: 1mm; padding: 0.7mm 2.2mm; font-size: 6pt; font-weight: 700;
-        letter-spacing: 0.2mm; text-transform: uppercase; line-height: 1.3;">{{{{ doc.designation or "Team member" }}}}</span>
+        border-radius: 1mm; padding: 0.8mm 2.4mm; font-size: 4.7pt; font-weight: 700;
+        letter-spacing: 0.28mm; text-transform: uppercase; line-height: 1.3;">{{{{ doc.designation or "Team member" }}}}</span>
     </span>
   </div>
-  <div style="position: absolute; left: 6.5mm; top: 55.6mm; width: 45mm;">
+  <div style="position: absolute; left: 8mm; top: 61.4mm; width: 42mm;">
     <div class="shadow" style="border-radius: 1.8mm;"></div>
     <div class="face" style="border-radius: 1.8mm; padding: 1.2mm 2mm 1.4mm;">
       <div style="overflow: hidden; border-bottom: 0.2mm solid {LAVENDER}; padding: 0.9mm 0;">
@@ -330,6 +333,7 @@ def main() -> None:
             "module": "Caryaar Hr Ext",
             "print_format_type": "Jinja",
             "custom_format": 1,
+            "pdf_generator": "chrome",
             "standard": "No",
             "disabled": 0,
             "font_size": 0,
@@ -343,6 +347,7 @@ def main() -> None:
             "module": "Caryaar Hr Ext",
             "print_format_type": "Jinja",
             "custom_format": 1,
+            "pdf_generator": "chrome",
             "standard": "No",
             "disabled": 0,
             "font_size": 0,
@@ -356,6 +361,7 @@ def main() -> None:
             "module": "Caryaar Hr Ext",
             "print_format_type": "Jinja",
             "custom_format": 1,
+            "pdf_generator": "chrome",
             "standard": "No",
             "disabled": 0,
             "font_size": 0,
