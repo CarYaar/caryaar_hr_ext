@@ -128,46 +128,55 @@ def card_front(fonts_dir: pathlib.Path) -> str:
 .card {{ position: relative; width: 58mm; height: 89.6mm; background: {GHOST};
   font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden;
   border-radius: 4.2mm; }}
-.nb {{ background: #FFFFFF; border: 0.3mm solid {INK}; border-radius: 1.8mm; }}
+.shadow {{ position: absolute; left: 0.5mm; top: 0.5mm; right: -0.5mm; bottom: -0.5mm;
+  background: {INK}; }}
+.face {{ position: relative; background: #FFFFFF; border: 0.3mm solid {INK}; }}
 .lbl {{ font-size: 6pt; font-weight: 700; letter-spacing: 0.1mm; color: {GREY};
   text-transform: uppercase; white-space: nowrap; line-height: 1.25; }}
 .val {{ font-size: 6.5pt; font-weight: normal; white-space: nowrap; line-height: 1.25; }}
-td {{ padding: 0; }}
 </style>
 <div class="print-format">
 <div class="card">
-  <div class="nb" style="position: absolute; left: 5.2mm; top: 5mm; width: 47.6mm; height: 11mm;
-       -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK};">
-    <div style="width: 25.7mm; margin: 3.1mm auto 0;">{wm}</div>
+  <div style="position: absolute; left: 5.2mm; top: 5mm; width: 47.6mm; height: 11mm;">
+    <div class="shadow" style="border-radius: 1.8mm;"></div>
+    <div class="face" style="border-radius: 1.8mm; height: 100%;">
+      <div style="width: 25.7mm; margin: 2.5mm auto 0;">{wm}</div>
+    </div>
   </div>
-  <div class="nb" style="position: absolute; left: 16.75mm; top: 17.4mm; width: 24.5mm; height: 23.6mm;
-       -webkit-box-shadow: 0.6mm 0.6mm 0 0 {INK}; text-align: center;">
-    {{% if doc.image and doc.image.startswith("/files/") %}}
-      <img src="{{{{ doc.image }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
-    {{% else %}}
-      <div style="margin-top: 6.8mm;">{PERSON_ICON}</div>
-    {{% endif %}}
+  <div style="position: absolute; left: 16.75mm; top: 17.4mm; width: 24.5mm; height: 23.6mm;">
+    <div class="shadow" style="border-radius: 1.8mm; left: 0.6mm; top: 0.6mm; right: -0.6mm; bottom: -0.6mm;"></div>
+    <div class="face" style="border-radius: 1.8mm; height: 100%; text-align: center;">
+      {{% if doc.image and doc.image.startswith("/files/") %}}
+        <img src="{{{{ doc.image }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
+      {{% else %}}
+        <div style="margin-top: 6.4mm;">{PERSON_ICON}</div>
+      {{% endif %}}
+    </div>
   </div>
   <div style="position: absolute; left: 0; top: 43.6mm; width: 58mm; text-align: center;
        font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 10.6pt;">
     {{{{ doc.employee_name }}}}</div>
   <div style="position: absolute; left: 5mm; top: 49.2mm; width: 48mm; text-align: center;">
-    <span style="display: inline-block; background: {AMBER}; border: 0.3mm solid {INK};
-      border-radius: 1mm; -webkit-box-shadow: 0.35mm 0.35mm 0 0 {INK}; padding: 0.7mm 2.2mm;
-      font-size: 6pt; font-weight: 700; letter-spacing: 0.2mm; text-transform: uppercase; line-height: 1.3;">
-      {{{{ doc.designation or "Team member" }}}}</span>
+    <span style="display: inline-block; position: relative;">
+      <span class="shadow" style="left: 0.35mm; top: 0.35mm; right: -0.35mm; bottom: -0.35mm; border-radius: 1mm;"></span>
+      <span style="display: inline-block; position: relative; background: {AMBER}; border: 0.3mm solid {INK};
+        border-radius: 1mm; padding: 0.7mm 2.2mm; font-size: 6pt; font-weight: 700;
+        letter-spacing: 0.2mm; text-transform: uppercase; line-height: 1.3;">{{{{ doc.designation or "Team member" }}}}</span>
+    </span>
   </div>
-  <div class="nb" style="position: absolute; left: 6.5mm; top: 58.6mm; width: 45mm;
-       -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK}; padding: 1.2mm 2mm 1.6mm; box-sizing: border-box;">
-    <div style="overflow: hidden; border-bottom: 0.2mm solid {LAVENDER}; padding: 0.9mm 0;">
-      <span class="lbl" style="float: left;">Employee id</span>
-      <span class="val" style="float: right; font-weight: 700;">{{{{ doc.name }}}}</span></div>
-    <div style="overflow: hidden; border-bottom: 0.2mm solid {LAVENDER}; padding: 0.9mm 0;">
-      <span class="lbl" style="float: left;">Phone</span>
-      <span class="val" style="float: right;">{{{{ doc.cell_number or "" }}}}</span></div>
-    <div style="overflow: hidden; padding: 0.9mm 0 0.3mm;">
-      <span class="lbl" style="float: left;">Blood group</span>
-      <span class="val" style="float: right; font-weight: 700; color: {ENGINE};">{{{{ doc.blood_group or "" }}}}</span></div>
+  <div style="position: absolute; left: 6.5mm; top: 55.6mm; width: 45mm;">
+    <div class="shadow" style="border-radius: 1.8mm;"></div>
+    <div class="face" style="border-radius: 1.8mm; padding: 1.2mm 2mm 1.4mm;">
+      <div style="overflow: hidden; border-bottom: 0.2mm solid {LAVENDER}; padding: 0.9mm 0;">
+        <span class="lbl" style="float: left;">Employee id</span>
+        <span class="val" style="float: right; font-weight: 700;">{{{{ doc.name }}}}</span></div>
+      <div style="overflow: hidden; border-bottom: 0.2mm solid {LAVENDER}; padding: 0.9mm 0;">
+        <span class="lbl" style="float: left;">Phone</span>
+        <span class="val" style="float: right;">{{{{ doc.cell_number or "" }}}}</span></div>
+      <div style="overflow: hidden; padding: 0.9mm 0 0.3mm;">
+        <span class="lbl" style="float: left;">Blood group</span>
+        <span class="val" style="float: right; font-weight: 700; color: {ENGINE};">{{{{ doc.blood_group or "" }}}}</span></div>
+    </div>
   </div>
   <div style="position: absolute; left: 0; bottom: 7.75mm; width: 58mm; height: 0.3mm; background: {INK};"></div>
   <div style="position: absolute; left: 0; bottom: 0; width: 58mm; height: 7.75mm; background: {ENGINE}; border-radius: 0 0 4.2mm 4.2mm;">
@@ -202,12 +211,13 @@ def card_back(fonts_dir: pathlib.Path) -> str:
   <div style="position: absolute; left: 13.6mm; top: 4.6mm; width: 41mm;">
     <div style="font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 6.4pt; line-height: 1.3;">This card belongs to CarYaar Auto Pvt. Ltd.</div>
     <div class="small" style="color: {BODY}; margin-top: 1mm;">If found, please return it to the address below or call us. The finder's courtesy is appreciated.</div>
-    <div style="background: {LAVENDER}; border: 0.3mm solid {INK}; border-radius: 1.5mm;
-         -webkit-box-shadow: 0.35mm 0.35mm 0 0 {INK}; padding: 1.6mm 2mm; margin-top: 2mm;">
+    <div style="position: relative; margin-top: 2mm;">
+    <div style="position: absolute; left: 0.35mm; top: 0.35mm; right: -0.35mm; bottom: -0.35mm; background: {INK}; border-radius: 1.5mm;"></div>
+    <div style="position: relative; background: {LAVENDER}; border: 0.3mm solid {INK}; border-radius: 1.5mm; padding: 1.6mm 2mm;">
       <div class="lbl" style="color: {ENGINE};">Office address</div>
       <div class="small" style="margin-top: 0.5mm;">#103, CarYaar, Gopala Residency C.H.S., Plot no 27, MAFCO Rd, Sector 24, Vashi, Navi Mumbai, Maharashtra 400703</div>
       <div class="small" style="margin-top: 0.7mm;">+91 98676 59660 &middot; contactus@caryaar.com</div>
-    </div>
+    </div></div>
     <table style="width: 100%; border-collapse: collapse; margin-top: 2mm;">
       <tr>
         <td style="width: 50%;"><div class="lbl">Issued</div>
@@ -222,9 +232,11 @@ def card_back(fonts_dir: pathlib.Path) -> str:
     </table>
     <table style="border-collapse: collapse; margin-top: 2mm;"><tr>
       <td style="vertical-align: top;">
-        <div style="background: #FFFFFF; border: 0.3mm solid {INK}; border-radius: 1.5mm;
-             -webkit-box-shadow: 0.35mm 0.35mm 0 0 {INK}; padding: 1mm; width: 15mm; height: 15mm;">
-          <img src="{{{{ qr_data_uri('https://verify.caryaar.com/v/' ~ (doc.cy_card_serial or 'unassigned')) }}}}" style="width: 12.6mm; height: 12.6mm; display: block;">
+        <div style="position: relative; width: 15mm; height: 15mm;">
+          <div style="position: absolute; left: 0.35mm; top: 0.35mm; right: -0.35mm; bottom: -0.35mm; background: {INK}; border-radius: 1.5mm;"></div>
+          <div style="position: relative; background: #FFFFFF; border: 0.3mm solid {INK}; border-radius: 1.5mm; padding: 1mm; height: 100%;">
+            <img src="{{{{ qr_data_uri('https://verify.caryaar.com/v/' ~ (doc.cy_card_serial or 'unassigned')) }}}}" style="width: 12.6mm; height: 12.6mm; display: block;">
+          </div>
         </div></td>
       <td style="vertical-align: middle; padding-left: 1.8mm;">
         <div class="small" style="color: {BODY};">Scan to verify this card.</div>
