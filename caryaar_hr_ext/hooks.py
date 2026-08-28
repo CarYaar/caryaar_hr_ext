@@ -46,6 +46,9 @@ website_route_rules = [
 
 jinja = {"methods": ["caryaar_hr_ext.utils.qr.qr_data_uri"]}
 
+# Brand fonts for wkhtmltopdf print formats (see utils/fonts.py).
+after_migrate = ["caryaar_hr_ext.utils.fonts.install_fonts"]
+
 # ─── Identity: fixtures ──────────────────────────────────────────────────
 # Card fields on Employee + the Identity Manager role ship as fixtures so
 # `bench migrate` recreates them on any site this app is installed on.
@@ -55,6 +58,13 @@ fixtures = [
         "filters": [["fieldname", "like", "cy_%"], ["dt", "=", "Employee"]],
     },
     {"dt": "Role", "filters": [["role_name", "in", ["Identity Manager"]]]},
+    {
+        "dt": "Print Format",
+        "filters": [
+            ["name", "in",
+             ["CY Card Front", "CY Card Back", "CY Internship Certificate"]],
+        ],
+    },
 ]
 
 from . import api  # noqa: E402, F401 — registers the whitelisted method
