@@ -160,7 +160,7 @@ def card_front(fonts_dir: pathlib.Path) -> str:
        font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 10.6pt;">
     {{{{ doc.employee_name }}}}</div>
   <div style="position: absolute; left: 5mm; top: 55.2mm; width: 48mm; text-align: center;">
-    <span style="display: inline-block; position: relative;">
+    <span style="display: inline-block; position: relative; font-size: 0; line-height: 0;">
       <span class="shadow" style="left: 0.35mm; top: 0.35mm; right: -0.35mm; bottom: -0.35mm; border-radius: 1mm;"></span>
       <span style="display: inline-block; position: relative; background: {AMBER}; border: 0.3mm solid {INK};
         border-radius: 1mm; padding: 0.8mm 2.4mm; font-size: 4.7pt; font-weight: 700;
