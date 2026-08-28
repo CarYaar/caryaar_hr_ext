@@ -128,43 +128,43 @@ def card_front(fonts_dir: pathlib.Path) -> str:
   font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden;
   border-radius: 4.2mm; }}
 .nb {{ background: #FFFFFF; border: 0.3mm solid {INK}; border-radius: 1.8mm; }}
-.lbl {{ font-size: 5pt; font-weight: 700; letter-spacing: 0.2mm; color: {GREY};
-  text-transform: uppercase; white-space: nowrap; line-height: 1.25; }}
-.val {{ font-size: 6pt; font-weight: normal; white-space: nowrap; line-height: 1.25; }}
+.lbl {{ font-size: 6pt; font-weight: 700; letter-spacing: 0.1mm; color: {GREY};
+  text-transform: uppercase; white-space: nowrap; line-height: 1.2; }}
+.val {{ font-size: 6.5pt; font-weight: normal; white-space: nowrap; line-height: 1.2; }}
 td {{ padding: 0; }}
 </style>
 <div class="print-format">
 <div class="card">
-  <div class="nb" style="position: absolute; left: 5.2mm; top: 4mm; width: 47.6mm; height: 10mm;
+  <div class="nb" style="position: absolute; left: 5.2mm; top: 5mm; width: 47.6mm; height: 11mm;
        -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK};">
-    <div style="width: 25.7mm; margin: 2.6mm auto 0;">{wm}</div>
+    <div style="width: 25.7mm; margin: 3.1mm auto 0;">{wm}</div>
   </div>
-  <div class="nb" style="position: absolute; left: 17.5mm; top: 16.4mm; width: 23mm; height: 24.5mm;
+  <div class="nb" style="position: absolute; left: 16.75mm; top: 17.4mm; width: 24.5mm; height: 23.6mm;
        -webkit-box-shadow: 0.6mm 0.6mm 0 0 {INK}; text-align: center;">
     {{% if doc.image and doc.image.startswith("/files/") %}}
       <img src="{{{{ doc.image }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
     {{% else %}}
-      <div style="margin-top: 7.5mm;">{PERSON_ICON}</div>
+      <div style="margin-top: 6.8mm;">{PERSON_ICON}</div>
     {{% endif %}}
   </div>
-  <div style="position: absolute; left: 0; top: 43.4mm; width: 58mm; text-align: center;
+  <div style="position: absolute; left: 0; top: 43.6mm; width: 58mm; text-align: center;
        font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 10.6pt;">
     {{{{ doc.employee_name }}}}</div>
-  <div style="position: absolute; left: 5mm; top: 49mm; width: 48mm; text-align: center;">
+  <div style="position: absolute; left: 5mm; top: 49.2mm; width: 48mm; text-align: center;">
     <span style="display: inline-block; background: {AMBER}; border: 0.3mm solid {INK};
       border-radius: 1mm; -webkit-box-shadow: 0.35mm 0.35mm 0 0 {INK}; padding: 0.7mm 2.2mm;
       font-size: 4.4pt; font-weight: 700; letter-spacing: 0.25mm; text-transform: uppercase; line-height: 1.3;">
       {{{{ doc.designation or "Team member" }}}}</span>
   </div>
-  <div class="nb" style="position: absolute; left: 6.5mm; top: 55.6mm; width: 45mm; height: 22.6mm;
-       overflow: hidden; -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK}; padding: 1mm 2.2mm; box-sizing: border-box;">
-    <table style="width: 100%; border-collapse: collapse; font-size: 6pt;">
-      <tr><td class="lbl" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0;">Employee id</td>
-          <td class="val" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0; text-align: right; font-weight: 700;">{{{{ doc.name }}}}</td></tr>
-      <tr><td class="lbl" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0;">Phone</td>
-          <td class="val" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0; text-align: right;">{{{{ doc.cell_number or "" }}}}</td></tr>
-      <tr><td class="lbl" style="padding: 0.6mm 0 0;">Blood group</td>
-          <td class="val" style="padding: 0.6mm 0 0; text-align: right; font-weight: 700; color: {ENGINE};">{{{{ doc.blood_group or "" }}}}</td></tr>
+  <div class="nb" style="position: absolute; left: 6.5mm; top: 55.6mm; width: 45mm; max-height: 23mm;
+       overflow: hidden; -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK}; padding: 1mm 2mm; box-sizing: border-box;">
+    <table style="width: 100%; border-collapse: collapse; font-size: 7pt;">
+      <tr><td class="lbl" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.4mm 0;">Employee id</td>
+          <td class="val" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.4mm 0; text-align: right; font-weight: 700;">{{{{ doc.name }}}}</td></tr>
+      <tr><td class="lbl" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.4mm 0;">Phone</td>
+          <td class="val" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.4mm 0; text-align: right;">{{{{ doc.cell_number or "" }}}}</td></tr>
+      <tr><td class="lbl" style="padding: 0.4mm 0 0;">Blood group</td>
+          <td class="val" style="padding: 0.4mm 0 0; text-align: right; font-weight: 700; color: {ENGINE};">{{{{ doc.blood_group or "" }}}}</td></tr>
     </table>
   </div>
   <div style="position: absolute; left: 0; bottom: 7.75mm; width: 58mm; height: 0.3mm; background: {INK};"></div>
