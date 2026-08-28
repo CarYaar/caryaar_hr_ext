@@ -35,6 +35,17 @@ after_request = ["caryaar_hr_ext.api.inject_hrms_script"]
 # Also lets future tiles be added by dropping rows in a Singles doctype
 # (not built yet — starting with just the handbook).
 
+# ─── Identity: public verify routes + jinja QR helper ────────────────────
+# /v/<serial> and /c/<certno> are the guest verification pages behind the
+# QR printed on every identity card and internship certificate. They are
+# proxied publicly via verify.caryaar.com (allowlist Cloudflare worker).
+website_route_rules = [
+    {"from_route": "/v/<serial>", "to_route": "verify_card"},
+    {"from_route": "/c/<certno>", "to_route": "verify_certificate"},
+]
+
+jinja = {"methods": ["caryaar_hr_ext.utils.qr.qr_data_uri"]}
+
 # ─── Identity: fixtures ──────────────────────────────────────────────────
 # Card fields on Employee + the Identity Manager role ship as fixtures so
 # `bench migrate` recreates them on any site this app is installed on.

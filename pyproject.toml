@@ -11,7 +11,9 @@ requires-python = ">=3.10"
 # runs `pip install` under the hood. Only the runtime deps below are
 # needed — Frappe / HRMS are provided by the bench environment.
 dependencies = [
-  # intentionally empty — this app is pure JS + a tiny whitelisted API
+  # QR codes on identity cards / internship certificates (verify pages
+  # and print formats). Pillow comes with the bench environment.
+  "qrcode",
 ]
 
 [build-system]
