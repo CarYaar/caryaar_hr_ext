@@ -1,0 +1,112 @@
+{
+ "doctype": "DocType",
+ "name": "Internship Certificate",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "is_submittable": 1,
+ "track_changes": 1,
+ "autoname": "naming_series:",
+ "naming_rule": "By \"Naming Series\" field",
+ "engine": "InnoDB",
+ "field_order": [
+  "naming_series",
+  "intern_name",
+  "role_title",
+  "column_break_1",
+  "start_date",
+  "end_date",
+  "section_break_1",
+  "employee",
+  "issued_on",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "naming_series",
+   "fieldtype": "Select",
+   "label": "Series",
+   "options": "CY-INT-.YYYY.-.###",
+   "default": "CY-INT-.YYYY.-.###",
+   "hidden": 1,
+   "print_hide": 1
+  },
+  {
+   "fieldname": "intern_name",
+   "fieldtype": "Data",
+   "label": "Intern full name",
+   "reqd": 1,
+   "in_list_view": 1,
+   "bold": 1
+  },
+  {
+   "fieldname": "role_title",
+   "fieldtype": "Data",
+   "label": "Internship role",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "start_date",
+   "fieldtype": "Date",
+   "label": "Start date",
+   "reqd": 1
+  },
+  {
+   "fieldname": "end_date",
+   "fieldtype": "Date",
+   "label": "End date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "section_break_1",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee record (optional)",
+   "options": "Employee"
+  },
+  {
+   "fieldname": "issued_on",
+   "fieldtype": "Date",
+   "label": "Issued on",
+   "default": "Today"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarks"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended from",
+   "options": "Internship Certificate",
+   "read_only": 1,
+   "no_copy": 1,
+   "print_hide": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "Identity Manager",
+   "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "amend": 1,
+   "print": 1, "email": 1, "export": 1, "report": 1, "share": 1, "delete": 1
+  },
+  {
+   "role": "System Manager",
+   "read": 1, "write": 1, "create": 1, "submit": 1, "cancel": 1, "amend": 1,
+   "print": 1, "email": 1, "export": 1, "report": 1, "share": 1, "delete": 1
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
