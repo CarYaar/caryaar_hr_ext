@@ -149,8 +149,9 @@ def card_front(fonts_dir: pathlib.Path) -> str:
   <div style="position: absolute; left: 16.75mm; top: 18mm; width: 24.5mm; height: 29mm;">
     <div class="shadow" style="border-radius: 1.8mm; left: 0.6mm; top: 0.6mm; right: -0.6mm; bottom: -0.6mm;"></div>
     <div class="face" style="border-radius: 1.8mm; height: 100%; text-align: center;">
-      {{% if doc.image and doc.image.startswith("/files/") %}}
-        <img src="{{{{ doc.image }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
+      {{% set _photo = photo_data_uri(doc.image) %}}
+      {{% if _photo %}}
+        <img src="{{{{ _photo }}}}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 1.5mm;">
       {{% else %}}
         <div style="margin-top: 9mm;">{PERSON_ICON}</div>
       {{% endif %}}

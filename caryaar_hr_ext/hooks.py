@@ -44,7 +44,12 @@ website_route_rules = [
     {"from_route": "/c/<certno>", "to_route": "verify_certificate"},
 ]
 
-jinja = {"methods": ["caryaar_hr_ext.utils.qr.qr_data_uri"]}
+jinja = {
+    "methods": [
+        "caryaar_hr_ext.utils.qr.qr_data_uri",
+        "caryaar_hr_ext.utils.photo.photo_data_uri",
+    ],
+}
 
 # Brand fonts for wkhtmltopdf print formats (see utils/fonts.py).
 after_migrate = ["caryaar_hr_ext.utils.fonts.install_fonts"]
