@@ -156,8 +156,8 @@ td {{ padding: 0; }}
       font-size: 4.4pt; font-weight: 700; letter-spacing: 0.25mm; text-transform: uppercase; line-height: 1.3;">
       {{{{ doc.designation or "Team member" }}}}</span>
   </div>
-  <div class="nb" style="position: absolute; left: 6.5mm; top: 56.6mm; width: 45mm;
-       -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK}; padding: 1.2mm 2.2mm;">
+  <div class="nb" style="position: absolute; left: 6.5mm; top: 55.6mm; width: 45mm; height: 22.6mm;
+       overflow: hidden; -webkit-box-shadow: 0.5mm 0.5mm 0 0 {INK}; padding: 1mm 2.2mm; box-sizing: border-box;">
     <table style="width: 100%; border-collapse: collapse; font-size: 6pt;">
       <tr><td class="lbl" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0;">Employee id</td>
           <td class="val" style="border-bottom: 0.2mm solid {LAVENDER}; padding: 0.6mm 0; text-align: right; font-weight: 700;">{{{{ doc.name }}}}</td></tr>
