@@ -11,8 +11,7 @@ def get_context(context):
         emp = frappe.db.get_value(
             "Employee",
             {"cy_card_serial": serial},
-            ["employee_name", "designation", "image", "status",
-             "cy_card_status", "cy_card_valid_through"],
+            ["employee_name", "designation", "image", "status", "cy_card_status"],
             as_dict=True,
         )
         if emp:
@@ -23,5 +22,4 @@ def get_context(context):
             context.photo = emp.image if (emp.image or "").startswith("/files/") else None
             context.card_ok = emp.status == "Active" and emp.cy_card_status == "Active"
             context.card_status = emp.cy_card_status
-            context.valid_through = emp.cy_card_valid_through
     return context

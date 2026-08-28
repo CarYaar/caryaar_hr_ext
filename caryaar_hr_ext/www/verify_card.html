@@ -60,7 +60,7 @@
     {% else %}
       <div class="pill pill-warn">Card {{ (card_status or "inactive") | lower }}</div>
     {% endif %}
-    <p class="muted" style="margin-top: 14px;">Card serial {{ serial }}{% if valid_through %} &middot; valid through {{ frappe.utils.format_date(valid_through, "MMM yyyy") }}{% endif %}</p>
+    <p class="muted" style="margin-top: 14px;">Card serial {{ serial }}</p>
   {% else %}
     <h1>No card with this serial</h1>
     <p class="muted" style="margin-top: 10px;">Check the serial printed on the card front, or contact us below.</p>

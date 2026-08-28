@@ -225,13 +225,9 @@ def card_back(fonts_dir: pathlib.Path) -> str:
       <tr>
         <td style="width: 50%;"><div class="lbl">Issued</div>
           <div style="font-size: 5.4pt; font-weight: 700;">{{{{ frappe.utils.format_date(doc.cy_card_issued_on, "MMM yyyy") if doc.cy_card_issued_on else "" }}}}</div></td>
-        <td><div class="lbl">Valid through</div>
-          <div style="font-size: 5.4pt; font-weight: 700;">{{{{ frappe.utils.format_date(doc.cy_card_valid_through, "MMM yyyy") if doc.cy_card_valid_through else "" }}}}</div></td>
+        <td><div class="lbl">Emergency</div>
+          <div style="font-size: 5.4pt; font-weight: 700;">{{{{ doc.emergency_phone_number or "" }}}}</div></td>
       </tr>
-    </table>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 1.4mm;">
-      <tr><td class="lbl">Emergency</td>
-          <td style="text-align: right; font-size: 5.4pt; font-weight: 700;">{{{{ doc.emergency_phone_number or "" }}}}</td></tr>
     </table>
     <table style="border-collapse: collapse; margin-top: 2mm;"><tr>
       <td style="vertical-align: top;">

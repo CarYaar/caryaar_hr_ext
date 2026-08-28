@@ -28,7 +28,7 @@
   "fieldname": "cy_card_status",
   "fieldtype": "Select",
   "label": "Card status",
-  "options": "Active\nSuspended\nLost\nReturned",
+  "options": "Active\nInactive\nSuspended\nLost\nReturned",
   "default": "Active",
   "insert_after": "cy_card_serial"
  },
@@ -58,14 +58,5 @@
   "fieldtype": "Date",
   "label": "Card issued on",
   "insert_after": "cy_rfid_uid"
- },
- {
-  "doctype": "Custom Field",
-  "name": "Employee-cy_card_valid_through",
-  "dt": "Employee",
-  "fieldname": "cy_card_valid_through",
-  "fieldtype": "Date",
-  "label": "Card valid through",
-  "insert_after": "cy_card_issued_on"
  }
 ]
