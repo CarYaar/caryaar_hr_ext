@@ -154,7 +154,7 @@ td {{ padding: 0; }}
   <div style="position: absolute; left: 5mm; top: 49.2mm; width: 48mm; text-align: center;">
     <span style="display: inline-block; background: {AMBER}; border: 0.3mm solid {INK};
       border-radius: 1mm; -webkit-box-shadow: 0.35mm 0.35mm 0 0 {INK}; padding: 0.7mm 2.2mm;
-      font-size: 4.4pt; font-weight: 700; letter-spacing: 0.25mm; text-transform: uppercase; line-height: 1.3;">
+      font-size: 6pt; font-weight: 700; letter-spacing: 0.2mm; text-transform: uppercase; line-height: 1.3;">
       {{{{ doc.designation or "Team member" }}}}</span>
   </div>
   <div class="nb" style="position: absolute; left: 6.5mm; top: 58.6mm; width: 45mm;
