@@ -243,6 +243,7 @@ def card_back(fonts_dir: pathlib.Path) -> str:
 def certificate(fonts_dir: pathlib.Path) -> str:
     fonts = FONT_NOTE
     wm = wordmark_png(58)
+    sig = pathlib.Path(__file__).resolve().parent.joinpath("signature_b64.txt").read_text().strip()
     return f"""<style>
 {fonts}
 {page_css("297mm", "210mm")}
@@ -283,13 +284,15 @@ def certificate(fonts_dir: pathlib.Path) -> str:
     <table style="position: absolute; left: 16mm; right: 16mm; bottom: 12mm; width: 245mm;
          border-collapse: collapse;"><tr>
       <td style="width: 33%; vertical-align: bottom;">
-        <div style="width: 48mm; height: 0.5mm; background: {INK};"></div>
+        <div style="font-size: 11pt; font-weight: 700;">{{{{ frappe.utils.format_date(doc.issued_on, "d MMM yyyy") if doc.issued_on else "" }}}}</div>
+        <div style="width: 48mm; height: 0.5mm; background: {INK}; margin-top: 1.5mm;"></div>
         <div style="font-size: 9.5pt; color: {GREY}; margin-top: 1.5mm;">Date of issue</div></td>
       <td style="width: 34%; text-align: center; vertical-align: bottom;">
         <img src="{{{{ qr_data_uri('https://verify.caryaar.com/c/' ~ doc.name) }}}}" style="width: 20mm; height: 20mm;">
         <div style="font-size: 10pt; font-weight: 700; margin-top: 1mm;">Certificate no. {{{{ doc.name }}}}</div>
         <div style="font-size: 9pt; color: {GREY};">Verify: verify.caryaar.com/c/{{{{ doc.name }}}}</div></td>
       <td style="width: 33%; text-align: center; vertical-align: bottom;">
+        <img src="data:image/png;base64,{sig}" style="height: 10mm; display: block; margin: 0 auto 1mm;">
         <div style="margin: 0 auto; width: 56mm; height: 0.5mm; background: {INK};"></div>
         <div style="font-size: 10.5pt; font-weight: 700; margin-top: 1.5mm;">Sahaib Singh Arora</div>
         <div style="font-size: 9pt; color: {GREY};">Founder, CarYaar</div></td>
