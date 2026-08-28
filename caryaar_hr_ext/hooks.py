@@ -49,6 +49,12 @@ jinja = {"methods": ["caryaar_hr_ext.utils.qr.qr_data_uri"]}
 # Brand fonts for wkhtmltopdf print formats (see utils/fonts.py).
 after_migrate = ["caryaar_hr_ext.utils.fonts.install_fonts"]
 
+# Typing "auto" into the card serial field generates 2026-0001-K7QX
+# style serials (sequential + random suffix, founder call 28-Aug).
+doc_events = {
+    "Employee": {"validate": "caryaar_hr_ext.utils.serial.ensure_card_serial"},
+}
+
 # ─── Identity: fixtures ──────────────────────────────────────────────────
 # Card fields on Employee + the Identity Manager role ship as fixtures so
 # `bench migrate` recreates them on any site this app is installed on.

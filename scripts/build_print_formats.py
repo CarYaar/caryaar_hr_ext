@@ -125,7 +125,8 @@ def card_front(fonts_dir: pathlib.Path) -> str:
 {fonts}
 {page_css("58mm", "89.6mm")}
 .card {{ position: relative; width: 58mm; height: 89.6mm; background: {GHOST};
-  font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden; }}
+  font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden;
+  border-radius: 4.2mm; }}
 .nb {{ background: #FFFFFF; border: 0.3mm solid {INK}; border-radius: 1.8mm; }}
 .lbl {{ font-size: 5pt; font-weight: 700; letter-spacing: 0.2mm; color: {GREY};
   text-transform: uppercase; white-space: nowrap; line-height: 1.25; }}
@@ -167,7 +168,7 @@ td {{ padding: 0; }}
     </table>
   </div>
   <div style="position: absolute; left: 0; bottom: 7.75mm; width: 58mm; height: 0.3mm; background: {INK};"></div>
-  <div style="position: absolute; left: 0; bottom: 0; width: 58mm; height: 7.75mm; background: {ENGINE};">
+  <div style="position: absolute; left: 0; bottom: 0; width: 58mm; height: 7.75mm; background: {ENGINE}; border-radius: 0 0 4.2mm 4.2mm;">
     <span style="position: absolute; left: 5.2mm; top: 2.1mm; color: #FFFFFF; font-size: 4.8pt; font-weight: 500;">www.caryaar.com</span>
     <span style="position: absolute; right: 5.2mm; top: 2.1mm; color: {MIST}; font-size: 4.8pt; font-weight: 700;">{{{{ doc.cy_card_serial or "" }}}}</span>
   </div>
@@ -181,7 +182,8 @@ def card_back(fonts_dir: pathlib.Path) -> str:
 {fonts}
 {page_css("58mm", "89.6mm")}
 .card {{ position: relative; width: 58mm; height: 89.6mm; background: #FFFFFF;
-  font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden; }}
+  font-family: 'DM Sans', sans-serif; color: {INK}; overflow: hidden;
+  border-radius: 4.2mm; border: 0.15mm solid #E9E7F2; }}
 .lbl {{ font-size: 4.2pt; font-weight: 700; letter-spacing: 0.25mm; color: {GREY};
   text-transform: uppercase; white-space: nowrap; }}
 .small {{ font-size: 4.8pt; line-height: 1.5; }}
@@ -231,7 +233,7 @@ def card_back(fonts_dir: pathlib.Path) -> str:
       <div class="small" style="color: {GREY};">Authorised signatory</div>
     </div>
   </div>
-  <div style="position: absolute; left: 12.3mm; bottom: 0; right: 0; height: 6mm; background: {ENGINE}; text-align: center;">
+  <div style="position: absolute; left: 12.3mm; bottom: 0; right: 0; height: 6mm; background: {ENGINE}; text-align: center; border-radius: 0 0 4.2mm 0;">
     <span style="display: inline-block; margin-top: 1.7mm; color: #FFFFFF; font-size: 4.2pt; font-weight: 500; letter-spacing: 0.15mm;">125 kHz access card &middot; do not punch or bend</span>
   </div>
 </div>
