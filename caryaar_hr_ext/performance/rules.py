@@ -226,13 +226,30 @@ def performance_category(final_score: float | None) -> str | None:
     return None
 
 
+# Stamps before this year are not real sync times: Frappe reads a never-set
+# Datetime single back as 0001-01-01, and senders put 1970-01-01 on row chunks.
+_REAL_STAMP_YEAR = 2000
+
+
+def stored_stamp(value) -> datetime | None:
+    """A saved "synced through" stamp, or None if the source has never synced."""
+    if not value:
+        return None
+    dt = value if isinstance(value, datetime) else datetime.fromisoformat(str(value))
+    return dt if dt.year >= _REAL_STAMP_YEAR else None
+
+
 def advance_stamp(current: datetime | None, new: datetime, covers_from: date) -> datetime | None:
     """New "synced through" stamp for a source.
 
     Moves forward only when the payload's first day is on or before the day of
     the current stamp, so a sender that resumes after an outage cannot mark the
-    days it never sent as complete. Never moves backwards.
+    days it never sent as complete. Never moves backwards. A placeholder stamp
+    (row chunks) never sets or moves it.
     """
+    current = stored_stamp(current)
+    if new.year < _REAL_STAMP_YEAR:
+        return current
     if current is None:
         return new
     if covers_from > current.date():

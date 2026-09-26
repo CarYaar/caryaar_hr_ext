@@ -6,7 +6,7 @@ Performance Sync role. Payloads are validated by performance.rules.
 from __future__ import annotations
 
 import frappe
-from frappe.utils import get_datetime, now_datetime
+from frappe.utils import now_datetime
 
 from caryaar_hr_ext.performance import rules
 
@@ -28,8 +28,8 @@ _SINGLE = "Performance Sync Settings"
 
 
 def _stamp(field: str):
-    value = frappe.db.get_single_value(_SINGLE, field)
-    return get_datetime(value) if value else None
+    # An unset Datetime single reads back as 0001-01-01, not None.
+    return rules.stored_stamp(frappe.db.get_single_value(_SINGLE, field))
 
 
 def _set(field: str, value) -> None:

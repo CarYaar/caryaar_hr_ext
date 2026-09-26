@@ -178,6 +178,26 @@ def test_stamp_advances_only_when_the_payload_covers_from_the_current_stamp_day(
     assert r.advance_stamp(cur, datetime(2026, 10, 4), date(2026, 10, 4)) == cur  # never backwards
 
 
+def test_first_real_sync_sets_the_stamp_despite_unset_and_placeholder_values():
+    real = datetime(2026, 9, 26, 23, 42)
+    unset = datetime(1, 1, 1)             # Frappe reads a never-set Datetime single back as 0001-01-01
+    placeholder = datetime(1970, 1, 1)    # the Plane runner's stamp on row chunks
+    assert r.advance_stamp(unset, real, date(2026, 8, 26)) == real
+    assert r.advance_stamp(None, placeholder, date(2026, 8, 26)) is None
+    assert r.advance_stamp(unset, placeholder, date(2026, 8, 26)) is None
+    cur = datetime(2026, 9, 25, 10, 0)
+    assert r.advance_stamp(cur, placeholder, date(2026, 9, 1)) == cur
+
+
+def test_stored_stamp_reads_unset_values_as_never_synced():
+    assert r.stored_stamp(None) is None
+    assert r.stored_stamp("") is None
+    assert r.stored_stamp(datetime(1, 1, 1)) is None
+    assert r.stored_stamp("1970-01-01 00:00:00") is None
+    assert r.stored_stamp("2026-09-26 23:42:07") == datetime(2026, 9, 26, 23, 42, 7)
+    assert r.stored_stamp(datetime(2026, 9, 26, 23, 42, 7)) == datetime(2026, 9, 26, 23, 42, 7)
+
+
 def test_pending_request_does_not_turn_an_office_day_into_a_wfh_day():
     res = r.adherence_day(_ctx(attendance_status="Present", wfh_requested=True,
                                activity={"Plane": {"activity_count": 3, "completed_count": 0}}))
