@@ -120,10 +120,10 @@ As seen on 26-Sep the workspace has 7 members and projects Finance, Branding, Ya
 | Marketing | Marketing | keep; Branding folds in as a module unless it is a separate program (founder to confirm) |
 | Operations (Customer Experience) | Operations | keep |
 | Corporate Management | Corporate | keep, set private |
-| Workshop Relations | none | create |
-| Partnerships | none | create |
-| Human Resources | none | create, private |
-| (unknown) | Yaar Space | founder to confirm purpose |
+| Workshop Relations | WR | created 26-Sep (lead Hiren) |
+| Partnerships | PARTNER | created 26-Sep (lead Zoeb once he joins) |
+| Human Resources | HR ("HR and Admin") | created 26-Sep; must be set private in the UI (API cannot) |
+| (none) | Yaar Space | general project imported from ClickUp; its 11 closed items copied to CORP, MKT, BRAND, FINANCE, HR (tagged `external_source=yaar-space`) and the project archived on 26-Sep-2026 |
 
 1. Create the three missing projects; set Corporate and HR private.
 2. Invite the 7 employees not yet in the workspace, by company email (the identity key for W4).
@@ -142,6 +142,7 @@ Two parts, split so that business rules live in the ERP app and the Plane side i
 - Pushes to the ERP through `/api` with a dedicated ERP user `plane-sync@caryaar.com` holding only a "Plane Sync" role (never the Administrator key).
 - Writes `Plane Work Item` (one row per Plane issue, upserted by Plane issue id) and `Plane Activity Day` (per employee per day: activities, issues completed).
 - Maps people by email only. Unmapped Plane users are reported in `Plane Sync Settings`, never guessed.
+- Skips issues with `external_source = "yaar-space"`: the 11 Yaar Space items copied into CORP, MKT, BRAND, FINANCE and HR on 26-Sep-2026 were created already closed and must not count as completions, adherence or goal progress.
 - Records `last_success_at` and `last_error` on the single doctype `Plane Sync Settings`, so a silent stop is visible in the ERP.
 
 **4b. Rules in the ERP app** (scheduler, daily 23:45 IST, plus on-demand recompute):
