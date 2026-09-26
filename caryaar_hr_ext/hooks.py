@@ -60,15 +60,18 @@ doc_events = {
     "Employee": {"validate": "caryaar_hr_ext.utils.serial.ensure_card_serial"},
 }
 
-# ─── Identity: fixtures ──────────────────────────────────────────────────
-# Card fields on Employee + the Identity Manager role ship as fixtures so
+# ─── Fixtures ────────────────────────────────────────────────────────────
+# Identity card fields (Employee), the WFH approval setup that went live on
+# 26-Sep-2026 (Attendance Request fields, workflow, notifications, docperms)
+# and the performance program fields (Goal, Appraisal) ship as fixtures so
 # `bench migrate` recreates them on any site this app is installed on.
 fixtures = [
     {
         "dt": "Custom Field",
-        "filters": [["fieldname", "like", "cy_%"], ["dt", "=", "Employee"]],
+        "filters": [["fieldname", "like", "cy_%"],
+                    ["dt", "in", ["Employee", "Attendance Request", "Goal", "Appraisal"]]],
     },
-    {"dt": "Role", "filters": [["role_name", "in", ["Identity Manager"]]]},
+    {"dt": "Role", "filters": [["role_name", "in", ["Identity Manager", "Performance Sync"]]]},
     {
         "dt": "Print Format",
         "filters": [
@@ -76,7 +79,25 @@ fixtures = [
              ["CY Card Front", "CY Card Back", "CY Internship Certificate"]],
         ],
     },
+    {"dt": "Workflow State", "filters": [["name", "in", ["Draft", "Cancelled"]]]},
+    {"dt": "Workflow Action Master", "filters": [["name", "in", ["Send for Approval", "Cancel"]]]},
+    {"dt": "Workflow", "filters": [["name", "=", "Attendance Request Approval"]]},
+    {"dt": "Notification", "filters": [["name", "in", [
+        "WFH request awaiting manager approval",
+        "WFH request awaiting HR approval",
+        "WFH request decided"]]]},
+    {"dt": "Custom DocPerm", "filters": [["parent", "=", "Attendance Request"]]},
 ]
+
+# ─── Performance engine ──────────────────────────────────────────────────
+# 23:30 IST (site time zone Asia/Kolkata): adherence for today and the three
+# days before (late syncs), then goal progress from Plane modules, then
+# rating categories.
+scheduler_events = {
+    "cron": {
+        "30 23 * * *": ["caryaar_hr_ext.performance.engine.run_nightly"],
+    },
+}
 
 from . import api  # noqa: E402, F401 — registers the whitelisted method
 

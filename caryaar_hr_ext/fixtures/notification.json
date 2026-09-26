@@ -1,0 +1,92 @@
+[
+ {
+  "attach_files": "",
+  "attach_print": 0,
+  "channel": "Email",
+  "condition": "doc.workflow_state == \"Pending\" and not doc.cy_approver_user",
+  "condition_type": "Python",
+  "days_in_advance": 0,
+  "docstatus": 0,
+  "doctype": "Notification",
+  "document_type": "Attendance Request",
+  "enabled": 1,
+  "event": "Value Change",
+  "is_standard": 0,
+  "message": "<p>{{ doc.employee_name }} has asked to work from home on {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }}{% if doc.to_date and doc.to_date != doc.from_date %} to {{ frappe.utils.formatdate(doc.to_date, \"dd-MMM-yyyy\") }}{% endif %} and has no reporting manager in the ERP, so HR approves it.</p><p><a href=\"{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}\">Open the request</a>.</p>",
+  "message_type": "HTML",
+  "minutes_offset": 0,
+  "name": "WFH request awaiting HR approval",
+  "recipients": [
+   {
+    "cc": "humanresource@caryaar.com",
+    "parent": "WFH request awaiting HR approval",
+    "parentfield": "recipients",
+    "parenttype": "Notification"
+   }
+  ],
+  "send_system_notification": 1,
+  "send_to_all_assignees": 0,
+  "subject": "WFH request from {{ doc.employee_name }} needs HR approval",
+  "value_changed": "workflow_state"
+ },
+ {
+  "attach_files": "",
+  "attach_print": 0,
+  "channel": "Email",
+  "condition": "doc.workflow_state == \"Pending\" and doc.cy_approver_user",
+  "condition_type": "Python",
+  "days_in_advance": 0,
+  "docstatus": 0,
+  "doctype": "Notification",
+  "document_type": "Attendance Request",
+  "enabled": 1,
+  "event": "Value Change",
+  "is_standard": 0,
+  "message": "<p>{{ doc.employee_name }} has asked to work from home on {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }}{% if doc.to_date and doc.to_date != doc.from_date %} to {{ frappe.utils.formatdate(doc.to_date, \"dd-MMM-yyyy\") }}{% endif %}.</p><p>Reason given: {{ doc.explanation or \"none\" }}</p><p>Please approve or reject it. <a href=\"{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}\">Open the request</a>, or use the HRMS app.</p>",
+  "message_type": "HTML",
+  "minutes_offset": 0,
+  "name": "WFH request awaiting manager approval",
+  "recipients": [
+   {
+    "parent": "WFH request awaiting manager approval",
+    "parentfield": "recipients",
+    "parenttype": "Notification",
+    "receiver_by_document_field": "cy_approver_user"
+   }
+  ],
+  "send_system_notification": 1,
+  "send_to_all_assignees": 0,
+  "subject": "WFH request from {{ doc.employee_name }} for {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }}",
+  "value_changed": "workflow_state"
+ },
+ {
+  "attach_files": "",
+  "attach_print": 0,
+  "channel": "Email",
+  "condition": "doc.reason == \"Work From Home\" and doc.workflow_state in (\"Approved\", \"Rejected\")",
+  "condition_type": "Python",
+  "days_in_advance": 0,
+  "docstatus": 0,
+  "doctype": "Notification",
+  "document_type": "Attendance Request",
+  "enabled": 1,
+  "event": "Value Change",
+  "is_standard": 0,
+  "message": "<p>Your request to work from home on {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }}{% if doc.to_date and doc.to_date != doc.from_date %} to {{ frappe.utils.formatdate(doc.to_date, \"dd-MMM-yyyy\") }}{% endif %} was <b>{{ doc.workflow_state | lower }}</b>.</p><p><a href=\"{{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}\">Open the request</a>.</p>",
+  "message_type": "HTML",
+  "minutes_offset": 0,
+  "name": "WFH request decided",
+  "recipients": [
+   {
+    "parent": "WFH request decided",
+    "parentfield": "recipients",
+    "parenttype": "Notification",
+    "receiver_by_document_field": "owner"
+   }
+  ],
+  "send_system_notification": 1,
+  "send_to_all_assignees": 0,
+  "subject": "Your WFH request for {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }} was {{ doc.workflow_state | lower }}",
+  "value_changed": "workflow_state"
+ }
+]

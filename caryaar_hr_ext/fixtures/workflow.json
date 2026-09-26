@@ -1,0 +1,185 @@
+[
+ {
+  "docstatus": 0,
+  "doctype": "Workflow",
+  "document_type": "Attendance Request",
+  "enable_action_confirmation": 0,
+  "is_active": 1,
+  "name": "Attendance Request Approval",
+  "override_status": 0,
+  "send_email_alert": 0,
+  "states": [
+   {
+    "allow_edit": "Employee",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "parent": "Attendance Request Approval",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Draft"
+   },
+   {
+    "allow_edit": "HR Manager",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "parent": "Attendance Request Approval",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Pending"
+   },
+   {
+    "allow_edit": "HR Manager",
+    "avoid_status_override": 0,
+    "doc_status": "1",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "parent": "Attendance Request Approval",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Approved"
+   },
+   {
+    "allow_edit": "HR Manager",
+    "avoid_status_override": 0,
+    "doc_status": "0",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "parent": "Attendance Request Approval",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Rejected"
+   },
+   {
+    "allow_edit": "HR Manager",
+    "avoid_status_override": 0,
+    "doc_status": "2",
+    "evaluate_as_expression": 0,
+    "is_optional_state": 0,
+    "parent": "Attendance Request Approval",
+    "parentfield": "states",
+    "parenttype": "Workflow",
+    "send_email": 1,
+    "state": "Cancelled"
+   }
+  ],
+  "transitions": [
+   {
+    "action": "Send for Approval",
+    "allow_self_approval": 1,
+    "allowed": "Employee",
+    "condition": "doc.reason == \"Work From Home\"",
+    "next_state": "Pending",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Draft"
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 1,
+    "allowed": "HR User",
+    "condition": "doc.reason != \"Work From Home\"",
+    "next_state": "Approved",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Draft"
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 1,
+    "allowed": "HR Manager",
+    "condition": "doc.reason != \"Work From Home\"",
+    "next_state": "Approved",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Draft"
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 1,
+    "allowed": "System Manager",
+    "condition": "doc.reason != \"Work From Home\"",
+    "next_state": "Approved",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Draft"
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 0,
+    "allowed": "Employee",
+    "condition": "doc.cy_approver_user and frappe.session.user == doc.cy_approver_user",
+    "next_state": "Approved",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Pending"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 0,
+    "allowed": "Employee",
+    "condition": "doc.cy_approver_user and frappe.session.user == doc.cy_approver_user",
+    "next_state": "Rejected",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Pending"
+   },
+   {
+    "action": "Approve",
+    "allow_self_approval": 0,
+    "allowed": "HR Manager",
+    "condition": "frappe.db.get_value(\"Employee\", {\"user_id\": frappe.session.user}, \"department\") in (\"Human Resources - CAPL\", \"Corporate Management - CAPL\")",
+    "next_state": "Approved",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Pending"
+   },
+   {
+    "action": "Reject",
+    "allow_self_approval": 0,
+    "allowed": "HR Manager",
+    "condition": "frappe.db.get_value(\"Employee\", {\"user_id\": frappe.session.user}, \"department\") in (\"Human Resources - CAPL\", \"Corporate Management - CAPL\")",
+    "next_state": "Rejected",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Pending"
+   },
+   {
+    "action": "Cancel",
+    "allow_self_approval": 1,
+    "allowed": "HR Manager",
+    "next_state": "Cancelled",
+    "parent": "Attendance Request Approval",
+    "parentfield": "transitions",
+    "parenttype": "Workflow",
+    "send_email_to_creator": 0,
+    "state": "Approved"
+   }
+  ],
+  "workflow_name": "Attendance Request Approval",
+  "workflow_state_field": "workflow_state"
+ }
+]
