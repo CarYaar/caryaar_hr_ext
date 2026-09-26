@@ -164,6 +164,29 @@ New doctypes (in this app): `Plane Work Item`, `Plane Activity Day`, `Work Adher
 
 **Acceptance:** a Plane issue moved to Done appears in the ERP within 15 minutes; a goal linked to a module shows the module's completion; a WFH day with no Plane activity shows as not evidenced; a stopped sync shows a stale `last_success_at`.
 
+### W4c. CY Admin as a second activity source (added 26-Sep on the founder's direction)
+
+Customer Experience (Anagha, Janhavi) work in CY Admin, not Plane: calls, assigned leads, follow-ups. Their proof of work and KRA progress come from the caryaar-api database. Facts below are from caryaar-api `origin/main` c03c667, read-only.
+
+**Identity:** staff are `users` rows with `user_type='CY_ADMIN'`, `status='ACTIVE'`, `deleted_at IS NULL` (agent_roster.py:100). The calling team holds role `SALES_AGENT`. There is no link from a user to an ERP Employee. The join key is `users.email` = Employee `user_id` (seeded as `first.last@caryaar.com`, migration 206).
+
+**Where it runs:** a Celery beat task in caryaar-api (Celery runs in IST, crontab 23:50), using the existing `FrappeClient` (integrations/frappe/client.py) but with a dedicated least-privilege ERP key, not the Administrator key the billing sync uses today. It writes the same ERP `Work Activity Day` records as the Plane sync, with `source = "CY Admin"`. The existing per-agent `sales-report` (live_ops_tower.py:1237) is the reference, but its team block buckets days in the DB session timezone (likely UTC), so the export must bucket every timestamp with `AT TIME ZONE 'Asia/Kolkata'`.
+
+**Per agent per IST day:**
+
+| Measure | Source | Note |
+|---|---|---|
+| Calls handled, answered, talk time | `voice_calls` where `source='HUMAN_AGENT'` and `agent_user_id` = user | one call produces several rows; collapse into sessions like call_collapse.py (5-minute gap) before counting. Answered = COMPLETED with duration > 0 |
+| Calls with a disposition | `voice_calls.outcome` on HUMAN_AGENT rows | no timestamp or "by" on the disposition itself; counted by call date |
+| Lead status moves | `lead_status_history.changed_by` = user | CALL-sourced rows have no actor |
+| Notes written | `customer_notes.author_user_id` | |
+| Bookings credited | `bookings.credited_user_id` (snapshot of the assignee at booking) | the attribution column |
+| Leads assigned, untouched, overdue follow-ups | `customers.assigned_to_user_id`, `next_action_at` | point-in-time only (no assignment history), so the export snapshots them daily |
+
+**Adherence for CY Admin roles:** a working day counts as "work visible" when the person has at least one handled call, status move or note that day.
+
+**Gaps the code cannot measure yet (small additive backend changes, own plan):** assignment history (overwritten in place), disposition time and author, follow-up completion (marking Done sets `next_action_at` to NULL with no record), an agent on `scheduled_callbacks`, and the sender of an agent WhatsApp message (only `audit_logs` has it). Until then, "Customer follow-ups on time" is inferred from a later call by the agent, and "Job updates to customers on time" and "CRM data completeness" stay manager-assessed. Existing per-agent targets (`agent_allocations`, migration 200; `sales_targets`, migration 193) can seed Customer Experience goals.
+
 ### W5. Dashboards (native Frappe, shipped as fixtures)
 
 Dashboard "Performance and Adherence":
