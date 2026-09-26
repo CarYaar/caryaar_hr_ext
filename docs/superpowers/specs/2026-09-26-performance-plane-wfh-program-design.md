@@ -91,6 +91,8 @@ On 26-Sep Joel asked in the founders group who approved Kaushik's weekly WFH day
 
 **Rollback:** set the workflow inactive, delete the scoped user permissions, remove the Employee submit permission, disable the notifications.
 
+**Status: LIVE on production 26-Sep-2026.** Founder decisions applied: Reema and Joel unlocked fully (their `create_user_permission` switched off, which removed their Employee and Company user permissions), so scoped rows exist only for Hiren (Janhavi, Anagha) and Kaushik (Priya). Both approver fields carry `ignore_user_permissions`, otherwise an employee locked to their own record would lose access to their own request because `cy_reports_to` holds the manager's ID. Existing requests mapped to 36 Approved, 7 Draft, 1 Cancelled. Notification subjects are capped at 140 characters by Frappe.
+
 **Acceptance:** existing requests map to Draft, Approved or Cancelled by docstatus; an On Duty draft offers only the HR "Approve"; a WFH draft offers only "Send for Approval"; the approver's email arrives; the manager (not the employee, not Accounts) can approve; the same works in the HRMS mobile app. Staging (`erp-staging`) was unreachable on 26-Sep, so the end-to-end check is a real request on production (a direct report of Sahaib files a future-dated WFH request, Sahaib approves, HR cancels it afterwards).
 
 ### W2. Performance setup in the ERP (configuration)
