@@ -1,0 +1,59 @@
+{
+ "app": "caryaar_hr_ext",
+ "charts": [
+  {
+   "chart_name": "Adherence by department",
+   "label": "Adherence by department"
+  },
+  {
+   "chart_name": "WFH days by department",
+   "label": "WFH days by department"
+  },
+  {
+   "chart_name": "Rating categories",
+   "label": "Rating categories"
+  }
+ ],
+ "content": "[{\"id\": \"cyPerfHead1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>WFH and adherence</b></span>\", \"col\": 12}}, {\"id\": \"cyPerfCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH days this month\", \"col\": 4}}, {\"id\": \"cyPerfCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH requests waiting\", \"col\": 4}}, {\"id\": \"cyPerfChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Adherence by department\", \"col\": 12}}, {\"id\": \"cyPerfChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"WFH days by department\", \"col\": 12}}, {\"id\": \"cyPerfChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Rating categories\", \"col\": 12}}]",
+ "creation": "2026-09-27 00:30:00.000000",
+ "custom_blocks": [],
+ "docstatus": 0,
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 0,
+ "icon": "activity",
+ "idx": 0,
+ "is_hidden": 0,
+ "label": "Performance and Adherence",
+ "links": [],
+ "modified": "2026-09-27 00:30:00.000000",
+ "modified_by": "Administrator",
+ "module": "Caryaar Hr Ext",
+ "name": "Performance and Adherence",
+ "number_cards": [
+  {
+   "label": "WFH days this month",
+   "number_card_name": "WFH days this month"
+  },
+  {
+   "label": "WFH requests waiting",
+   "number_card_name": "WFH requests waiting"
+  }
+ ],
+ "owner": "Administrator",
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
+ "sequence_id": 8.0,
+ "shortcuts": [],
+ "title": "Performance and Adherence",
+ "type": "Workspace"
+}

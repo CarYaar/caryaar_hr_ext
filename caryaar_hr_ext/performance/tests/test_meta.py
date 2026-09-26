@@ -141,6 +141,49 @@ def test_attendance_customisations_are_property_setters_so_hrms_upgrades_keep_th
     assert entry["filters"] == [["name", "in", sorted(ps)]]
 
 
+WS_NAME = "Performance and Adherence"
+WS_FILE = "performance_and_adherence.json"
+HR_ONLY = {"HR Manager", "System Manager"}
+
+
+def test_workspace_page_shows_our_cards_and_charts_to_hr_only():
+    ws = json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / WS_FILE).read_text())
+    assert (ws["doctype"], ws["name"], ws["module"], ws["public"]) == ("Workspace", WS_NAME, "Caryaar Hr Ext", 1)
+    assert {r["role"] for r in ws["roles"]} == HR_ONLY
+    charts = {c["name"] for c in _fx("dashboard_chart")}
+    cards = {c["name"] for c in _fx("number_card")}
+    assert {c["chart_name"] for c in ws["charts"]} == charts
+    assert {c["number_card_name"] for c in ws["number_cards"]} == cards
+    blocks = json.loads(ws["content"])
+    assert {b["data"]["chart_name"] for b in blocks if b["type"] == "chart"} == charts
+    assert {b["data"]["number_card_name"] for b in blocks if b["type"] == "number_card"} == cards
+
+
+def test_sidebar_links_every_screen_of_the_program():
+    sb = json.loads((APP / "workspace_sidebar" / WS_FILE).read_text())
+    assert (sb["doctype"], sb["name"], sb["app"], sb["standard"]) == ("Workspace Sidebar", WS_NAME, "caryaar_hr_ext", 1)
+    links = {(i["link_type"], i["link_to"]) for i in sb["items"] if i["type"] == "Link"}
+    program = {"Work Activity Day", "Work Adherence Day", "Plane Module Progress", "Performance Sync Settings"}
+    assert ("Workspace", WS_NAME) in links
+    assert {n for t, n in links if t == "DocType"} >= program
+    assert ("Report", "Rating Distribution") in links
+    assert ("Dashboard", _fx("dashboard")[0]["name"]) in links
+
+
+def test_desktop_icon_opens_the_sidebar_inside_frappe_hr_for_hr_only():
+    icon = json.loads((APP / "desktop_icon" / WS_FILE).read_text())
+    assert (icon["doctype"], icon["name"], icon["link_type"], icon["link_to"]) == (
+        "Desktop Icon", WS_NAME, "Workspace Sidebar", WS_NAME)
+    assert (icon["parent_icon"], icon["app"], icon["standard"]) == ("Frappe HR", "caryaar_hr_ext", 1)
+    assert {r["role"] for r in icon["roles"]} == HR_ONLY
+
+
+def test_app_level_desk_folders_hold_only_json():
+    # Frappe imports every file in these folders, so a stray file breaks migrate.
+    for folder in ("workspace_sidebar", "desktop_icon"):
+        assert [p.name for p in (APP / folder).iterdir()] == [WS_FILE], folder
+
+
 def test_setup_inserts_only_what_is_missing():
     from caryaar_hr_ext.performance import setup
     docs = [{"doctype": "Notification", "name": "A"}, {"doctype": "Notification", "name": "B"},
