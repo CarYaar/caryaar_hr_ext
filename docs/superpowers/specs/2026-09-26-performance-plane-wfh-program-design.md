@@ -89,7 +89,7 @@ On 26-Sep Joel asked in the founders group who approved Kaushik's weekly WFH day
 6. **Notifications** (Frappe Notification, email): to `cy_approver_user` when a request enters Pending; to the HR mailbox when a request enters Pending with no approver (only the CEO has no manager); to the employee when it is Approved or Rejected.
 7. **Pre-req:** Reema gets HR Manager.
 
-**Rollback:** set the workflow inactive, delete the scoped user permissions, remove the Employee submit permission, disable the notifications.
+**Rollback:** set the workflow inactive, delete the scoped user permissions, remove the Employee submit permission, disable the notifications. These stay rolled back across deploys: the workflow, notifications and docperms are versioned in `performance/setup_data/` and created by an `after_migrate` step only where missing, never re-applied as fixtures (final review, 26-Sep).
 
 **Status: LIVE on production 26-Sep-2026.** Founder decisions applied: Reema and Joel unlocked fully (their `create_user_permission` switched off, which removed their Employee and Company user permissions), so scoped rows exist only for Hiren (Janhavi, Anagha) and Kaushik (Priya). Both approver fields carry `ignore_user_permissions`, otherwise an employee locked to their own record would lose access to their own request because `cy_reports_to` holds the manager's ID. Existing requests mapped to 36 Approved, 7 Draft, 1 Cancelled. Notification subjects are capped at 140 characters by Frappe.
 
@@ -133,36 +133,35 @@ As seen on 26-Sep the workspace has 7 members and projects Finance, Branding, Ya
 
 **Acceptance:** all 14 active employees are workspace members with their `@caryaar.com` email; each team has a project; each W2 goal that is Plane-tracked has a module.
 
-### W4. Plane to ERP link and adherence engine (code)
+### W4. Plane to ERP link and adherence engine (code; as built 26-Sep, after the final review)
 
-Two parts, split so that business rules live in the ERP app and the Plane side is plain transport.
+Plans: `docs/superpowers/plans/2026-09-26-plan-a-erp-performance-foundation.md` (ERP side) and `...plan-b-plane-erp-sync.md` (Plane side).
 
-**4a. `plane-erp-sync` on the Plane VM** (`deploy/plane-erp-sync/`, Python stdlib, systemd timer every 15 minutes, same pattern as the Google Chat relay):
+**4a. `plane-erp-sync` on the Plane VM** (`deploy/plane-erp-sync/`, a Python container on the `plane-app_default` Docker network, running every 15 minutes, restart unless-stopped):
 
-- Reads Plane through its local API (`http://127.0.0.1:8080`) with a Plane API token held in Secret Manager.
-- Pushes to the ERP through `/api` with a dedicated ERP user `plane-sync@caryaar.com` holding only a "Plane Sync" role (never the Administrator key).
-- Writes `Plane Work Item` (one row per Plane issue, upserted by Plane issue id) and `Plane Activity Day` (per employee per day: activities, issues completed).
-- Maps people by email only. Unmapped Plane users are reported in `Plane Sync Settings`, never guessed.
-- Skips issues with `external_source = "yaar-space"`: the 11 Yaar Space items copied into CORP, MKT, BRAND, FINANCE and HR on 26-Sep-2026 were created already closed and must not count as completions, adherence or goal progress.
-- Records `last_success_at` and `last_error` on the single doctype `Plane Sync Settings`, so a silent stop is visible in the ERP.
+- Reads Plane's Postgres directly as a dedicated role `plane_erp_sync` with `SELECT` on the ten tables it needs and `default_transaction_read_only = on`. The owner password (`PLANE_POSTGRES_PASSWORD`) is used only by the deploy script on the VM to create that role and never reaches the container. The public API was not used: it has no activity-by-person endpoint and allows 60 requests a minute.
+- Asks the ERP how far Plane data is confirmed (`get_sync_state`) and re-sends from that day, at least yesterday and at most 31 days, so an outage leaves no silent gap.
+- Excludes deleted rows, drafts, bot users, users without a real email, Plane's automation rows, and the Yaar Space copies (`external_source = 'yaar-space'`).
+- Pushes to the ERP through `/api` with the API key of `performance-sync@caryaar.com`, whose only role is `Performance Sync` (no doctype permissions; the endpoints check the role). Never the Administrator key.
+- A column missing after a Plane upgrade stops the container at startup, naming the column. Errors go to the container log; a stopped sync is visible in the ERP as a stale "synced through" time.
 
-**4b. Rules in the ERP app** (scheduler, daily 23:45 IST, plus on-demand recompute):
+**4b. Rules in the ERP app** (nightly at 23:30 IST for today and the three days before, plus an HR "recompute" for up to 62 days):
 
-- **Work Adherence Day** per employee per working day (Holiday List and leave excluded):
-  - `plane_active`: at least one Plane activity by the person that day.
-  - `wfh_approved`: if attendance is Work From Home, an Approved request exists.
-  - `wfh_evidence`: on a WFH day, at least one Plane issue completed or moved forward by the person.
-  - `goal_hygiene` (monthly): each goal updated at least once in the month.
-  - Managers additionally: WFH requests actioned within one working day.
-- **Monthly adherence percent** = passed checks / applicable checks. Shown to the employee and manager; used for D1 and as evidence for the Process Adherence criterion.
-- **Goal progress:** a goal with `cy_plane_module` set gets progress = completed / total non-cancelled issues in that module.
-- **Performance category:** `cy_performance_category` on Appraisal, set from `final_score` using D6 bands.
+- **Intake:** `ingest_activity(source, synced_through, covers_from, rows)` writes one `Work Activity Day` per person, day and source, updating only the metrics a row carries. A source's stamp moves forward only when the payload covers from the day of the current stamp, so days never sent stay pending. `ingest_module_progress` keeps `Plane Module Progress`.
+- **Work Adherence Day** per employee per working day (holidays resolved through HRMS Holiday List Assignments as of that day; leave and absent days excluded):
+  - `work_visible`: activity in the person's work record (Plane, or CY Admin for Operations) that day; pending until every expected source has synced past the day.
+  - `wfh_approved` and `wfh_evidenced` on WFH days. A request still waiting for approval makes a day a WFH day only when there is no attendance saying otherwise.
+- **Monthly adherence percent** = passed checks / applicable checks.
+- **Goal progress:** goals in In Progress cycles for active employees with a Plane module (ID or pasted link) get progress = completed / non-cancelled tasks. Unknown modules are listed on the settings form.
+- **Performance category:** stored on submitted appraisals only; the Rating Distribution report shows the provisional spread live.
 
-New doctypes (in this app): `Plane Work Item`, `Plane Activity Day`, `Work Adherence Day`, `Plane Sync Settings` (single). New custom fields (fixtures, `cy_` prefix): `Goal.cy_plane_module`, `Appraisal.cy_performance_category`. New role: `Plane Sync`.
+DocTypes (in this app): `Work Activity Day`, `Work Adherence Day`, `Plane Module Progress`, `Performance Sync Settings` (single). Custom fields: `Goal.cy_plane_module`, `Appraisal.cy_performance_category`, plus the live `Attendance Request` approver fields. Role: `Performance Sync`.
 
-**Testing:** unit tests for the adherence and category rules with fixtures captured from real Plane API and ERP responses (read-only capture, never hand-invented shapes); an end-to-end run on ERP staging with one real Plane project before production.
+**Testing:** pure rules and payload tests run locally; Frappe integration tests (`performance/tests/test_integration.py`) run on the staging ERP before production.
 
-**Acceptance:** a Plane issue moved to Done appears in the ERP within 15 minutes; a goal linked to a module shows the module's completion; a WFH day with no Plane activity shows as not evidenced; a stopped sync shows a stale `last_success_at`.
+**Acceptance:** a Plane task moved to Done appears in the ERP within 15 minutes; a goal linked to a module shows the module's completion; a WFH day with no completed work shows as not evidenced; a stopped sync leaves later days pending, not failed.
+
+**Not built yet (tracked):** employees and managers seeing their own adherence (success criterion 3, needed before 01-Nov; who sees what is a founder decision), manager response-time and monthly goal-hygiene checks.
 
 ### W4c. CY Admin as a second activity source (added 26-Sep on the founder's direction)
 
@@ -224,8 +223,9 @@ Native Dashboard Charts are used instead of Insights (0 dashboards exist there) 
 | P2 | Create "Attendance Request Approval" workflow | ERP | setting the workflow inactive |
 | P3 | Create KRAs, criteria, templates and the Oct-Mar cycle | ERP | deleting the new records (cycle not yet started) |
 | P4 | Plane: inventory, new projects, invites | Plane | archiving projects, removing members |
-| P5 | ERP user `plane-sync@caryaar.com` with "Plane Sync" role and API key | ERP | disabling the user |
-| P6 | Plane API token into Secret Manager; deploy `plane-erp-sync` on the Plane VM | GCP, Plane VM | stopping the timer |
+| P5 | ERP user `performance-sync@caryaar.com` with only the "Performance Sync" role (no doctype permissions) and its API key in Secret Manager `erp-performance-sync-key` | ERP, GCP | disabling the user |
+| P6 | Secret Manager `PLANE_ERP_SYNC_DB_PASSWORD`; read-only Postgres role `plane_erp_sync` (SELECT on ten tables); deploy the `plane-erp-sync` container on the Plane VM | GCP, Plane VM | `docker rm -f plane-erp-sync`; `DROP ROLE plane_erp_sync` |
+| P6b | Deploy caryaar-api with the dormant CY Admin sync; wire `ERP_PERFORMANCE_SYNC_KEY` on the worker; switch on `PERFORMANCE_SYNC_ENABLED` | Cloud Run | switch the flag off |
 | P7 | Deploy app update to the ERP (`bench migrate`) after a VM snapshot | ERP VM | snapshot restore; app revert |
 | P8 | Publish handbook v1.1 | ERP | re-publish v1.0 content |
 
