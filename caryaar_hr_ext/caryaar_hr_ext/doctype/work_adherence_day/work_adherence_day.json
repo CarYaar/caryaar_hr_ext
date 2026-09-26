@@ -1,0 +1,164 @@
+{
+ "doctype": "DocType",
+ "name": "Work Adherence Day",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "autoname": "",
+ "naming_rule": "By script",
+ "title_field": "employee_name",
+ "sort_field": "adherence_date",
+ "sort_order": "DESC",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 18:00:00.000000",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "department",
+  "adherence_date",
+  "is_working_day",
+  "attendance_status",
+  "expected_sources",
+  "wfh",
+  "column_break_1",
+  "work_visible",
+  "wfh_approved",
+  "wfh_evidenced",
+  "checks_passed",
+  "checks_applicable",
+  "adherence_pct"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "options": "Employee",
+   "label": "Employee",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee name",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "options": "Department",
+   "label": "Department",
+   "fetch_from": "employee.department",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "adherence_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "is_working_day",
+   "fieldtype": "Check",
+   "label": "Working day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "attendance_status",
+   "fieldtype": "Data",
+   "label": "Attendance",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expected_sources",
+   "fieldtype": "Data",
+   "label": "Work record",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wfh",
+   "fieldtype": "Check",
+   "label": "WFH day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "work_visible",
+   "fieldtype": "Select",
+   "options": "\nYes\nNo",
+   "label": "Work visible",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "wfh_approved",
+   "fieldtype": "Select",
+   "options": "\nYes\nNo",
+   "label": "WFH approved before the day",
+   "read_only": 1
+  },
+  {
+   "fieldname": "wfh_evidenced",
+   "fieldtype": "Select",
+   "options": "\nYes\nNo",
+   "label": "WFH work shown",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checks_passed",
+   "fieldtype": "Int",
+   "label": "Checks passed",
+   "read_only": 1
+  },
+  {
+   "fieldname": "checks_applicable",
+   "fieldtype": "Int",
+   "label": "Checks that applied",
+   "read_only": 1
+  },
+  {
+   "fieldname": "adherence_pct",
+   "fieldtype": "Percent",
+   "label": "Adherence",
+   "read_only": 1,
+   "in_list_view": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Performance Sync",
+   "read": 1
+  }
+ ]
+}

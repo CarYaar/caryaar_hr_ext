@@ -1,0 +1,199 @@
+{
+ "doctype": "DocType",
+ "name": "Work Activity Day",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "autoname": "",
+ "naming_rule": "By script",
+ "title_field": "employee_name",
+ "sort_field": "activity_date",
+ "sort_order": "DESC",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 18:00:00.000000",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "department",
+  "activity_date",
+  "source",
+  "synced_at",
+  "section_plane",
+  "activity_count",
+  "completed_count",
+  "section_cy",
+  "calls_handled",
+  "calls_answered",
+  "talk_seconds",
+  "dispositions",
+  "status_moves",
+  "notes_written",
+  "bookings_credited",
+  "leads_assigned",
+  "leads_untouched",
+  "followups_overdue"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "options": "Employee",
+   "label": "Employee",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee name",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "department",
+   "fieldtype": "Link",
+   "options": "Department",
+   "label": "Department",
+   "fetch_from": "employee.department",
+   "read_only": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "activity_date",
+   "fieldtype": "Date",
+   "label": "Date",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Select",
+   "options": "Plane\nCY Admin",
+   "label": "Source",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "synced_at",
+   "fieldtype": "Datetime",
+   "label": "Synced at",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_plane",
+   "fieldtype": "Section Break",
+   "label": "Plane"
+  },
+  {
+   "fieldname": "activity_count",
+   "fieldtype": "Int",
+   "label": "Actions in Plane",
+   "default": "0"
+  },
+  {
+   "fieldname": "completed_count",
+   "fieldtype": "Int",
+   "label": "Tasks completed",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_cy",
+   "fieldtype": "Section Break",
+   "label": "CY Admin"
+  },
+  {
+   "fieldname": "calls_handled",
+   "fieldtype": "Int",
+   "label": "Calls handled",
+   "default": "0"
+  },
+  {
+   "fieldname": "calls_answered",
+   "fieldtype": "Int",
+   "label": "Calls answered",
+   "default": "0"
+  },
+  {
+   "fieldname": "talk_seconds",
+   "fieldtype": "Int",
+   "label": "Talk time (seconds)",
+   "default": "0"
+  },
+  {
+   "fieldname": "dispositions",
+   "fieldtype": "Int",
+   "label": "Calls with an outcome",
+   "default": "0"
+  },
+  {
+   "fieldname": "status_moves",
+   "fieldtype": "Int",
+   "label": "Lead status changes",
+   "default": "0"
+  },
+  {
+   "fieldname": "notes_written",
+   "fieldtype": "Int",
+   "label": "Notes written",
+   "default": "0"
+  },
+  {
+   "fieldname": "bookings_credited",
+   "fieldtype": "Int",
+   "label": "Bookings credited",
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_assigned",
+   "fieldtype": "Int",
+   "label": "Leads assigned (end of day)",
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_untouched",
+   "fieldtype": "Int",
+   "label": "Leads untouched (end of day)",
+   "default": "0"
+  },
+  {
+   "fieldname": "followups_overdue",
+   "fieldtype": "Int",
+   "label": "Follow-ups overdue (end of day)",
+   "default": "0"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "Performance Sync",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  }
+ ]
+}

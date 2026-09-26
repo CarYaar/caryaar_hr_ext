@@ -1,0 +1,96 @@
+{
+ "doctype": "DocType",
+ "name": "Plane Module Progress",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "autoname": "field:module_id",
+ "naming_rule": "By fieldname",
+ "title_field": "module_name",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 18:00:00.000000",
+ "field_order": [
+  "module_id",
+  "project_identifier",
+  "module_name",
+  "total_issues",
+  "completed_issues",
+  "progress",
+  "synced_at"
+ ],
+ "fields": [
+  {
+   "fieldname": "module_id",
+   "fieldtype": "Data",
+   "label": "Plane module ID",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "project_identifier",
+   "fieldtype": "Data",
+   "label": "Project",
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "module_name",
+   "fieldtype": "Data",
+   "label": "Module",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "total_issues",
+   "fieldtype": "Int",
+   "label": "Tasks",
+   "default": "0"
+  },
+  {
+   "fieldname": "completed_issues",
+   "fieldtype": "Int",
+   "label": "Tasks done",
+   "default": "0"
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Percent",
+   "label": "Progress",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "synced_at",
+   "fieldtype": "Datetime",
+   "label": "Synced at",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "report": 1
+  },
+  {
+   "role": "Performance Sync",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  }
+ ]
+}

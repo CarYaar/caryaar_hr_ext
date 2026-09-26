@@ -1,0 +1,86 @@
+{
+ "doctype": "DocType",
+ "name": "Performance Sync Settings",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 1,
+ "engine": "InnoDB",
+ "track_changes": 1,
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 18:00:00.000000",
+ "field_order": [
+  "department_sources",
+  "section_sync",
+  "plane_synced_through",
+  "plane_modules_synced_through",
+  "cy_admin_synced_through",
+  "unmapped_emails",
+  "last_error"
+ ],
+ "fields": [
+  {
+   "fieldname": "department_sources",
+   "fieldtype": "Code",
+   "options": "JSON",
+   "label": "Work record by department",
+   "description": "Departments whose work record is not Plane alone. Everyone else defaults to Plane.",
+   "default": "{\"Operations - CAPL\": [\"CY Admin\", \"Plane\"]}"
+  },
+  {
+   "fieldname": "section_sync",
+   "fieldtype": "Section Break",
+   "label": "Sync health"
+  },
+  {
+   "fieldname": "plane_synced_through",
+   "fieldtype": "Datetime",
+   "label": "Plane activity synced through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "plane_modules_synced_through",
+   "fieldtype": "Datetime",
+   "label": "Plane modules synced through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "cy_admin_synced_through",
+   "fieldtype": "Datetime",
+   "label": "CY Admin synced through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "unmapped_emails",
+   "fieldtype": "Small Text",
+   "label": "Emails not matched to an employee",
+   "read_only": 1
+  },
+  {
+   "fieldname": "last_error",
+   "fieldtype": "Small Text",
+   "label": "Last engine error",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1
+  },
+  {
+   "role": "Performance Sync",
+   "read": 1,
+   "write": 1
+  }
+ ]
+}
