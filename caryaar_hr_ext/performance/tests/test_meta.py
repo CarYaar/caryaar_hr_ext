@@ -83,3 +83,17 @@ def test_new_custom_fields_present_with_cy_prefix():
 
 def test_performance_sync_role_fixture():
     assert "Performance Sync" in {r["name"] for r in _fx("role")}
+
+
+def test_rating_report_guide_matches_handbook_bell_curve():
+    from caryaar_hr_ext.caryaar_hr_ext.report.rating_distribution import rating_distribution as rd
+    assert [g for _, g in rd.GUIDE] == [5, 15, 25, 50, 5]
+    assert [c for c, _ in rd.GUIDE] == [name for _, name in rules.BANDS]
+
+
+def test_dashboard_fixture_references_existing_charts_and_cards():
+    charts = {c["name"] for c in _fx("dashboard_chart")}
+    cards = {c["name"] for c in _fx("number_card")}
+    dash = _fx("dashboard")[0]
+    assert {c["chart"] for c in dash["charts"]} <= charts
+    assert {c["card"] for c in dash["cards"]} <= cards

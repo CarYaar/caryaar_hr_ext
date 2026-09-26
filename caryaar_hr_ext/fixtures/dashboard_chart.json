@@ -1,0 +1,45 @@
+[
+ {
+  "chart_name": "Rating categories",
+  "chart_type": "Group By",
+  "doctype": "Dashboard Chart",
+  "document_type": "Appraisal",
+  "filters_json": "[[\"Appraisal\",\"docstatus\",\"<\",2]]",
+  "group_by_based_on": "cy_performance_category",
+  "group_by_type": "Count",
+  "is_public": 1,
+  "module": "Caryaar Hr Ext",
+  "name": "Rating categories",
+  "timeseries": 0,
+  "type": "Bar"
+ },
+ {
+  "aggregate_function_based_on": "adherence_pct",
+  "chart_name": "Adherence by department",
+  "chart_type": "Group By",
+  "doctype": "Dashboard Chart",
+  "document_type": "Work Adherence Day",
+  "filters_json": "[[\"Work Adherence Day\",\"checks_applicable\",\">\",0],[\"Work Adherence Day\",\"adherence_date\",\">=\",\"2026-11-01\"]]",
+  "group_by_based_on": "department",
+  "group_by_type": "Average",
+  "is_public": 1,
+  "module": "Caryaar Hr Ext",
+  "name": "Adherence by department",
+  "timeseries": 0,
+  "type": "Bar"
+ },
+ {
+  "chart_name": "WFH days by department",
+  "chart_type": "Group By",
+  "doctype": "Dashboard Chart",
+  "document_type": "Attendance",
+  "filters_json": "[[\"Attendance\",\"status\",\"=\",\"Work From Home\"],[\"Attendance\",\"docstatus\",\"=\",1]]",
+  "group_by_based_on": "department",
+  "group_by_type": "Count",
+  "is_public": 1,
+  "module": "Caryaar Hr Ext",
+  "name": "WFH days by department",
+  "timeseries": 0,
+  "type": "Bar"
+ }
+]

@@ -87,6 +87,9 @@ fixtures = [
         "WFH request awaiting HR approval",
         "WFH request decided"]]]},
     {"dt": "Custom DocPerm", "filters": [["parent", "=", "Attendance Request"]]},
+    {"dt": "Dashboard Chart", "filters": [["module", "=", "Caryaar Hr Ext"]]},
+    {"dt": "Number Card", "filters": [["module", "=", "Caryaar Hr Ext"]]},
+    {"dt": "Dashboard", "filters": [["module", "=", "Caryaar Hr Ext"]]},
 ]
 
 # ─── Performance engine ──────────────────────────────────────────────────

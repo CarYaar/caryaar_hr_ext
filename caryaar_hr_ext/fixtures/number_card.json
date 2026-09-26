@@ -1,0 +1,26 @@
+[
+ {
+  "doctype": "Number Card",
+  "document_type": "Attendance",
+  "filters_json": "[[\"Attendance\",\"status\",\"=\",\"Work From Home\"],[\"Attendance\",\"docstatus\",\"=\",1],[\"Attendance\",\"attendance_date\",\"Timespan\",\"this month\"]]",
+  "function": "Count",
+  "is_public": 1,
+  "label": "WFH days this month",
+  "module": "Caryaar Hr Ext",
+  "name": "WFH days this month",
+  "show_percentage_stats": 0,
+  "type": "Document Type"
+ },
+ {
+  "doctype": "Number Card",
+  "document_type": "Attendance Request",
+  "filters_json": "[[\"Attendance Request\",\"workflow_state\",\"=\",\"Pending\"]]",
+  "function": "Count",
+  "is_public": 1,
+  "label": "WFH requests waiting",
+  "module": "Caryaar Hr Ext",
+  "name": "WFH requests waiting",
+  "show_percentage_stats": 0,
+  "type": "Document Type"
+ }
+]

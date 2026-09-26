@@ -1,0 +1,23 @@
+{
+ "doctype": "Report",
+ "name": "Rating Distribution",
+ "report_name": "Rating Distribution",
+ "ref_doctype": "Appraisal",
+ "report_type": "Script Report",
+ "is_standard": "Yes",
+ "module": "Caryaar Hr Ext",
+ "disabled": 0,
+ "add_total_row": 1,
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 18:00:00.000000",
+ "roles": [
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
+ ]
+}

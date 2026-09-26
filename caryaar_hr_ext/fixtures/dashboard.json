@@ -1,0 +1,31 @@
+[
+ {
+  "cards": [
+   {
+    "card": "WFH days this month"
+   },
+   {
+    "card": "WFH requests waiting"
+   }
+  ],
+  "charts": [
+   {
+    "chart": "Adherence by department",
+    "width": "Half"
+   },
+   {
+    "chart": "WFH days by department",
+    "width": "Half"
+   },
+   {
+    "chart": "Rating categories",
+    "width": "Full"
+   }
+  ],
+  "dashboard_name": "Performance and Adherence",
+  "doctype": "Dashboard",
+  "is_standard": 0,
+  "module": "Caryaar Hr Ext",
+  "name": "Performance and Adherence"
+ }
+]
