@@ -109,10 +109,26 @@ frappe.session.user == frappe.db.get_value("Employee", frappe.db.get_value("Empl
 
 ### W3. Plane for every team (Plane admin)
 
-1. Inventory existing projects and members (needs founder go: Plane is production).
-2. One project per team that lacks one: Marketing, Customer Experience, Workshop Relations and Partnerships, HR and Admin, Leadership. Engineering keeps Development; Finance keeps FINANCE.
-3. Invite every active employee by company email (the identity key for W4).
-4. House rules, kept to three: every task has one assignee; every task has a target date; each goal from W2 has a matching Plane module.
+**Structure (founder-confirmed direction, 26-Sep): one workspace ("CarYaar"), one project per ERP department.** Separate workspaces are hard walls (no cross-workspace views, analytics or issue links) and would break cross-team tickets such as FINANCE-1 to DEV-1198. Sensitive work uses private projects instead.
+
+As seen on 26-Sep the workspace has 7 members and projects Finance, Branding, Yaar Space, Operations, Marketing, Corporate, Development.
+
+| ERP department | Plane project | Action |
+|---|---|---|
+| Technology | Development | keep |
+| Finance and Accounts | Finance | keep |
+| Marketing | Marketing | keep; Branding folds in as a module unless it is a separate program (founder to confirm) |
+| Operations (Customer Experience) | Operations | keep |
+| Corporate Management | Corporate | keep, set private |
+| Workshop Relations | none | create |
+| Partnerships | none | create |
+| Human Resources | none | create, private |
+| (unknown) | Yaar Space | founder to confirm purpose |
+
+1. Create the three missing projects; set Corporate and HR private.
+2. Invite the 7 employees not yet in the workspace, by company email (the identity key for W4).
+3. House rules, kept to three: every task has one assignee; every task has a target date; each goal from W2 has a matching Plane module in its team's project.
+4. Cross-team work: the requesting team logs the need in its own project and links the executing team's issue; no duplicate tickets.
 
 **Acceptance:** all 14 active employees are workspace members with their `@caryaar.com` email; each team has a project; each W2 goal that is Plane-tracked has a module.
 
@@ -199,6 +215,7 @@ Native Dashboard Charts are used instead of Insights (0 dashboards exist there) 
 | Plane emails do not match ERP users | Sync reports unmapped users; W3 invites by company email only |
 | Plane upgrade changes API responses | Sync validates shapes and fails loudly into `Plane Sync Settings.last_error` |
 | Leadership does not use Plane | D4 puts founders in adherence from day one |
+| Phone-first staff (Operations, Workshop Relations) cannot use the Plane native app: self-hosted login is Commercial Edition only (memory `project_plane_pm_selfhost`) | Mobile browser as baseline; bring the built Google Chat `/task` bridge live so tasks can be created from Chat; Plane to Google Chat updates already live |
 
 ## Appendix A. Draft role KRAs (for founders and heads to edit; 5 per role, weights sum to 100)
 
