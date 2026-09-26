@@ -9,7 +9,7 @@
 
 On 26-Sep Joel asked in the founders group who approved Kaushik's weekly WFH day, and proposed stopping WFH "except special cases where deliverables of working from home are tracked (like Shiwans now)". That rule is the right one. The problem is that nothing in the company makes "tracked" true by default:
 
-- **WFH requests have no approval step.** `Attendance Request` has no Workflow, so an employee files one and it is accepted. 30 WFH days since June (Jun 1, Aug 8, Sep 21), Tech 18, Finance 6, Ops 5, Marketing 1.
+- **WFH requests have the wrong approvers.** Employees can only draft; anyone with HR User, HR Manager or System Manager submits. 14 of the 20 WFH requests were self-submitted and 6 were submitted by Accounts; none by a manager. 30 WFH days since June (Jun 1, Aug 8, Sep 21), Tech 18, Finance 6, Ops 5, Marketing 1.
 - **Performance is not set up.** One appraisal cycle "Mar 2026 - Sept 2026" (ends 30-Sep) was never started: 0 appraisees, 0 goals, 0 feedback. Its one template holds 8 company-wide KRAs, not the 5 role KRAs the handbook requires.
 - **The handbook contradicts itself.** Section 13.10 (added 10-Apr) rates people on measurable outcomes, while Sections 8 and 11 judge presence. Section 11 has no eligibility rule at all.
 - **Plane is used unevenly.** It is open to every team but only engineering uses it as its system of record.
@@ -65,36 +65,33 @@ On 26-Sep Joel asked in the founders group who approved Kaushik's weekly WFH day
 
 ## 6. Workstreams
 
-### W1. WFH approval in the ERP (configuration, no code)
+### W1. WFH approval in the ERP (configuration, no code; revised 26-Sep after live permission checks)
 
-Workflow **"Attendance Request Approval"** on `Attendance Request`, shipped as a fixture in this app and also creatable via API for the first rollout.
+**What the live ERP showed (26-Sep):** the Employee role can only create an Attendance Request draft; only HR User, HR Manager and System Manager can submit. Of the 20 WFH days since June, 14 were submitted by the employee themself (their broad roles allowed it) and 6 by an Accounts executive; none by a reporting manager or HR. Reema, Joel, Hiren and Kaushik each carry a User Permission that locks them to their own Employee record for all doctypes, so as managers they cannot open their team's requests. That lock also scopes salary slips, so it must not simply be removed. In Frappe v16 a document shared with a user is readable even when their user permission fails, and user permissions can be scoped to a single doctype.
 
-| State | doc_status | Who may edit |
-|---|---|---|
-| Draft | 0 | Employee |
-| Pending Approval | 0 | HR Manager |
-| Approved | 1 | HR Manager |
-| Rejected | 0 | HR Manager |
+**Pieces:**
 
-| From | Action | To | Allowed role | Condition |
+1. **Approver fields** on Attendance Request (custom fields, `cy_` prefix, later shipped as fixtures): `cy_reports_to` (Link Employee, read-only, fetched from `employee.reports_to`) and `cy_approver_user` (Link User, read-only, fetched from `cy_reports_to.user_id`).
+2. **States** (Draft first, so existing drafts map to Draft): Draft (0, Employee), Pending (0, HR Manager), Approved (1, HR Manager), Rejected (0, HR Manager), Cancelled (2, HR Manager).
+3. **Transitions:**
+
+| From | Action | To | Role | Condition |
 |---|---|---|---|---|
-| Draft | Send for Approval | Pending Approval | Employee | `doc.reason == "Work From Home"` |
-| Draft | Submit | Approved | Employee | `doc.reason != "Work From Home"` (On Duty and Weekly Off behave exactly as today) |
-| Pending Approval | Approve | Approved | Employee | session user is the user of the employee's `reports_to` (see below); self-approval off |
-| Pending Approval | Reject | Rejected | Employee | same condition |
-| Pending Approval | Approve / Reject | Approved / Rejected | HR Manager | none (fallback); self-approval off |
+| Draft | Send for Approval | Pending | Employee | `doc.reason == "Work From Home"` |
+| Draft | Approve | Approved | HR User, HR Manager, System Manager (one row each) | `doc.reason != "Work From Home"` (On Duty and Weekly Off keep today's HR submission exactly) |
+| Pending | Approve / Reject | Approved / Rejected | Employee | `doc.cy_approver_user and frappe.session.user == doc.cy_approver_user`; self-approval off |
+| Pending | Approve / Reject | Approved / Rejected | HR Manager | approver's Employee department is Human Resources or Corporate Management; self-approval off |
+| Approved | Cancel | Cancelled | HR Manager | none |
 
-Manager condition:
+   Workflow email alerts stay OFF: Frappe would alert every holder of the allowed role, and that role is Employee (everyone).
+4. **Submit permission:** the Employee role gets `submit` on Attendance Request so a manager's approval can submit the document; the workflow is the gate (an employee has no transition that submits their own WFH).
+5. **Scoped manager visibility:** User Permission rows (allow Employee, applicable for Attendance Request only) for each restricted manager over each direct report: Hiren over Janhavi and Anagha; Joel over Reema, Zoeb and Hiren; Kaushik over Priya; Reema (HR fallback) over every active employee. Salary slips and every other doctype stay as today. Rows must follow reporting-line changes (W4 can maintain them later).
+6. **Notifications** (Frappe Notification, email): to `cy_approver_user` when a request enters Pending; to the HR mailbox when a request enters Pending with no approver (only the CEO has no manager); to the employee when it is Approved or Rejected.
+7. **Pre-req:** Reema gets HR Manager.
 
-```python
-frappe.session.user == frappe.db.get_value("Employee", frappe.db.get_value("Employee", doc.employee, "reports_to"), "user_id")
-```
+**Rollback:** set the workflow inactive, delete the scoped user permissions, remove the Employee submit permission, disable the notifications.
 
-- Existing 43 requests: Frappe stamps `workflow_state` from `docstatus` when the workflow is created (submitted become Approved, the 6 On Duty drafts become Draft). Verify after creation.
-- Email alerts on (email is an official channel). A Google Chat alert is a later improvement.
-- **Pre-req (D3):** give Reema "HR Manager" so the HR fallback is HR; founders review Shubham's HR Manager and System Manager roles separately.
-
-**Acceptance:** on staging first, then production: (1) an employee's WFH request lands in Pending Approval and marks no attendance; (2) only their manager or an HR Manager can approve; (3) approval marks the day Work From Home; (4) an On Duty request still self-submits in one step; (5) the same flow works in the HRMS mobile app.
+**Acceptance:** existing requests map to Draft, Approved or Cancelled by docstatus; an On Duty draft offers only the HR "Approve"; a WFH draft offers only "Send for Approval"; the approver's email arrives; the manager (not the employee, not Accounts) can approve; the same works in the HRMS mobile app. Staging (`erp-staging`) was unreachable on 26-Sep, so the end-to-end check is a real request on production (a direct report of Sahaib files a future-dated WFH request, Sahaib approves, HR cancels it afterwards).
 
 ### W2. Performance setup in the ERP (configuration)
 
