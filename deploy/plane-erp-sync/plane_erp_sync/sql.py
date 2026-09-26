@@ -24,6 +24,7 @@ FROM workspace_members wm
 JOIN workspaces w ON w.id = wm.workspace_id AND w.slug = %(slug)s
 JOIN users u ON u.id = wm.member_id
 WHERE wm.deleted_at IS NULL AND wm.is_active AND u.is_active AND NOT u.is_bot
+  AND u.email LIKE '%%@%%'
 """
 
 ACTIVITY_SQL = """
@@ -33,7 +34,7 @@ JOIN users u ON u.id = a.actor_id
 JOIN issues i ON i.id = a.issue_id AND i.deleted_at IS NULL
 JOIN workspaces w ON w.id = a.workspace_id AND w.slug = %(slug)s
 WHERE a.deleted_at IS NULL
-  AND NOT u.is_bot
+  AND NOT u.is_bot AND u.email LIKE '%%@%%'
   AND a.created_at >= %(start)s AND a.created_at < %(end)s
   AND coalesce(i.external_source, '') <> 'yaar-space'
   AND NOT (coalesce(a.field, '') = 'archived_at' AND coalesce(a.new_value, '') = 'archive')
@@ -49,7 +50,7 @@ JOIN issue_assignees ia ON ia.issue_id = i.id AND ia.deleted_at IS NULL
 JOIN users u ON u.id = ia.assignee_id
 JOIN states s ON s.id = i.state_id AND s."group" = 'completed'
 JOIN workspaces w ON w.id = i.workspace_id AND w.slug = %(slug)s
-WHERE i.deleted_at IS NULL AND NOT i.is_draft AND NOT u.is_bot
+WHERE i.deleted_at IS NULL AND NOT i.is_draft AND NOT u.is_bot AND u.email LIKE '%%@%%'
   AND i.completed_at >= %(start)s AND i.completed_at < %(end)s
   AND coalesce(i.external_source, '') <> 'yaar-space'
 GROUP BY 1, 2

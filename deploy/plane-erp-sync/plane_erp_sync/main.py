@@ -17,6 +17,7 @@ from plane_erp_sync import core, erp, sql
 log = logging.getLogger("plane_erp_sync")
 ACTIVITY_METHOD = "caryaar_hr_ext.performance.api.ingest_activity"
 MODULES_METHOD = "caryaar_hr_ext.performance.api.ingest_module_progress"
+STATE_METHOD = "caryaar_hr_ext.performance.api.get_sync_state"
 
 
 def _read(path_env: str) -> str:
@@ -43,8 +44,8 @@ def check_schema(conn) -> None:
         raise SystemExit(f"Plane schema changed, refusing to sync. Missing columns: {missing}")
 
 
-def collect(conn, slug: str, now_utc: datetime):
-    start, end, days = core.ist_window(now_utc)
+def collect(conn, slug: str, now_utc: datetime, days_back: int):
+    start, end, days = core.ist_window(now_utc, days_back)
     p = {"slug": slug, "start": start, "end": end}
     members = [r[0] for r in conn.execute(sql.MEMBERS_SQL, p).fetchall()]
     activity = {(e, d): n for e, d, n in conn.execute(sql.ACTIVITY_SQL, p).fetchall()}
@@ -53,28 +54,40 @@ def collect(conn, slug: str, now_utc: datetime):
     return core.activity_rows(members, activity, completed, days), core.module_rows(modules)
 
 
+def _stamp_day(state: dict) -> "date | None":
+    value = (state or {}).get("Plane")
+    return datetime.fromisoformat(value).date() if value else None
+
+
 def run_once(dry_run: bool) -> dict:
     now = datetime.now(timezone.utc)
     slug = os.environ.get("PLANE_WORKSPACE_SLUG", "caryaar")
+    base = os.environ.get("ERP_URL", "https://erp.caryaar.com")
+    token = _read("ERP_KEY_FILE") if not dry_run else ""
+    # Re-send from the day the ERP last confirmed, so an outage leaves no silent gap.
+    state = {} if dry_run else erp.call(base, token, STATE_METHOD, {})
+    back = core.days_back(now.astimezone(core.IST).date(), _stamp_day(state))
     with connect() as conn:
         check_schema(conn)
-        rows, modules = collect(conn, slug, now)
+        rows, modules = collect(conn, slug, now, back)
     stamp = core.synced_through(now)
+    covers_from = core.ist_window(now, back)[2][0].isoformat()
     if dry_run:
-        print(json.dumps({"synced_through": stamp, "rows": rows, "modules": modules}, indent=1, default=str))
+        print(json.dumps({"synced_through": stamp, "covers_from": covers_from, "rows": rows,
+                          "modules": modules}, indent=1, default=str))
         return {"rows": len(rows), "modules": len(modules), "dry_run": True}
-    base, token = os.environ.get("ERP_URL", "https://erp.caryaar.com"), _read("ERP_KEY_FILE")
     unmapped: set[str] = set()
     for part in core.chunks(rows):
-        # synced_through goes out only after every row chunk; earlier chunks carry the
-        # previous stamp's meaning via rows only (see Review Focus 2).
-        out = erp.call(base, token, ACTIVITY_METHOD,
-                       {"source": "Plane", "synced_through": "1970-01-01T00:00:00+05:30", "rows": part})
+        # Row chunks carry a placeholder stamp; the ERP never moves a stamp backwards,
+        # so only the final call below can advance it, and only if every chunk landed.
+        out = erp.call(base, token, ACTIVITY_METHOD, {"source": "Plane", "covers_from": covers_from,
+                                                     "synced_through": "1970-01-01T00:00:00+05:30", "rows": part})
         unmapped |= set(out.get("unmapped", []))
-    erp.call(base, token, ACTIVITY_METHOD, {"source": "Plane", "synced_through": stamp, "rows": []})
+    erp.call(base, token, ACTIVITY_METHOD, {"source": "Plane", "covers_from": covers_from,
+                                           "synced_through": stamp, "rows": []})
     for part in core.chunks(modules):
         erp.call(base, token, MODULES_METHOD, {"synced_through": stamp, "modules": part})
-    return {"rows": len(rows), "modules": len(modules), "unmapped": sorted(unmapped)}
+    return {"rows": len(rows), "modules": len(modules), "days_back": back, "unmapped": sorted(unmapped)}
 
 
 def main(argv=None) -> int:

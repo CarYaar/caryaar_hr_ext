@@ -7,14 +7,16 @@ Sends Plane activity to the ERP performance program (Plan B of
 
 Every 15 minutes, on the Plane VM (`caryaar-plane`, project `caryaar-api-dev`):
 
-1. Reads Plane's Postgres (`plane-db:5432` on the `plane-app_default` network) in read-only transactions.
-2. For yesterday and today (IST), counts per person: actions in Plane (`activity_count`) and tasks completed
+1. Asks the ERP how far Plane data is already confirmed (`get_sync_state`) and re-sends from that day
+   (at least yesterday, at most 31 days), so an outage leaves no silent gap.
+2. Reads Plane's Postgres (`plane-db:5432` on the `plane-app_default` network) as the read-only role.
+3. For each of those days (IST), counts per person: actions in Plane (`activity_count`) and tasks completed
    where they are an assignee (`completed_count`). Every active workspace member gets a row, zeros included.
-3. For every module, counts tasks (excluding cancelled) and completed tasks.
-4. POSTs to the ERP intake endpoints `caryaar_hr_ext.performance.api.ingest_activity` and
+4. For every module, counts tasks (excluding cancelled) and completed tasks.
+5. POSTs to the ERP intake endpoints `caryaar_hr_ext.performance.api.ingest_activity` and
    `ingest_module_progress`. The real "synced through" time is sent only after every row was accepted.
 
-Excluded from every count: deleted rows, drafts, bot users, Plane's own automation (auto-archive and
+Excluded from every count: deleted rows, drafts, bot users, users without a real email, Plane's own automation (auto-archive and
 auto-close), and the 11 Yaar Space copies tagged `external_source = 'yaar-space'`.
 
 ## Known caveat
@@ -27,7 +29,10 @@ automation to a dedicated bot user when that matters.
 
 Files under `/opt/plane-erp-sync/secrets/` (mode 600, owned by the container user 10001), mounted read-only:
 
-- `pg_password` from Secret Manager `PLANE_POSTGRES_PASSWORD`
+- `pg_password`: password of the read-only Postgres role `plane_erp_sync`, from Secret Manager
+  `PLANE_ERP_SYNC_DB_PASSWORD` (create it before the first deploy). The role has `SELECT` on the ten
+  tables the queries read and `default_transaction_read_only = on`; `deploy-on-vm.sh` creates or
+  refreshes it using the owner password `PLANE_POSTGRES_PASSWORD`, which never reaches the container.
 - `erp_key` from Secret Manager `erp-performance-sync-key` (`key:secret` of the ERP user
   `performance-sync@caryaar.com`, role Performance Sync only)
 

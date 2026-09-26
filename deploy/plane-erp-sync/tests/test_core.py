@@ -64,3 +64,16 @@ def test_queries_bucket_days_in_ist():
 def test_required_columns_cover_every_table_used():
     assert {"issue_activities", "issues", "issue_assignees", "users", "states", "modules",
             "module_issues", "projects", "workspaces", "workspace_members"} <= set(sql.REQUIRED_COLUMNS)
+
+
+def test_queries_skip_users_without_a_real_email():
+    for q in (sql.MEMBERS_SQL, sql.ACTIVITY_SQL, sql.COMPLETED_SQL):
+        assert "u.email LIKE '%%@%%'" in q
+
+
+def test_backfill_reaches_back_to_the_erp_stamp_day():
+    today = date(2026, 10, 9)
+    assert core.days_back(today, None) == 1                      # first run: yesterday and today
+    assert core.days_back(today, date(2026, 10, 9)) == 1         # normal: still resend yesterday
+    assert core.days_back(today, date(2026, 10, 5)) == 4         # after an outage: from the stamp day
+    assert core.days_back(today, date(2026, 8, 1)) == 31         # capped

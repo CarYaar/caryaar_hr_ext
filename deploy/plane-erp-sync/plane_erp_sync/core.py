@@ -34,3 +34,14 @@ def chunks(items: list, size: int = 2000) -> list[list]:
 
 def synced_through(now_utc: datetime) -> str:
     return now_utc.astimezone(IST).replace(microsecond=0).isoformat()
+
+
+MAX_DAYS_BACK = 31
+
+
+def days_back(today: date, stamp_day: date | None, cap: int = MAX_DAYS_BACK) -> int:
+    """How many days before today to re-send: back to the ERP's stamp day after an
+    outage, at least yesterday, at most `cap` (older gaps need a manual backfill)."""
+    if stamp_day is None:
+        return 1
+    return max(1, min(cap, (today - stamp_day).days))
