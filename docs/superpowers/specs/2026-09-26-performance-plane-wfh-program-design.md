@@ -229,6 +229,14 @@ Native Dashboard Charts are used instead of Insights (0 dashboards exist there) 
 | P7 | Deploy app update to the ERP (`bench migrate`) after a VM snapshot | ERP VM | snapshot restore; app revert |
 | P8 | Publish handbook v1.1 | ERP | re-publish v1.0 content |
 
+**Done on 26-Sep-2026 (P5, P7):** production backend, queues and scheduler run `caryaar-erpnext:v16.5-live-perf2`, built on the ERP VM from the image that was live (`v16.5-live`) plus this app at 09d9c0d and the `cy_billing` module `__init__.py` (caryaar-platform 7b733d0). Nginx and websocket stay on `v16.5-live`. Recipe, migrate logs and rollback notes are on the VM in `/home/sahaib/backups/perf-deploy-20260926/`; snapshot `caryaar-erpnext-pre-perf1-20260926`. Three things found on the way and fixed:
+
+- A full `bench migrate` had been failing on production because the `cy_billing` module folder had no `__init__.py`.
+- "Weekly Off" and bulk edit on Attendance and Attendance Request had been made by editing stock HRMS files in developer mode. They now ship from this app as Property Setters, and HRMS is back to stock files.
+- Developer mode is off on production.
+
+The sync user is a Website User with the Performance Sync role only. The LMS and Wiki apps add "LMS Student" and "Wiki User" to every new user, so those roles were removed. Recreating the backend container changes its address, so always restart the frontend (nginx) in the same step.
+
 ## 9. Risks
 
 | Risk | Mitigation |
