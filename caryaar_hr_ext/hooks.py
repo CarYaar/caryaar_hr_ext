@@ -90,6 +90,17 @@ fixtures = [
     {"dt": "Dashboard Chart", "filters": [["module", "=", "Caryaar Hr Ext"]]},
     {"dt": "Number Card", "filters": [["module", "=", "Caryaar Hr Ext"]]},
     {"dt": "Dashboard", "filters": [["module", "=", "Caryaar Hr Ext"]]},
+    # "Weekly Off" reason and bulk edit on Attendance / Attendance Request.
+    # First made by editing stock HRMS files on the live site; an HRMS upgrade
+    # restores those files, so they live here as customisations instead.
+    {
+        "dt": "Property Setter",
+        "filters": [
+            ["name", "in",
+             ["Attendance Request-main-allow_bulk_edit", "Attendance Request-reason-options",
+              "Attendance-main-allow_bulk_edit"]],
+        ],
+    },
 ]
 
 # ─── Performance engine ──────────────────────────────────────────────────

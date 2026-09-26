@@ -123,6 +123,24 @@ def test_live_wfh_records_are_not_fixtures_so_migrate_never_overwrites_hr_edits(
         assert _setup(name), name
 
 
+def test_attendance_customisations_are_property_setters_so_hrms_upgrades_keep_them():
+    import ast
+    ps = {p["name"]: p for p in _fx("property_setter")}
+    reason = ps["Attendance Request-reason-options"]
+    assert (reason["doc_type"], reason["doctype_or_field"], reason["field_name"], reason["property"]) == (
+        "Attendance Request", "DocField", "reason", "options")
+    assert reason["value"].split("\n") == ["Work From Home", "On Duty", "Weekly Off"]
+    for dt in ("Attendance", "Attendance Request"):
+        p = ps[f"{dt}-main-allow_bulk_edit"]
+        assert (p["doc_type"], p["doctype_or_field"], p["property"], p["value"]) == (
+            dt, "DocType", "allow_bulk_edit", "1")
+    hooks = ast.literal_eval(
+        (APP / "hooks.py").read_text().split("fixtures = ", 1)[1].split("\n]\n", 1)[0] + "\n]")
+    entry = next(f for f in hooks if f["dt"] == "Property Setter")
+    # Exact names only: other live setters (e.g. the Attendance naming series) stay untouched.
+    assert entry["filters"] == [["name", "in", sorted(ps)]]
+
+
 def test_setup_inserts_only_what_is_missing():
     from caryaar_hr_ext.performance import setup
     docs = [{"doctype": "Notification", "name": "A"}, {"doctype": "Notification", "name": "B"},
