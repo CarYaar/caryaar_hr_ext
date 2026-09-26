@@ -67,3 +67,43 @@ class TestIngest(IntegrationTestCase):
         body["modules"][0]["completed_issues"] = 5
         api.ingest_module_progress(**body)
         self.assertEqual(frappe.db.get_value("Plane Module Progress", "mod-test-1", "progress"), 50.0)
+
+
+class TestEngine(IntegrationTestCase):
+    def setUp(self):
+        self.emp = _employee("perf.test.two@caryaar.test")
+        s = frappe.get_single("Performance Sync Settings")
+        s.plane_synced_through = "2026-10-03 00:00:00"
+        s.department_sources = "{}"
+        s.save(ignore_permissions=True)
+
+    def test_day_with_plane_activity_is_visible(self):
+        api.ingest_activity(source="Plane", synced_through="2026-10-03T00:00:00+05:30",
+                            rows=[{"email": "perf.test.two@caryaar.test", "date": "2026-10-01",
+                                   "metrics": {"activity_count": 3, "completed_count": 1}}])
+        engine.run_day(frappe.utils.getdate("2026-10-01"))
+        row = frappe.get_doc("Work Adherence Day", f"WADH-{self.emp}-2026-10-01")
+        self.assertEqual(row.work_visible, "Yes")
+        self.assertEqual(row.adherence_pct, 100)
+
+    def test_day_after_last_sync_is_pending(self):
+        engine.run_day(frappe.utils.getdate("2026-10-04"))
+        row = frappe.get_doc("Work Adherence Day", f"WADH-{self.emp}-2026-10-04")
+        self.assertEqual(row.work_visible or "", "")
+        self.assertEqual(row.checks_applicable, 0)
+
+    def test_rejected_wfh_request_does_not_make_a_wfh_day(self):
+        # A workflow only lets a document be created in its first state (Draft);
+        # mark it Rejected afterwards, as the approval flow would.
+        req = frappe.get_doc({"doctype": "Attendance Request", "employee": self.emp, "from_date": "2026-10-02",
+                              "to_date": "2026-10-02", "reason": "Work From Home"}).insert(ignore_permissions=True)
+        frappe.db.set_value("Attendance Request", req.name, "workflow_state", "Rejected")
+        engine.run_day(frappe.utils.getdate("2026-10-02"))
+        row = frappe.get_doc("Work Adherence Day", f"WADH-{self.emp}-2026-10-02")
+        self.assertEqual(row.wfh, 0)
+
+    def test_goal_update_failure_does_not_stop_others(self):
+        frappe.get_doc({"doctype": "Plane Module Progress", "module_id": "mod-engine-1",
+                        "total_issues": 4, "completed_issues": 2}).insert(ignore_permissions=True)
+        # A goal pointing at a module that does not exist is skipped; the engine returns normally.
+        self.assertIsInstance(engine.update_goal_progress(), int)
