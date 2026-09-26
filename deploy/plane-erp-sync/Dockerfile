@@ -3,6 +3,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY plane_erp_sync ./plane_erp_sync
-RUN useradd -r -u 10001 sync && chown -R sync /app
-USER sync
+RUN useradd -r -u 10001 planesync && chown -R planesync /app
+USER planesync
 CMD ["python", "-m", "plane_erp_sync.main"]
