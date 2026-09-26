@@ -104,6 +104,8 @@ On 26-Sep Joel asked in the founders group who approved Kaushik's weekly WFH day
 5. **Goals** 1 to 15 Oct: each employee drafts 5 goals under their KRAs with their manager (handbook 13.10.5 sign-off). Work tracked in Plane links the goal to a Plane module (W4).
 6. The unused "Mar 2026 - Sept 2026" cycle is left untouched.
 
+**Status: created as DRAFT on production 26-Sep-2026 (cycle Not Started, 0 appraisals).** 49 KRAs (41 new plus the 8 existing company ones); every KRA carries a description in the form "Measure: ... Source: ..." because the founder found bare titles too vague. Person-specific targets belong in each Goal, not in the KRA. Four criteria, ten templates, cycle "Oct 2026 - Mar 2027" with 11 appraisees (founders excluded). Next: founders and heads edit KRA wording by 30-Sep, start the cycle on 1-Oct, goals 1 to 15 Oct.
+
 **Acceptance:** every appraisee has an appraisal with the right template on 1-Oct; a test goal's progress change moves its appraisal's goal score; the formula reproduces a hand-computed final score for one sample.
 
 ### W3. Plane for every team (Plane admin)
@@ -223,7 +225,7 @@ Native Dashboard Charts are used instead of Insights (0 dashboards exist there) 
 |---|---|
 | Leadership - Company Scorecard | Existing 8 company KRAs: Company Revenue 15, Company Profitability 15, Workshop Partners Onboarded 15, Workshop Partners Managed 10, New Customers Onboarded 15, Customers Managed 10, Technology Development 10, Technology Maintained 10 |
 | Technology (Programmer, Full-Stack Engineer) | Committed sprint work delivered 30; Production reliability and fix time 20; Quality of releases (defects found after release) 20; Support to operations teams 15; Documentation and knowledge sharing 15 |
-| Technology Intern | Learning plan completed 30; Assigned tasks delivered 30; Code review feedback applied 20; Documentation 10; Team participation 10 |
+| Technology Intern | Learning plan completed 30; Assigned tasks delivered 30; Code review feedback applied 20; Documentation and knowledge sharing 10; Team participation 10 |
 | Customer Experience (Operations) | Lead to booking conversion 30; Customer follow-ups on time 20; Customer satisfaction 20; Job updates to customers on time 15; CRM data completeness 15 |
 | Workshop Relations | Service Partners onboarded 25; Service Partner turnaround time 25; Disputes and escalations resolved 20; Service Partner quality audits 15; Team development 15 |
 | Partnerships | Partnerships signed 30; Revenue from partnerships 30; Partner activation 20; Partner retention 10; Pipeline hygiene 10 |
