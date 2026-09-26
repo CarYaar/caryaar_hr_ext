@@ -34,11 +34,16 @@ def test_every_new_doctype_is_in_our_module_and_readable_by_hr():
         assert "modified" in d and "name" in d
 
 
-def test_sync_role_can_write_intake_doctypes_only():
-    for name, can_write in (("work_activity_day", 1), ("plane_module_progress", 1),
-                            ("performance_sync_settings", 1), ("work_adherence_day", 0)):
-        perms = {p["role"]: p for p in _load(name)["permissions"]}
-        assert bool(perms.get("Performance Sync", {}).get("write", 0)) == bool(can_write), name
+def test_sync_role_has_no_doctype_permissions():
+    # The intake endpoints check the role themselves; doctype permissions would only
+    # open /api/resource writes that bypass validation.
+    for name in ("work_activity_day", "work_adherence_day", "plane_module_progress", "performance_sync_settings"):
+        assert "Performance Sync" not in {p["role"] for p in _load(name)["permissions"]}, name
+
+
+def test_settings_shows_unmatched_goal_modules():
+    f = _fields(_load("performance_sync_settings"))
+    assert f["unmatched_goal_modules"]["read_only"] == 1
 
 
 def test_settings_is_single_with_default_department_sources():
@@ -62,8 +67,15 @@ def test_fixture_files_carry_no_per_site_metadata():
                 assert key not in doc, f"{f.name}: {key}"
 
 
+SETUP = APP / "performance" / "setup_data"
+
+
+def _setup(name):
+    return json.loads((SETUP / f"{name}.json").read_text())
+
+
 def test_workflow_fixture_matches_the_approved_design():
-    wf = {w["name"]: w for w in _fx("workflow")}["Attendance Request Approval"]
+    wf = {w["name"]: w for w in _setup("workflow")}["Attendance Request Approval"]
     assert wf["document_type"] == "Attendance Request" and wf["is_active"] == 1 and wf["send_email_alert"] == 0
     t = {(x["state"], x["action"], x["allowed"]): x for x in wf["transitions"]}
     assert t[("Draft", "Send for Approval", "Employee")]["condition"] == 'doc.reason == "Work From Home"'
@@ -97,3 +109,35 @@ def test_dashboard_fixture_references_existing_charts_and_cards():
     dash = _fx("dashboard")[0]
     assert {c["chart"] for c in dash["charts"]} <= charts
     assert {c["card"] for c in dash["cards"]} <= cards
+
+
+def test_live_wfh_records_are_not_fixtures_so_migrate_never_overwrites_hr_edits():
+    import ast
+    hooks = ast.literal_eval(
+        (APP / "hooks.py").read_text().split("fixtures = ", 1)[1].split("\n]\n", 1)[0] + "\n]")
+    dts = {f["dt"] for f in hooks}
+    assert not dts & {"Workflow", "Notification", "Custom DocPerm"}
+    assert "caryaar_hr_ext.performance.setup.ensure_wfh_approval_setup" in (APP / "hooks.py").read_text()
+    for name in ("workflow", "notification", "custom_docperm"):
+        assert not (FX / f"{name}.json").exists(), name
+        assert _setup(name), name
+
+
+def test_setup_inserts_only_what_is_missing():
+    from caryaar_hr_ext.performance import setup
+    docs = [{"doctype": "Notification", "name": "A"}, {"doctype": "Notification", "name": "B"},
+            {"doctype": "Custom DocPerm", "name": "x1", "parent": "Attendance Request", "role": "Employee", "permlevel": 0},
+            {"doctype": "Workflow", "name": "Attendance Request Approval", "document_type": "Attendance Request"}]
+    existing = {("Notification", "A"), ("Custom DocPerm", ("Attendance Request", "Employee", 0))}
+    todo = setup.missing_docs(docs, lambda key: key in existing, lambda doctype: False)
+    assert [d["name"] for d in todo] == ["B", "Attendance Request Approval"]
+    # an existing workflow on the doctype (any name) is never duplicated
+    assert setup.missing_docs(docs[3:], lambda key: False, lambda doctype: True) == []
+
+
+def test_rating_distribution_is_computed_live_from_scores():
+    from caryaar_hr_ext.caryaar_hr_ext.report.rating_distribution import rating_distribution as rd
+    rows = rd.distribution([4.6, 3.8, 3.1, 2.5, 2.2, None, 0])
+    got = {r["category"]: (r["people"], r["actual"]) for r in rows}
+    assert got["Exceptional"] == (1, 20.0) and got["Fair"] == (2, 40.0)
+    assert sum(r["people"] for r in rows) == 5  # unscored appraisals are left out

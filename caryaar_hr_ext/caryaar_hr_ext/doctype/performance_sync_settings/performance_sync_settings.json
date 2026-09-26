@@ -10,7 +10,7 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "creation": "2026-09-26 18:00:00.000000",
- "modified": "2026-09-26 18:00:00.000000",
+ "modified": "2026-09-26 21:00:00.000000",
  "field_order": [
   "department_sources",
   "section_sync",
@@ -18,6 +18,7 @@
   "plane_modules_synced_through",
   "cy_admin_synced_through",
   "unmapped_emails",
+  "unmatched_goal_modules",
   "last_error"
  ],
  "fields": [
@@ -59,6 +60,13 @@
    "read_only": 1
   },
   {
+   "fieldname": "unmatched_goal_modules",
+   "fieldtype": "Small Text",
+   "label": "Goals whose Plane module was not found",
+   "read_only": 1,
+   "description": "Goal: pasted value. Paste the module ID or the module's Plane link."
+  },
+  {
    "fieldname": "last_error",
    "fieldtype": "Small Text",
    "label": "Last engine error",
@@ -74,11 +82,6 @@
   },
   {
    "role": "HR Manager",
-   "read": 1,
-   "write": 1
-  },
-  {
-   "role": "Performance Sync",
    "read": 1,
    "write": 1
   }

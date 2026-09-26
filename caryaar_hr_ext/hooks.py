@@ -51,8 +51,14 @@ jinja = {
     ],
 }
 
-# Brand fonts for wkhtmltopdf print formats (see utils/fonts.py).
-after_migrate = ["caryaar_hr_ext.utils.fonts.install_fonts"]
+# Brand fonts for wkhtmltopdf print formats (see utils/fonts.py), then the WFH
+# approval setup: created only where missing, so HR's edits survive every deploy
+# (see performance/setup.py; the workflow, notifications and docperms are not
+# fixtures on purpose).
+after_migrate = [
+    "caryaar_hr_ext.utils.fonts.install_fonts",
+    "caryaar_hr_ext.performance.setup.ensure_wfh_approval_setup",
+]
 
 # Typing "auto" into the card serial field generates 2026-0001-K7QX
 # style serials (sequential + random suffix, founder call 28-Aug).
@@ -61,9 +67,9 @@ doc_events = {
 }
 
 # ─── Fixtures ────────────────────────────────────────────────────────────
-# Identity card fields (Employee), the WFH approval setup that went live on
-# 26-Sep-2026 (Attendance Request fields, workflow, notifications, docperms)
-# and the performance program fields (Goal, Appraisal) ship as fixtures so
+# Identity card fields (Employee), the WFH approval fields and workflow
+# states/actions (live since 26-Sep-2026) and the performance program fields
+# (Goal, Appraisal) ship as fixtures so
 # `bench migrate` recreates them on any site this app is installed on.
 fixtures = [
     {
@@ -81,12 +87,6 @@ fixtures = [
     },
     {"dt": "Workflow State", "filters": [["name", "in", ["Draft", "Cancelled"]]]},
     {"dt": "Workflow Action Master", "filters": [["name", "in", ["Send for Approval", "Cancel"]]]},
-    {"dt": "Workflow", "filters": [["name", "=", "Attendance Request Approval"]]},
-    {"dt": "Notification", "filters": [["name", "in", [
-        "WFH request awaiting manager approval",
-        "WFH request awaiting HR approval",
-        "WFH request decided"]]]},
-    {"dt": "Custom DocPerm", "filters": [["parent", "=", "Attendance Request"]]},
     {"dt": "Dashboard Chart", "filters": [["module", "=", "Caryaar Hr Ext"]]},
     {"dt": "Number Card", "filters": [["module", "=", "Caryaar Hr Ext"]]},
     {"dt": "Dashboard", "filters": [["module", "=", "Caryaar Hr Ext"]]},

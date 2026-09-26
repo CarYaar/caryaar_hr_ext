@@ -15,7 +15,12 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-FX = Path(__file__).resolve().parents[1] / "caryaar_hr_ext" / "fixtures"
+APP = Path(__file__).resolve().parents[1] / "caryaar_hr_ext"
+FX = APP / "fixtures"
+# The live WFH workflow, notifications and docperms are created-if-missing after
+# migrate (performance/setup.py), never fixtures, so HR edits survive deploys.
+SETUP = APP / "performance" / "setup_data"
+SETUP_FILES = {"workflow", "notification", "custom_docperm"}
 TOP_DROP = ("modified", "modified_by", "creation", "owner", "idx", "lft", "rgt",
             "_user_tags", "_comments", "_assign", "_liked_by", "_seen")
 CHILD_DROP = TOP_DROP + ("docstatus", "doctype", "modified", "name")
@@ -65,7 +70,7 @@ def main() -> int:
         if not docs:
             print(f"ERROR: nothing exported for {doctype} {filters}", file=sys.stderr)
             return 1
-        (FX / f"{fname}.json").write_text(json.dumps(docs, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
+        ((SETUP if fname in SETUP_FILES else FX) / f"{fname}.json").write_text(json.dumps(docs, indent=1, sort_keys=True, ensure_ascii=False) + "\n")
         print(f"{fname}.json: {len(docs)} {doctype}")
     return 0
 

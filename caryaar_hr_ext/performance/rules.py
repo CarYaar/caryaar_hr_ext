@@ -6,6 +6,7 @@ performance/api.py and performance/engine.py.
 from __future__ import annotations
 
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 from typing import NamedTuple
 
@@ -34,6 +35,7 @@ class ActivityBatch(NamedTuple):
     source: str
     synced_through: datetime
     rows: list[ActivityRow]
+    covers_from: date
 
 
 class ModuleRow(NamedTuple):
@@ -94,10 +96,15 @@ def _metric(name: str, value) -> int:
     return value
 
 
-def validate_activity_payload(source, synced_through, rows) -> ActivityBatch:
+def validate_activity_payload(source, synced_through, rows, covers_from) -> ActivityBatch:
+    """Validate one intake call. ``covers_from`` is the first day the sender fully
+    re-counted in this run; every row must be on or after it (see advance_stamp)."""
     if source not in SOURCES:
         raise ValueError(f"source must be one of {SOURCES}, got {source!r}")
     when = _parse_aware(synced_through)
+    if not isinstance(covers_from, str):
+        raise ValueError(f"covers_from must be YYYY-MM-DD, got {covers_from!r}")
+    first_day = date.fromisoformat(_parse_day(covers_from))
     if not isinstance(rows, list):
         raise ValueError("rows must be a list")
     if len(rows) > MAX_ROWS:
@@ -116,9 +123,12 @@ def validate_activity_payload(source, synced_through, rows) -> ActivityBatch:
         unknown = set(metrics) - allowed
         if unknown:
             raise ValueError(f"row {i} has metrics not allowed for {source}: {sorted(unknown)}")
-        out.append(ActivityRow(email.strip().lower(), _parse_day(row.get("date")),
+        day = _parse_day(row.get("date"))
+        if date.fromisoformat(day) < first_day:
+            raise ValueError(f"row {i} date {day} is before covers_from {first_day.isoformat()}")
+        out.append(ActivityRow(email.strip().lower(), day,
                                {k: _metric(k, v) for k, v in metrics.items()}))
-    return ActivityBatch(source, when, out)
+    return ActivityBatch(source, when, out, first_day)
 
 
 def validate_module_payload(synced_through, modules) -> tuple[datetime, list[ModuleRow]]:
@@ -187,7 +197,9 @@ def _judge(ctx: DayContext, test) -> bool | None:
 
 def adherence_day(ctx: DayContext) -> AdherenceResult:
     working = not ctx.is_holiday and ctx.attendance_status not in ("On Leave", "Absent")
-    wfh = ctx.attendance_status == "Work From Home" or ctx.wfh_requested
+    # A request still waiting for approval only makes it a WFH day when no attendance
+    # says otherwise: someone marked Present in the office is not on a failed WFH day.
+    wfh = ctx.attendance_status == "Work From Home" or (ctx.wfh_requested and not ctx.attendance_status)
     if not working:
         return AdherenceResult(False, wfh, None, None, None, 0, 0, None)
     visible = _judge(ctx, _active)
@@ -212,3 +224,41 @@ def performance_category(final_score: float | None) -> str | None:
         if final_score >= floor:
             return name
     return None
+
+
+def advance_stamp(current: datetime | None, new: datetime, covers_from: date) -> datetime | None:
+    """New "synced through" stamp for a source.
+
+    Moves forward only when the payload's first day is on or before the day of
+    the current stamp, so a sender that resumes after an outage cannot mark the
+    days it never sent as complete. Never moves backwards.
+    """
+    if current is None:
+        return new
+    if covers_from > current.date():
+        return current
+    return max(current, new)
+
+
+_UUID = re.compile(r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")
+
+
+def extract_module_id(raw) -> str | None:
+    """The Plane module UUID from a pasted ID or module URL (the last UUID in it)."""
+    if not isinstance(raw, str):
+        return None
+    found = _UUID.findall(raw)
+    return found[-1].lower() if found else None
+
+
+MAX_RECOMPUTE_DAYS = 62
+
+
+def recompute_days(from_date: str, to_date: str) -> list[date]:
+    start, end = date.fromisoformat(str(from_date)), date.fromisoformat(str(to_date))
+    if end < start:
+        raise ValueError("from_date must be on or before to_date")
+    n = (end - start).days + 1
+    if n > MAX_RECOMPUTE_DAYS:
+        raise ValueError(f"at most {MAX_RECOMPUTE_DAYS} days per recompute, got {n}")
+    return [start + timedelta(days=i) for i in range(n)]

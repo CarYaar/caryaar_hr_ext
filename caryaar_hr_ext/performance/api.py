@@ -6,7 +6,7 @@ Performance Sync role. Payloads are validated by performance.rules.
 from __future__ import annotations
 
 import frappe
-from frappe.utils import now_datetime
+from frappe.utils import get_datetime, now_datetime
 
 from caryaar_hr_ext.performance import rules
 
@@ -24,17 +24,25 @@ def _email_map() -> dict[str, str]:
     return out
 
 
-def _advance(settings, field: str, when) -> None:
-    current = settings.get(field)
-    if not current or frappe.utils.get_datetime(current) < when:
-        settings.set(field, when)
+_SINGLE = "Performance Sync Settings"
+
+
+def _stamp(field: str):
+    value = frappe.db.get_single_value(_SINGLE, field)
+    return get_datetime(value) if value else None
+
+
+def _set(field: str, value) -> None:
+    # Single-value writes: no full-document save, so no Version row per sync call
+    # and no timestamp clash with someone editing the settings form.
+    frappe.db.set_single_value(_SINGLE, field, value)
 
 
 @frappe.whitelist(methods=["POST"])
-def ingest_activity(source=None, synced_through=None, rows=None):
+def ingest_activity(source=None, synced_through=None, rows=None, covers_from=None):
     frappe.only_for(("Performance Sync", "System Manager"))
     try:
-        batch = rules.validate_activity_payload(source, synced_through, rows)
+        batch = rules.validate_activity_payload(source, synced_through, rows, covers_from)
     except ValueError as e:
         frappe.throw(str(e), exc=frappe.ValidationError)
 
@@ -57,13 +65,16 @@ def ingest_activity(source=None, synced_through=None, rows=None):
                             "source": batch.source, **values}).insert(ignore_permissions=True)
         accepted += 1
 
-    settings = frappe.get_single("Performance Sync Settings")
-    _advance(settings, _SYNC_FIELD[batch.source], batch.synced_through)
+    field = _SYNC_FIELD[batch.source]
+    current = _stamp(field)
+    stamp = rules.advance_stamp(current, batch.synced_through, batch.covers_from)
+    if stamp != current:
+        _set(field, stamp)
     if unmapped:
-        known = set(filter(None, (settings.unmapped_emails or "").split("\n")))
-        settings.unmapped_emails = "\n".join(sorted(known | unmapped))
-    settings.save(ignore_permissions=True)
-    return {"accepted": accepted, "unmapped": sorted(unmapped)}
+        known = set(filter(None, (frappe.db.get_single_value(_SINGLE, "unmapped_emails") or "").split("\n")))
+        _set("unmapped_emails", "\n".join(sorted(known | unmapped)))
+    return {"accepted": accepted, "unmapped": sorted(unmapped),
+            "synced_through": stamp.isoformat() if stamp else None}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -84,7 +95,29 @@ def ingest_module_progress(synced_through=None, modules=None):
         else:
             frappe.get_doc({"doctype": "Plane Module Progress", "module_id": m.module_id, **values}
                            ).insert(ignore_permissions=True)
-    settings = frappe.get_single("Performance Sync Settings")
-    _advance(settings, "plane_modules_synced_through", when)
-    settings.save(ignore_permissions=True)
+    current = _stamp("plane_modules_synced_through")
+    if not current or when > current:
+        _set("plane_modules_synced_through", when)
     return {"accepted": len(rows)}
+
+
+@frappe.whitelist(methods=["GET", "POST"])
+def get_sync_state():
+    """Each source's "synced through" stamp, so a sender can backfill from it."""
+    frappe.only_for(("Performance Sync", "System Manager"))
+    return {src: (_stamp(field).isoformat() if _stamp(field) else None) for src, field in _SYNC_FIELD.items()}
+
+
+@frappe.whitelist(methods=["POST"])
+def recompute(from_date=None, to_date=None):
+    """Recompute Work Adherence Day for a date range (at most 62 days), e.g. after
+    leave was approved late or attendance was corrected."""
+    frappe.only_for(("HR Manager", "System Manager"))
+    from caryaar_hr_ext.performance import engine
+
+    try:
+        days = rules.recompute_days(from_date, to_date)
+    except ValueError as e:
+        frappe.throw(str(e), exc=frappe.ValidationError)
+    written = sum(engine.run_day(d) for d in days)
+    return {"days": len(days), "rows": written}

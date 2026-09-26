@@ -48,12 +48,17 @@ def _fresh_sources(settings, day: date) -> frozenset[str]:
                      if settings.get(field) and get_datetime(settings.get(field)) >= end)
 
 
-def _holiday_list(emp) -> str | None:
-    return emp.holiday_list or frappe.get_cached_value("Company", emp.company, "default_holiday_list")
+def _holiday_list(emp, day: date) -> str | None:
+    # HRMS 16 resolves holidays through dated Holiday List Assignments (via the
+    # employee_holiday_list hook); ERPNext's resolver routes there. As of `day`,
+    # not today, so a recompute of an old day uses the list that applied then.
+    from erpnext.setup.doctype.employee.employee import get_holiday_list_for_employee
+
+    return get_holiday_list_for_employee(emp.name, raise_exception=False, as_on=day)
 
 
 def _context(emp, day: date, dept_sources: dict, fresh: frozenset[str]) -> rules.DayContext:
-    hl = _holiday_list(emp)
+    hl = _holiday_list(emp, day)
     is_holiday = bool(hl and frappe.db.exists("Holiday", {"parent": hl, "holiday_date": day}))
     status = frappe.db.get_value("Attendance", {"employee": emp.name, "attendance_date": day,
                                                 "docstatus": 1}, "status")
@@ -104,13 +109,22 @@ def run_day(day: date) -> int:
 
 
 def update_goal_progress() -> int:
-    modules = {m.module_id: m for m in frappe.get_all(
+    modules = {m.module_id.lower(): m for m in frappe.get_all(
         "Plane Module Progress", fields=["module_id", "total_issues", "completed_issues"])}
-    updated = 0
-    for g in frappe.get_all("Goal", filters={"cy_plane_module": ("is", "set"), "is_group": 0},
+    # Only goals HRMS will accept an update for: cycle In Progress, employee Active.
+    active_cycles = frappe.get_all("Appraisal Cycle", filters={"status": "In Progress"}, pluck="name")
+    active_emps = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
+    if not active_cycles or not active_emps:
+        return 0
+    updated, unmatched = 0, []
+    for g in frappe.get_all("Goal", filters={"cy_plane_module": ("is", "set"), "is_group": 0,
+                                             "appraisal_cycle": ("in", active_cycles),
+                                             "employee": ("in", active_emps)},
                             fields=["name", "cy_plane_module", "progress"]):
-        m = modules.get((g.cy_plane_module or "").strip())
+        module_id = rules.extract_module_id(g.cy_plane_module)
+        m = modules.get(module_id) if module_id else None
         if not m:
+            unmatched.append(f"{g.name}: {g.cy_plane_module}")
             continue
         p = rules.module_progress(m.total_issues, m.completed_issues)
         if p is None or abs(p - flt(g.progress)) < 0.5:
@@ -125,14 +139,18 @@ def update_goal_progress() -> int:
             frappe.db.rollback(save_point="cy_goal")
             frappe.log_error(title=f"Performance engine: goal {g.name} skipped",
                              message=frappe.get_traceback())
+    # Visible to HR on the settings form instead of failing silently.
+    frappe.db.set_single_value("Performance Sync Settings", "unmatched_goal_modules", "\n".join(unmatched))
     return updated
 
 
 def update_performance_categories() -> int:
+    """Store the rating category only on submitted appraisals. Mid-cycle scores are
+    provisional; the Rating Distribution report shows them live to HR instead."""
     changed = 0
     for a in frappe.get_all("Appraisal", filters={"docstatus": ("<", 2)},
-                            fields=["name", "final_score", "cy_performance_category"]):
-        cat = rules.performance_category(flt(a.final_score)) or ""
+                            fields=["name", "docstatus", "final_score", "cy_performance_category"]):
+        cat = (rules.performance_category(flt(a.final_score)) or "") if a.docstatus == 1 else ""
         if cat != (a.cy_performance_category or ""):
             frappe.db.set_value("Appraisal", a.name, "cy_performance_category", cat, update_modified=False)
             changed += 1

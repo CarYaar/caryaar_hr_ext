@@ -13,7 +13,7 @@ def _row(email="Janhavi.Nanaware@CarYaar.com", day="2026-10-01", **metrics):
 
 
 def test_valid_cy_admin_payload_normalises_email_and_parses_time():
-    b = r.validate_activity_payload("CY Admin", "2026-10-02T00:15:00+05:30", [_row()])
+    b = r.validate_activity_payload("CY Admin", "2026-10-02T00:15:00+05:30", [_row()], covers_from="2026-10-01")
     assert b.source == "CY Admin"
     assert b.rows[0].email == "janhavi.nanaware@caryaar.com"
     assert b.rows[0].metrics == {"calls_handled": 3}
@@ -21,46 +21,46 @@ def test_valid_cy_admin_payload_normalises_email_and_parses_time():
 
 
 def test_synced_through_in_utc_is_converted_to_ist():
-    b = r.validate_activity_payload("Plane", "2026-10-01T18:45:00Z", [_row(activity_count=1)])
+    b = r.validate_activity_payload("Plane", "2026-10-01T18:45:00Z", [_row(activity_count=1)], covers_from="2026-10-01")
     assert b.synced_through == datetime(2026, 10, 2, 0, 15)
 
 
 @pytest.mark.parametrize("source", ["plane", "Slack", "", None])
 def test_unknown_source_rejected(source):
     with pytest.raises(ValueError, match="source"):
-        r.validate_activity_payload(source, "2026-10-01T10:00:00+05:30", [_row()])
+        r.validate_activity_payload(source, "2026-10-01T10:00:00+05:30", [_row()], covers_from="2026-10-01")
 
 
 def test_metric_not_allowed_for_source_rejected():
     with pytest.raises(ValueError, match="calls_handled"):
-        r.validate_activity_payload("Plane", "2026-10-01T10:00:00+05:30", [_row(calls_handled=1)])
+        r.validate_activity_payload("Plane", "2026-10-01T10:00:00+05:30", [_row(calls_handled=1)], covers_from="2026-10-01")
 
 
 @pytest.mark.parametrize("bad", [-1, 1.5, "3", True, 10**8])
 def test_bad_metric_values_rejected(bad):
     with pytest.raises(ValueError):
-        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(calls_handled=bad)])
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(calls_handled=bad)], covers_from="2026-10-01")
 
 
 @pytest.mark.parametrize("day", ["2026-13-01", "01-10-2026", "", None])
 def test_bad_dates_rejected(day):
     with pytest.raises(ValueError, match="date"):
-        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(day=day)])
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(day=day)], covers_from="2026-10-01")
 
 
 def test_naive_synced_through_rejected():
     with pytest.raises(ValueError, match="time zone"):
-        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00", [_row()])
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00", [_row()], covers_from="2026-10-01")
 
 
 def test_too_many_rows_rejected():
     with pytest.raises(ValueError, match="2000"):
-        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row()] * 2001)
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row()] * 2001, covers_from="2026-10-01")
 
 
 def test_email_without_at_rejected():
     with pytest.raises(ValueError, match="email"):
-        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(email="janhavi")])
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(email="janhavi")], covers_from="2026-10-01")
 
 
 def test_module_payload_valid_and_bounded():
@@ -166,3 +166,52 @@ def test_module_progress(total, done, expected):
                                         (0, None), (None, None)])
 def test_performance_category_bands(score, cat):
     assert r.performance_category(score) == cat
+
+
+# ---------- final-review fixes ----------
+def test_stamp_advances_only_when_the_payload_covers_from_the_current_stamp_day():
+    cur = datetime(2026, 10, 5, 10, 0)
+    new = datetime(2026, 10, 8, 10, 0)
+    assert r.advance_stamp(None, new, date(2026, 10, 8)) == new               # first sync
+    assert r.advance_stamp(cur, new, date(2026, 10, 5)) == new                # contiguous backfill
+    assert r.advance_stamp(cur, new, date(2026, 10, 7)) == cur                # gap: 6-Oct never sent
+    assert r.advance_stamp(cur, datetime(2026, 10, 4), date(2026, 10, 4)) == cur  # never backwards
+
+
+def test_pending_request_does_not_turn_an_office_day_into_a_wfh_day():
+    res = r.adherence_day(_ctx(attendance_status="Present", wfh_requested=True,
+                               activity={"Plane": {"activity_count": 3, "completed_count": 0}}))
+    assert res.wfh is False and res.checks_applicable == 1 and res.adherence_pct == 100.0
+
+
+def test_pending_request_with_no_attendance_yet_is_a_wfh_day():
+    res = r.adherence_day(_ctx(attendance_status=None, wfh_requested=True))
+    assert res.wfh is True and res.wfh_approved is False
+
+
+@pytest.mark.parametrize("raw,expected", [
+    ("5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10", "5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10"),
+    ("https://pitstop.mycaryaar.com/caryaar/projects/257911e1-8d3e-430a-89ad-bf02a6cf9d06/modules/5F0C1C1E-8A55-4C3E-9D1A-0B7D7D1E2A10/",
+     "5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10"),
+    ("  not a module  ", None), ("", None), (None, None)])
+def test_module_id_is_extracted_from_whatever_was_pasted(raw, expected):
+    assert r.extract_module_id(raw) == expected
+
+
+def test_recompute_range_is_bounded_and_ordered():
+    days = r.recompute_days("2026-10-01", "2026-10-03")
+    assert [d.isoformat() for d in days] == ["2026-10-01", "2026-10-02", "2026-10-03"]
+    with pytest.raises(ValueError, match="62"):
+        r.recompute_days("2026-10-01", "2026-12-31")
+    with pytest.raises(ValueError, match="before"):
+        r.recompute_days("2026-10-05", "2026-10-01")
+
+
+def test_covers_from_is_required_and_bounds_the_rows():
+    with pytest.raises(ValueError, match="covers_from"):
+        r.validate_activity_payload("Plane", "2026-10-02T00:15:00+05:30", [_row(activity_count=1)], covers_from=None)
+    with pytest.raises(ValueError, match="before covers_from"):
+        r.validate_activity_payload("Plane", "2026-10-02T00:15:00+05:30",
+                                    [_row(day="2026-09-30", activity_count=1)], covers_from="2026-10-01")
+    b = r.validate_activity_payload("Plane", "2026-10-02T00:15:00+05:30", [], covers_from="2026-10-01")
+    assert b.covers_from == date(2026, 10, 1)
