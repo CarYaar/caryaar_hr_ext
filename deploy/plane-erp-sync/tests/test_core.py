@@ -44,3 +44,23 @@ def test_chunks():
 def test_synced_through_is_iso_with_ist_offset():
     s = core.synced_through(datetime(2026, 10, 1, 19, 0, tzinfo=timezone.utc))
     assert s == "2026-10-02T00:30:00+05:30"
+
+
+from plane_erp_sync import sql
+
+
+def test_every_query_excludes_the_yaar_space_copies_and_deleted_rows():
+    for q in (sql.ACTIVITY_SQL, sql.COMPLETED_SQL):
+        assert "external_source" in q and "yaar-space" in q
+        assert "deleted_at IS NULL" in q
+    assert "is_bot" in sql.ACTIVITY_SQL and "Plane updated the state to" in sql.ACTIVITY_SQL
+
+
+def test_queries_bucket_days_in_ist():
+    for q in (sql.ACTIVITY_SQL, sql.COMPLETED_SQL):
+        assert "AT TIME ZONE 'Asia/Kolkata'" in q
+
+
+def test_required_columns_cover_every_table_used():
+    assert {"issue_activities", "issues", "issue_assignees", "users", "states", "modules",
+            "module_issues", "projects", "workspaces", "workspace_members"} <= set(sql.REQUIRED_COLUMNS)
