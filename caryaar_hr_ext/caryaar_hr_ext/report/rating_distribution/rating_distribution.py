@@ -1,4 +1,5 @@
 """Company-wide rating spread for one appraisal cycle, next to the handbook's guide (spec D5).
+Founders are left out: their scorecard is not on the bell curve (spec D4).
 
 Categories are computed live from each appraisal's current final score, so HR can
 see the provisional spread mid-cycle; the stored Appraisal category is only set
@@ -6,7 +7,7 @@ once an appraisal is submitted (performance/engine.py).
 """
 from collections import Counter
 
-from caryaar_hr_ext.performance.rules import performance_category
+from caryaar_hr_ext.performance.rules import OFF_CURVE_TEMPLATES, performance_category
 
 GUIDE = (("Exceptional", 5), ("Excellent", 15), ("Good", 25), ("Fair", 50), ("Non-Satisfactory", 5))
 
@@ -19,6 +20,11 @@ def distribution(scores) -> list[dict]:
             for c, g in GUIDE]
 
 
+def curve_filters(cycle: str) -> dict:
+    return {"appraisal_cycle": cycle, "docstatus": ("<", 2),
+            "appraisal_template": ("not in", list(OFF_CURVE_TEMPLATES))}
+
+
 def execute(filters=None):
     import frappe  # imported here so distribution() and GUIDE are testable without Frappe
 
@@ -26,8 +32,7 @@ def execute(filters=None):
     cycle = filters.get("appraisal_cycle")
     if not cycle:
         frappe.throw("Choose an appraisal cycle.")
-    scores = frappe.get_all("Appraisal", filters={"appraisal_cycle": cycle, "docstatus": ("<", 2)},
-                            pluck="final_score")
+    scores = frappe.get_all("Appraisal", filters=curve_filters(cycle), pluck="final_score")
     columns = [
         {"fieldname": "category", "label": "Category", "fieldtype": "Data", "width": 170},
         {"fieldname": "people", "label": "People", "fieldtype": "Int", "width": 90},

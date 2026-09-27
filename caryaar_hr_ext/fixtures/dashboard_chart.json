@@ -4,7 +4,7 @@
   "chart_type": "Group By",
   "doctype": "Dashboard Chart",
   "document_type": "Appraisal",
-  "filters_json": "[[\"Appraisal\",\"docstatus\",\"<\",2]]",
+  "filters_json": "[[\"Appraisal\", \"docstatus\", \"<\", 2], [\"Appraisal\", \"appraisal_template\", \"not in\", [\"Leadership - Company Scorecard\"]]]",
   "group_by_based_on": "cy_performance_category",
   "group_by_type": "Count",
   "is_public": 1,

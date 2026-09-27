@@ -145,12 +145,14 @@ def update_goal_progress() -> int:
 
 
 def update_performance_categories() -> int:
-    """Store the rating category only on submitted appraisals. Mid-cycle scores are
-    provisional; the Rating Distribution report shows them live to HR instead."""
+    """Store the rating category only on submitted appraisals, and never on the founders'
+    scorecard (D4). Mid-cycle scores are provisional; the Rating Distribution report shows
+    them live to HR instead."""
     changed = 0
     for a in frappe.get_all("Appraisal", filters={"docstatus": ("<", 2)},
-                            fields=["name", "docstatus", "final_score", "cy_performance_category"]):
-        cat = (rules.performance_category(flt(a.final_score)) or "") if a.docstatus == 1 else ""
+                            fields=["name", "docstatus", "final_score", "appraisal_template",
+                                    "cy_performance_category"]):
+        cat = rules.stored_category(a.docstatus, flt(a.final_score), a.appraisal_template)
         if cat != (a.cy_performance_category or ""):
             frappe.db.set_value("Appraisal", a.name, "cy_performance_category", cat, update_modified=False)
             changed += 1

@@ -202,3 +202,12 @@ def test_rating_distribution_is_computed_live_from_scores():
     got = {r["category"]: (r["people"], r["actual"]) for r in rows}
     assert got["Exceptional"] == (1, 20.0) and got["Fair"] == (2, 40.0)
     assert sum(r["people"] for r in rows) == 5  # unscored appraisals are left out
+
+
+def test_bell_curve_report_and_chart_leave_out_the_founders_scorecard():
+    from caryaar_hr_ext.caryaar_hr_ext.report.rating_distribution import rating_distribution as rd
+    f = rd.curve_filters("Oct 2026 - Mar 2027")
+    assert f["appraisal_cycle"] == "Oct 2026 - Mar 2027"
+    assert f["appraisal_template"] == ("not in", list(rules.OFF_CURVE_TEMPLATES))
+    chart = {c["name"]: c for c in _fx("dashboard_chart")}["Rating categories"]
+    assert ["Appraisal", "appraisal_template", "not in", list(rules.OFF_CURVE_TEMPLATES)] in json.loads(chart["filters_json"])

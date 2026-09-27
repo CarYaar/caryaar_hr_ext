@@ -226,6 +226,17 @@ def performance_category(final_score: float | None) -> str | None:
     return None
 
 
+# D4: founders' goals sit under this scorecard, but founders are not on the bell curve.
+OFF_CURVE_TEMPLATES = ("Leadership - Company Scorecard",)
+
+
+def stored_category(docstatus: int, final_score: float | None, template: str | None) -> str:
+    """Category to store on an appraisal: only once it is submitted, never for an off-curve scorecard."""
+    if docstatus != 1 or template in OFF_CURVE_TEMPLATES:
+        return ""
+    return performance_category(final_score) or ""
+
+
 # Stamps before this year are not real sync times: Frappe reads a never-set
 # Datetime single back as 0001-01-01, and senders put 1970-01-01 on row chunks.
 _REAL_STAMP_YEAR = 2000

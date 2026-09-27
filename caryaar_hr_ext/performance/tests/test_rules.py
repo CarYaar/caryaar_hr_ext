@@ -235,3 +235,12 @@ def test_covers_from_is_required_and_bounds_the_rows():
                                     [_row(day="2026-09-30", activity_count=1)], covers_from="2026-10-01")
     b = r.validate_activity_payload("Plane", "2026-10-02T00:15:00+05:30", [], covers_from="2026-10-01")
     assert b.covers_from == date(2026, 10, 1)
+
+
+def test_founders_scorecard_never_gets_a_bell_curve_category():
+    # D4: founders' goals sit under the Leadership scorecard but they are not on the curve.
+    assert r.OFF_CURVE_TEMPLATES == ("Leadership - Company Scorecard",)
+    assert r.stored_category(1, 4.6, "Leadership - Company Scorecard") == ""
+    assert r.stored_category(1, 4.6, "Technology") == "Exceptional"
+    assert r.stored_category(0, 4.6, "Technology") == ""       # draft scores stay provisional
+    assert r.stored_category(1, None, "Technology") == ""
