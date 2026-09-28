@@ -34,3 +34,13 @@ def test_vm_script_treats_an_existing_module_name_as_the_module():
     script = gm.vm_script([{"goal": "G", "project": "p", "name": "Sprint", "dry_run": False}])
     assert "MODULE_NAME_ALREADY_EXISTS" in script and "next_cursor" in script
     assert '"module_view": True' in script          # a project with modules switched off gets them on
+
+
+def test_two_people_with_the_same_goal_wording_get_their_own_module():
+    goals = [{"goal": "A", "project": "hr", "name": "Run this cycle to its dates", "employee": "E1", "linked": True},
+             {"goal": "B", "project": "hr", "name": "Run this cycle to its dates", "employee": "E2", "linked": False},
+             {"goal": "C", "project": "dev", "name": "Run this cycle to its dates", "employee": "E3", "linked": False}]
+    out = {g["goal"]: g["name"] for g in gm.dedupe_names(goals, lambda emp: {"E1": "Reema", "E2": "Melita"}[emp])}
+    assert out["A"] == "Run this cycle to its dates"            # already linked: keeps its module
+    assert out["B"] == "Run this cycle to its dates (Melita)"   # the collision gets the person's name
+    assert out["C"] == "Run this cycle to its dates"            # another project: no collision

@@ -36,6 +36,27 @@ def module_name(goal_name: str) -> str:
     return (cut[:cut.rfind(" ")] if " " in cut else cut).rstrip(" ,;:")
 
 
+def dedupe_names(goals: list[dict], first_name_of) -> list[dict]:
+    """One module per goal: two people with the same goal wording in the same project would
+    otherwise share one module and one progress figure. A colliding name gets the person's
+    first name; a goal already linked keeps the module it has."""
+    by_key: dict[tuple, list[dict]] = {}
+    for g in goals:
+        by_key.setdefault((g["project"], g["name"].lower()), []).append(g)
+    out = []
+    for group in by_key.values():
+        for g in group:
+            if len(group) > 1 and not g["linked"]:
+                g = dict(g, name=f"{g['name']} ({first_name_of(g['employee'])})")
+            out.append(g)
+    return out
+
+
+def first_name(e, employee: str) -> str:
+    name = erp(e, "GET", f"/api/resource/Employee/{employee}")["data"].get("employee_name") or employee
+    return name.split()[0]
+
+
 def needs_module(method: str | None, metric: str | None) -> bool:
     """Plane-module meters, plus any meter whose metric is computed over the goal's module."""
     return method == "Plane module" or (metric or "") in MODULE_METRICS
@@ -130,15 +151,15 @@ def main(argv) -> int:
     meters = erp(e, "GET", "/api/resource/Goal Meter", params={"filters": json.dumps([["active", "=", 1]]),
                                                                   "fields": json.dumps(["goal", "employee", "method", "metric"]),
                                                                   "limit_page_length": 200})["data"]
-    wanted = []
+    goals = []
     for m in meters:
         if not needs_module(m.get("method"), m.get("metric")):
             continue
         g = erp(e, "GET", f"/api/resource/Goal/{m['goal']}")["data"]
-        if g.get("cy_plane_module"):
-            continue
         proj = "DEV" if g["kra"] in TECH_KRAS else BY_EMPLOYEE.get(g["employee"], "CORP")
-        wanted.append({"goal": g["name"], "project": PROJECTS[proj], "name": module_name(g["goal_name"]), "dry_run": dry})
+        goals.append({"goal": g["name"], "project": PROJECTS[proj], "name": module_name(g["goal_name"]),
+                      "employee": g["employee"], "linked": bool(g.get("cy_plane_module"))})
+    wanted = [dict(w, dry_run=dry) for w in dedupe_names(goals, lambda emp: first_name(e, emp)) if not w["linked"]]
     print(f"{len(wanted)} goals need a module" + (" (dry run)" if dry else ""))
     for w in wanted:
         print("  ", w["goal"], "->", [k for k, v in PROJECTS.items() if v == w["project"]][0], "|", w["name"])
