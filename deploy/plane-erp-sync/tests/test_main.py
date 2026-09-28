@@ -20,6 +20,7 @@ def test_real_stamp_is_sent_only_after_every_row_chunk(monkeypatch, tmp_path):
     monkeypatch.setattr(main, "connect", fake_conn)
     monkeypatch.setattr(main, "check_schema", lambda conn: None)
     monkeypatch.setattr(main, "collect", lambda conn, slug, now, days_back: (rows, [{"module_id": "m"}]))
+    monkeypatch.setattr(main, "collect_work_items", lambda conn, slug, since: [])
     calls = []
     monkeypatch.setattr(main.erp, "call", lambda base, token, method, body: calls.append((method, body)) or {})
 
@@ -29,7 +30,10 @@ def test_real_stamp_is_sent_only_after_every_row_chunk(monkeypatch, tmp_path):
     assert [len(b["rows"]) for b in activity] == [2000, 2000, 500, 0]
     assert all(b["synced_through"].startswith("1970-") for b in activity[:3])
     assert not activity[3]["synced_through"].startswith("1970-")
-    assert calls[-1][0] == main.MODULES_METHOD
+    assert any(m == main.MODULES_METHOD for m, _ in calls)
+    # the work-items mirror runs last and ends with its own real stamp
+    assert calls[-1][0] == main.WORK_ITEMS_METHOD and calls[-1][1]["items"] == []
+    assert not calls[-1][1]["synced_through"].startswith("1970-")
     assert out["rows"] == 4500
 
 
@@ -46,6 +50,7 @@ def test_a_failed_chunk_never_sends_the_real_stamp(monkeypatch, tmp_path):
     monkeypatch.setattr(main, "check_schema", lambda conn: None)
     monkeypatch.setattr(main, "collect", lambda conn, slug, now, days_back: ([{"email": "a@caryaar.com", "date": "2026-10-01",
                                                                    "metrics": {}}], []))
+    monkeypatch.setattr(main, "collect_work_items", lambda conn, slug, since: [])
     stamps = []
 
     def boom(base, token, method, body):
@@ -79,6 +84,7 @@ def test_run_backfills_from_the_erp_stamp_and_sends_covers_from(monkeypatch, tmp
     monkeypatch.setattr(main, "connect", fake_conn)
     monkeypatch.setattr(main, "check_schema", lambda conn: None)
     monkeypatch.setattr(main, "collect", fake_collect)
+    monkeypatch.setattr(main, "collect_work_items", lambda conn, slug, since: [])
     stamp_day = (datetime.now(core.IST) - timedelta(days=3)).date()
     calls = []
 
@@ -91,3 +97,14 @@ def test_run_backfills_from_the_erp_stamp_and_sends_covers_from(monkeypatch, tmp
     assert seen["days_back"] == 3
     activity = [b for m, b in calls if m == main.ACTIVITY_METHOD]
     assert activity and all(b["covers_from"] == stamp_day.isoformat() for b in activity)
+
+
+def test_work_items_are_sent_in_chunks_then_final_stamp(monkeypatch):
+    calls = []
+    monkeypatch.setattr(main.erp, "call", lambda base, tok, method, body: calls.append((method, body)) or {"unmapped": []})
+    items = [{"issue_id": f"i{n}"} for n in range(2001)]
+    main.send_work_items("https://erp", "tok", items, "2026-10-02T11:00:00+05:30", full_pass=True)
+    methods = [m for m, _ in calls]
+    assert methods == [main.WORK_ITEMS_METHOD] * 3
+    assert calls[0][1]["synced_through"].startswith("1970") and calls[1][1]["synced_through"].startswith("1970")
+    assert calls[2][1] == {"synced_through": "2026-10-02T11:00:00+05:30", "items": [], "full_pass": 1}

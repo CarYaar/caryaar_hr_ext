@@ -45,3 +45,32 @@ def days_back(today: date, stamp_day: date | None, cap: int = MAX_DAYS_BACK) -> 
     if stamp_day is None:
         return 1
     return max(1, min(cap, (today - stamp_day).days))
+
+
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+FULL_PASS_HOUR_IST = 0
+
+
+def work_item_rows(rows) -> list[dict]:
+    out = []
+    for (iid, pid, seq, title, start, target, done, created, updated, state, deleted, email, module, labels) in rows:
+        out.append({"issue_id": str(iid), "project_identifier": pid or "", "sequence_id": int(seq or 0),
+                    "title": (title or "")[:140], "assignee_email": (email or "").lower() or None,
+                    "state_group": state, "module_id": str(module) if module else None,
+                    "labels": [x for x in (labels or "").split(",") if x],
+                    "start_date": start.isoformat() if start else None,
+                    "target_date": target.isoformat() if target else None,
+                    "completed_at": done.astimezone(timezone.utc).isoformat() if done else None,
+                    "created_at": created.astimezone(timezone.utc).isoformat(),
+                    "updated_at": updated.astimezone(timezone.utc).isoformat(), "is_deleted": bool(deleted)})
+    return out
+
+
+def work_items_since(now_utc: datetime, stamp: str | None, full_pass_on: str | None) -> tuple[datetime, bool]:
+    """Incremental from the ERP stamp minus one day; a full pass on the first run and once a day
+    in the first IST hour, so a missed edit or a soft delete always heals within a day."""
+    today = now_utc.astimezone(IST).date()
+    first_hour = now_utc.astimezone(IST).hour == FULL_PASS_HOUR_IST
+    if not stamp or (first_hour and (not full_pass_on or date.fromisoformat(full_pass_on) < today)):
+        return EPOCH, True
+    return datetime.fromisoformat(stamp).astimezone(timezone.utc) - timedelta(days=1), False

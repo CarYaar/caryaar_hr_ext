@@ -77,3 +77,41 @@ def test_backfill_reaches_back_to_the_erp_stamp_day():
     assert core.days_back(today, date(2026, 10, 9)) == 1         # normal: still resend yesterday
     assert core.days_back(today, date(2026, 10, 5)) == 4         # after an outage: from the stamp day
     assert core.days_back(today, date(2026, 8, 1)) == 31         # capped
+
+
+# ─── work items (goal meter phase 1, Task 4) ──────────────────────────────────
+from datetime import date as _date, datetime as _datetime, timezone as _tz
+
+
+def test_work_item_rows_shape_and_clipping():
+    raw = [("id-1", "DEV", 12, "x" * 200, _date(2026, 10, 1), _date(2026, 10, 10), None,
+            _datetime(2026, 9, 28, 4, 30, tzinfo=_tz.utc), _datetime(2026, 9, 28, 7, 0, tzinfo=_tz.utc),
+            "started", False, "Shiwans@caryaar.com", "mod-1", "bug,db")]
+    row = core.work_item_rows(raw)[0]
+    assert row["issue_id"] == "id-1" and row["sequence_id"] == 12 and len(row["title"]) == 140
+    assert row["labels"] == ["bug", "db"] and row["assignee_email"] == "shiwans@caryaar.com"
+    assert row["start_date"] == "2026-10-01" and row["completed_at"] is None
+    assert row["created_at"].endswith("+00:00") and row["is_deleted"] is False
+
+
+def test_work_items_since_incremental_overlaps_one_day():
+    now = _datetime(2026, 10, 2, 6, 0, tzinfo=_tz.utc)
+    since, full = core.work_items_since(now, "2026-10-02T11:00:00+05:30", "2026-10-02")
+    assert full is False and since == _datetime(2026, 10, 1, 5, 30, tzinfo=_tz.utc)
+
+
+def test_full_pass_uses_epoch_since():
+    now = _datetime(2026, 10, 2, 19, 0, tzinfo=_tz.utc)   # 00:30 IST on 03-Oct
+    since, full = core.work_items_since(now, "2026-10-02T23:50:00+05:30", "2026-10-02")
+    assert full is True and since == _datetime(1970, 1, 1, tzinfo=_tz.utc)
+
+
+def test_first_ever_run_is_a_full_pass():
+    assert core.work_items_since(_datetime(2026, 10, 1, 9, 0, tzinfo=_tz.utc), None, None)[1] is True
+
+
+def test_work_items_query_excludes_drafts_and_yaar_copies():
+    assert "NOT i.is_draft" in sql.WORK_ITEMS_SQL and "yaar-space" in sql.WORK_ITEMS_SQL
+    for t, cols in {"issues": {"sequence_id", "name", "start_date", "target_date", "archived_at", "updated_at"},
+                    "labels": {"id", "name", "deleted_at"}, "label_issues": {"issue_id", "label_id", "deleted_at"}}.items():
+        assert cols <= sql.REQUIRED_COLUMNS[t]

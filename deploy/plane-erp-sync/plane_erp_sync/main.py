@@ -17,6 +17,7 @@ from plane_erp_sync import core, erp, sql
 log = logging.getLogger("plane_erp_sync")
 ACTIVITY_METHOD = "caryaar_hr_ext.performance.api.ingest_activity"
 MODULES_METHOD = "caryaar_hr_ext.performance.api.ingest_module_progress"
+WORK_ITEMS_METHOD = "caryaar_hr_ext.performance.api.ingest_work_items"
 STATE_METHOD = "caryaar_hr_ext.performance.api.get_sync_state"
 
 
@@ -54,6 +55,21 @@ def collect(conn, slug: str, now_utc: datetime, days_back: int):
     return core.activity_rows(members, activity, completed, days), core.module_rows(modules)
 
 
+def collect_work_items(conn, slug: str, since: datetime) -> list[dict]:
+    return core.work_item_rows(conn.execute(sql.WORK_ITEMS_SQL, {"slug": slug, "since": since}).fetchall())
+
+
+def send_work_items(base: str, token: str, items: list[dict], stamp: str, full_pass: bool) -> set[str]:
+    """Chunks carry the placeholder stamp; the final empty call carries the real one and the
+    full-pass flag, so a failed chunk never moves the ERP's stamp."""
+    unmapped: set[str] = set()
+    for part in core.chunks(items):
+        out = erp.call(base, token, WORK_ITEMS_METHOD, {"synced_through": "1970-01-01T00:00:00+05:30", "items": part})
+        unmapped |= set(out.get("unmapped", []))
+    erp.call(base, token, WORK_ITEMS_METHOD, {"synced_through": stamp, "items": [], "full_pass": 1 if full_pass else 0})
+    return unmapped
+
+
 def _stamp_day(state: dict) -> "date | None":
     value = (state or {}).get("Plane")
     return datetime.fromisoformat(value).date() if value else None
@@ -67,15 +83,17 @@ def run_once(dry_run: bool) -> dict:
     # Re-send from the day the ERP last confirmed, so an outage leaves no silent gap.
     state = {} if dry_run else erp.call(base, token, STATE_METHOD, {})
     back = core.days_back(now.astimezone(core.IST).date(), _stamp_day(state))
+    since, full_pass = core.work_items_since(now, (state or {}).get("Plane items"), (state or {}).get("Plane items full pass"))
     with connect() as conn:
         check_schema(conn)
         rows, modules = collect(conn, slug, now, back)
+        items = collect_work_items(conn, slug, since)
     stamp = core.synced_through(now)
     covers_from = core.ist_window(now, back)[2][0].isoformat()
     if dry_run:
         print(json.dumps({"synced_through": stamp, "covers_from": covers_from, "rows": rows,
-                          "modules": modules}, indent=1, default=str))
-        return {"rows": len(rows), "modules": len(modules), "dry_run": True}
+                          "modules": modules, "items": items, "full_pass": full_pass}, indent=1, default=str))
+        return {"rows": len(rows), "modules": len(modules), "items": len(items), "full_pass": full_pass, "dry_run": True}
     unmapped: set[str] = set()
     for part in core.chunks(rows):
         # Row chunks carry a placeholder stamp; the ERP never moves a stamp backwards,
@@ -87,7 +105,9 @@ def run_once(dry_run: bool) -> dict:
                                            "synced_through": stamp, "rows": []})
     for part in core.chunks(modules):
         erp.call(base, token, MODULES_METHOD, {"synced_through": stamp, "modules": part})
-    return {"rows": len(rows), "modules": len(modules), "days_back": back, "unmapped": sorted(unmapped)}
+    unmapped |= send_work_items(base, token, items, stamp, full_pass)
+    return {"rows": len(rows), "modules": len(modules), "items": len(items), "full_pass": full_pass,
+            "days_back": back, "unmapped": sorted(unmapped)}
 
 
 def main(argv=None) -> int:
