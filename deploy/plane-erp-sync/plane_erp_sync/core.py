@@ -51,18 +51,28 @@ EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
 FULL_PASS_HOUR_IST = 0
 
 
+# Plane's Intake puts new requests in a "triage" state group; the ERP knows the five work
+# states only, so an Intake item is mirrored as backlog (not yet work) instead of failing
+# the whole chunk and freezing the feed.
+_STATE_ALIAS = {"triage": "backlog"}
+
+
 def work_item_rows(rows) -> list[dict]:
     out = []
-    for (iid, pid, seq, title, start, target, done, created, updated, state, deleted, email, module, labels) in rows:
+    for (iid, pid, seq, title, start, target, done, created, updated, state, deleted, archived,
+         email, module_ids, labels) in rows:
+        mods = [x for x in (module_ids or "").split(",") if x]
         out.append({"issue_id": str(iid), "project_identifier": pid or "", "sequence_id": int(seq or 0),
                     "title": (title or "")[:140], "assignee_email": (email or "").lower() or None,
-                    "state_group": state, "module_id": str(module) if module else None,
+                    "state_group": _STATE_ALIAS.get(state, state),
+                    "module_id": mods[0] if mods else None, "module_ids": mods,
                     "labels": [x for x in (labels or "").split(",") if x],
                     "start_date": start.isoformat() if start else None,
                     "target_date": target.isoformat() if target else None,
                     "completed_at": done.astimezone(timezone.utc).isoformat() if done else None,
                     "created_at": created.astimezone(timezone.utc).isoformat(),
-                    "updated_at": updated.astimezone(timezone.utc).isoformat(), "is_deleted": bool(deleted)})
+                    "updated_at": updated.astimezone(timezone.utc).isoformat(),
+                    "is_deleted": bool(deleted), "is_archived": bool(archived)})
     return out
 
 

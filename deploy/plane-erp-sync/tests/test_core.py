@@ -86,12 +86,13 @@ from datetime import date as _date, datetime as _datetime, timezone as _tz
 def test_work_item_rows_shape_and_clipping():
     raw = [("id-1", "DEV", 12, "x" * 200, _date(2026, 10, 1), _date(2026, 10, 10), None,
             _datetime(2026, 9, 28, 4, 30, tzinfo=_tz.utc), _datetime(2026, 9, 28, 7, 0, tzinfo=_tz.utc),
-            "started", False, "Shiwans@caryaar.com", "mod-1", "bug,db")]
+            "started", False, False, "Shiwans@caryaar.com", "mod-1", "bug,db")]
     row = core.work_item_rows(raw)[0]
     assert row["issue_id"] == "id-1" and row["sequence_id"] == 12 and len(row["title"]) == 140
     assert row["labels"] == ["bug", "db"] and row["assignee_email"] == "shiwans@caryaar.com"
     assert row["start_date"] == "2026-10-01" and row["completed_at"] is None
     assert row["created_at"].endswith("+00:00") and row["is_deleted"] is False
+    assert row["module_id"] == "mod-1" and row["module_ids"] == ["mod-1"]
 
 
 def test_work_items_since_incremental_overlaps_one_day():
@@ -115,3 +116,18 @@ def test_work_items_query_excludes_drafts_and_yaar_copies():
     for t, cols in {"issues": {"sequence_id", "name", "start_date", "target_date", "archived_at", "updated_at"},
                     "labels": {"id", "name", "deleted_at"}, "label_issues": {"issue_id", "label_id", "deleted_at"}}.items():
         assert cols <= sql.REQUIRED_COLUMNS[t]
+
+
+def test_work_item_rows_keep_archived_apart_and_list_every_module():
+    raw = [("id-2", "DEV", 13, "t", None, None, _datetime(2026, 10, 3, 4, 0, tzinfo=_tz.utc),
+            _datetime(2026, 9, 28, 4, 30, tzinfo=_tz.utc), _datetime(2026, 10, 3, 4, 0, tzinfo=_tz.utc),
+            "completed", False, True, None, "mod-1,mod-2", "")]
+    row = core.work_item_rows(raw)[0]
+    assert row["is_deleted"] is False and row["is_archived"] is True
+    assert row["module_ids"] == ["mod-1", "mod-2"] and row["module_id"] == "mod-1"
+
+
+def test_intake_triage_items_arrive_as_backlog():
+    raw = [("id-3", "OPS", 1, "t", None, None, None, _datetime(2026, 9, 28, 4, 30, tzinfo=_tz.utc),
+            _datetime(2026, 9, 28, 4, 30, tzinfo=_tz.utc), "triage", False, False, None, None, None)]
+    assert core.work_item_rows(raw)[0]["state_group"] == "backlog"

@@ -130,6 +130,10 @@
    "role": "HR User",
    "read": 1,
    "report": 1
+  },
+  {
+   "role": "Employee",
+   "read": 1
   }
  ],
  "autoname": "field:goal",

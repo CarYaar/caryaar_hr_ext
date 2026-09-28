@@ -15,6 +15,7 @@
  "name": "Goal Meter Reading",
  "field_order": [
   "goal",
+  "employee",
   "reading_date",
   "value",
   "progress",
@@ -36,6 +37,15 @@
    "in_list_view": 1,
    "in_standard_filter": 1,
    "search_index": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "fetch_from": "goal.employee",
+   "read_only": 1,
+   "in_standard_filter": 1
   },
   {
    "fieldname": "reading_date",
@@ -118,6 +128,10 @@
    "role": "HR User",
    "read": 1,
    "report": 1
+  },
+  {
+   "role": "Employee",
+   "read": 1
   }
  ],
  "naming_rule": "By script",

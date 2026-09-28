@@ -23,6 +23,7 @@
   "assignee_email",
   "state_group",
   "module_id",
+  "module_ids",
   "labels",
   "sec_dates",
   "start_date",
@@ -32,6 +33,7 @@
   "created_at",
   "updated_at",
   "is_deleted",
+  "is_archived",
   "synced_at"
  ],
  "fields": [
@@ -94,6 +96,12 @@
    "search_index": 1
   },
   {
+   "fieldname": "module_ids",
+   "fieldtype": "Small Text",
+   "label": "Module IDs (all memberships, comma list)",
+   "read_only": 1
+  },
+  {
    "fieldname": "labels",
    "fieldtype": "Small Text",
    "label": "Labels"
@@ -137,6 +145,12 @@
    "fieldname": "is_deleted",
    "fieldtype": "Check",
    "label": "Deleted or archived in Plane",
+   "default": "0"
+  },
+  {
+   "fieldname": "is_archived",
+   "fieldtype": "Check",
+   "label": "Archived in Plane (finished work, still counts)",
    "default": "0"
   },
   {

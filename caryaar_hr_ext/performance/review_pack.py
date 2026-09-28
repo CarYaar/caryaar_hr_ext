@@ -37,11 +37,12 @@ def _items_for(module_raw, as_of: date) -> list[dict]:
     mid = rules.extract_module_id(module_raw)
     if not mid:
         return []
-    rows = frappe.get_all("Plane Work Item", filters={"module_id": mid, "is_deleted": 0},
+    rows = frappe.get_all("Plane Work Item", filters={"module_ids": ("like", f"%{mid}%"), "is_deleted": 0},
                           fields=["issue_id", "project_identifier", "sequence_id", "title", "assignee", "assignee_email",
-                                  "state_group", "start_date", "target_date", "completed_at"], order_by="target_date asc")
-    return [{**r, "overdue": mr.is_overdue(getdate(r.target_date) if r.target_date else None, r.state_group, as_of)}
-            for r in rows]
+                                  "state_group", "start_date", "target_date", "completed_at", "is_archived"],
+                          order_by="target_date asc")
+    return [{**r, "overdue": mr.is_overdue(getdate(r.target_date) if r.target_date else None, r.state_group, as_of),
+             "archived": bool(r.is_archived)} for r in rows]
 
 
 def _weights(employee: str, cycle: str) -> dict[str, float]:

@@ -38,12 +38,19 @@ def _sum_metric(ctx: MeterContext, key: str, source: str = "CY Admin") -> int:
 
 
 def _items(**filters) -> list:
+    """Live items only: a deleted item is gone, an archived one is finished work and still counts."""
     return frappe.get_all("Plane Work Item", filters={"is_deleted": 0, **filters},
                           fields=["name", "state_group", "target_date", "completed_at", "created_at", "labels", "module_id"])
 
 
+def _items_in_module(mid: str) -> list:
+    """Every live item that belongs to the module, whatever other modules it is also in
+    (module_ids is the comma list of all memberships)."""
+    return _items(module_ids=("like", f"%{mid}%"))
+
+
 def _labels(item) -> set[str]:
-    return {x.strip() for x in (item.labels or "").split(",") if x.strip()}
+    return rules.parse_labels(item.labels)
 
 
 def _module_id(ctx: MeterContext) -> str | None:
@@ -70,7 +77,7 @@ def m_module_completion(ctx):
     mid = _module_id(ctx)
     if not mid:
         return None
-    items = [i for i in _items(module_id=mid) if i.state_group != "cancelled"]
+    items = [i for i in _items_in_module(mid) if i.state_group != "cancelled"]
     return mr.progress_module(len(items), sum(1 for i in items if i.state_group == "completed"))
 
 
@@ -86,7 +93,7 @@ def m_incidents_fixed_24h_pct(ctx):
 def m_support_on_time_pct(ctx):
     """Items in the goal's module that were due in the window: share completed by their due date."""
     mid = _module_id(ctx)
-    items = [i for i in _items(module_id=mid) if i.state_group != "cancelled" and i.target_date] if mid else []
+    items = [i for i in _items_in_module(mid) if i.state_group != "cancelled" and i.target_date] if mid else []
     due = [i for i in items if ctx.window_from <= getdate(i.target_date) <= ctx.window_to]
     done = [i for i in due if i.completed_at and getdate(i.completed_at) <= getdate(i.target_date)]
     return mr.pct(len(done), len(due))
@@ -105,11 +112,16 @@ def m_release_bugs_14d(ctx):
 
 
 def m_wiki_pages(ctx):
+    """Pages the person created in the window, plus pages they saved a version of in it.
+    Counting by last editor would let a colleague's typo fix take a page away."""
     user = frappe.db.get_value("Employee", ctx.employee, "user_id")
     if not user:
         return None
-    return frappe.db.count("Wiki Page", {"modified_by": user,
-                                         "modified": ("between", [ctx.window_from, ctx.window_to])})
+    window = ("between", [ctx.window_from, ctx.window_to])
+    pages = set(frappe.get_all("Wiki Page", filters={"owner": user, "creation": window}, pluck="name"))
+    pages |= set(frappe.get_all("Version", filters={"ref_doctype": "Wiki Page", "owner": user, "creation": window},
+                                pluck="docname"))
+    return len(pages)
 
 
 METRICS: dict[str, Callable[[MeterContext], float | None]] = {

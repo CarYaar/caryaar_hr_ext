@@ -250,3 +250,23 @@ def test_settings_and_activity_fields_added():
     a, _ = _nf("work_activity_day")
     for k in ("leads_assigned_new", "bookings_within_7d", "followups_due", "followups_done_on_time", "leads_statused_48h"):
         assert a[k]["fieldtype"] == "Int", k
+
+
+def test_plane_work_item_keeps_archived_apart_from_deleted_and_lists_every_module():
+    f = _fields(_load("plane_work_item"))
+    assert f["is_deleted"]["fieldtype"] == "Check" and f["is_archived"]["fieldtype"] == "Check"
+    assert f["module_ids"]["fieldtype"] == "Small Text"
+
+
+def test_goal_review_pack_report_is_not_open_to_hr_users():
+    d = json.loads((APP / "caryaar_hr_ext" / "report" / "goal_review_pack" / "goal_review_pack.json").read_text())
+    assert {r["role"] for r in d["roles"]} == {"HR Manager", "System Manager"}
+
+
+def test_employee_reads_own_goal_meter_readings():
+    d = _load("goal_meter_reading")
+    f = _fields(d)
+    assert f["employee"]["fieldtype"] == "Link" and f["employee"]["options"] == "Employee"
+    assert f["employee"]["fetch_from"] == "goal.employee"
+    perms = {p["role"]: p for p in d["permissions"]}
+    assert perms["Employee"].get("read") == 1 and not perms["Employee"].get("write")

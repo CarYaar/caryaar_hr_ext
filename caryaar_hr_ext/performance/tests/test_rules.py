@@ -295,3 +295,24 @@ def test_work_item_title_is_clipped_to_140():
 def test_new_cy_admin_metric_keys_are_accepted():
     for k in ("leads_assigned_new", "bookings_within_7d", "followups_due", "followups_done_on_time", "leads_statused_48h"):
         assert k in rules.METRIC_KEYS["CY Admin"], k
+
+
+def test_work_item_carries_archived_flag_and_every_module():
+    a, b = "0b2c0000-0000-4000-8000-000000000001", "0b2c0000-0000-4000-8000-000000000002"
+    _, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30",
+                                                [_item(module_id=a, module_ids=[a, b], is_archived=True)])
+    assert rows[0].module_ids == (a, b) and rows[0].module_id == a
+    assert rows[0].is_archived is True and rows[0].is_deleted is False
+
+
+def test_work_item_module_ids_default_from_module_id():
+    a = "0b2c0000-0000-4000-8000-000000000001"
+    _, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item(module_id=a)])
+    assert rows[0].module_ids == (a,)
+    _, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item(module_id=None, module_ids=[])])
+    assert rows[0].module_ids == () and rows[0].module_id is None
+
+
+def test_parse_labels_is_case_insensitive():
+    assert rules.parse_labels("Bug, incident ,RELEASE") == {"bug", "incident", "release"}
+    assert rules.parse_labels(None) == set()

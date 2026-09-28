@@ -120,9 +120,10 @@ def ingest_work_items(synced_through=None, items=None, full_pass=0):
             unmapped.add(r.assignee_email)
         values = {"project_identifier": r.project_identifier, "sequence_id": r.sequence_id, "title": r.title,
                   "assignee": emp, "assignee_email": r.assignee_email, "state_group": r.state_group,
-                  "module_id": r.module_id, "labels": ",".join(r.labels), "start_date": r.start_date,
-                  "target_date": r.target_date, "completed_at": r.completed_at, "created_at": r.created_at,
-                  "updated_at": r.updated_at, "is_deleted": 1 if r.is_deleted else 0, "synced_at": now_datetime()}
+                  "module_id": r.module_id, "module_ids": ",".join(r.module_ids), "labels": ",".join(r.labels),
+                  "start_date": r.start_date, "target_date": r.target_date, "completed_at": r.completed_at,
+                  "created_at": r.created_at, "updated_at": r.updated_at, "is_deleted": 1 if r.is_deleted else 0,
+                  "is_archived": 1 if r.is_archived else 0, "synced_at": now_datetime()}
         if frappe.db.exists("Plane Work Item", r.issue_id):
             frappe.db.set_value("Plane Work Item", r.issue_id, values, update_modified=False)
         else:

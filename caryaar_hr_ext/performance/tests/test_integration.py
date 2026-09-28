@@ -65,7 +65,8 @@ def _cy(day, **metrics):
 class TestIngest(IntegrationTestCase):
     def setUp(self):
         self.emp = _employee("perf.test.one@caryaar.test")
-        _settings(cy_admin_synced_through=None, plane_synced_through=None, unmapped_emails="")
+        _settings(cy_admin_synced_through=None, plane_synced_through=None, unmapped_emails="",
+                  plane_items_synced_through=None, plane_items_full_pass_on=None)
 
     def test_ingest_matches_company_email_case_insensitively_and_upserts(self):
         body = dict(source="CY Admin", synced_through="2026-10-07T00:15:00+05:30", covers_from=WORKDAY,
@@ -126,10 +127,14 @@ class TestIngest(IntegrationTestCase):
         item["state_group"] = "completed"
         item["completed_at"] = "2026-10-02T18:00:00+05:30"
         item["is_deleted"] = True
+        item["is_archived"] = True
+        item["module_ids"] = ["5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10", "5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a99"]
         api.ingest_work_items("2026-10-02T19:00:00+05:30", [item])
         doc.reload()
         self.assertEqual(doc.state_group, "completed")
-        self.assertEqual(doc.is_deleted, 1)  # flagged, never removed
+        self.assertEqual((doc.is_deleted, doc.is_archived), (1, 1))  # flagged apart, never removed
+        self.assertEqual(doc.module_id, "5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10")
+        self.assertEqual(doc.module_ids, ",".join(item["module_ids"]))
         self.assertEqual(str(frappe.db.get_single_value("Performance Sync Settings", "plane_items_synced_through"))[:16],
                          "2026-10-02 19:00")
         frappe.delete_doc("Plane Work Item", item["issue_id"], force=True)
@@ -213,7 +218,7 @@ class TestEngine(IntegrationTestCase):
 
     def _item(self, issue_id, state, module_id, **extra):
         frappe.get_doc({"doctype": "Plane Work Item", "issue_id": issue_id, "project_identifier": "DEV", "sequence_id": 1,
-                        "title": issue_id, "state_group": state, "module_id": module_id,
+                        "title": issue_id, "state_group": state, "module_id": module_id, "module_ids": module_id or "",
                         "created_at": "2026-10-01 09:00:00", "updated_at": "2026-10-01 09:00:00", **extra}
                        ).insert(ignore_permissions=True)
 
@@ -258,14 +263,15 @@ class TestEngine(IntegrationTestCase):
         self.assertEqual(r.stale, 1)
 
     def test_module_completion_uses_current_membership(self):
-        g = self._seed_goal("T sprint", module="mod-t1")
+        mod = "6a1d2c3b-0000-4000-8000-0000000000t1".replace("t1", "01")
+        g = self._seed_goal("T sprint", module=mod)
         frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Plane module"}).insert(ignore_permissions=True)
         for n, state in (("a", "completed"), ("b", "started"), ("c", "cancelled")):
-            self._item(f"t1-{n}", state, "mod-t1")
+            self._item(f"t1-{n}", state, mod)
         frappe.db.set_single_value("Performance Sync Settings", "plane_items_synced_through", "2026-10-07 23:30:00")
         meter.run_meter(as_of=getdate("2026-10-06"))
         self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-06", "progress"), 50.0)
-        frappe.db.set_value("Plane Work Item", "t1-a", "module_id", None)                          # moved out
+        frappe.db.set_value("Plane Work Item", "t1-a", {"module_id": None, "module_ids": ""})       # moved out
         meter.run_meter(as_of=getdate("2026-10-07"))
         self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-07", "progress"), 0.0)
 
@@ -283,9 +289,10 @@ class TestEngine(IntegrationTestCase):
 
     def test_pack_lists_module_items_with_overdue_flag_and_counts_uncounted(self):
         from caryaar_hr_ext.performance import review_pack
-        g = self._seed_goal("T pack sprint", module="mod-p1")
+        mod = "6a1d2c3b-0000-4000-8000-000000000002"
+        g = self._seed_goal("T pack sprint", module=mod)
         frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Plane module"}).insert(ignore_permissions=True)
-        self._item("p1-a", "started", "mod-p1", assignee=self.emp, target_date="2026-10-05", sequence_id=5)
+        self._item("p1-a", "started", mod, assignee=self.emp, target_date="2026-10-05", sequence_id=5)
         self._item("p1-b", "started", None, assignee=self.emp, sequence_id=6)
         pack = review_pack.build_pack(self.emp, self._cycle(), getdate("2026-10-10"))
         goal = next(x for x in pack["goals"] if x["goal"] == g.name)

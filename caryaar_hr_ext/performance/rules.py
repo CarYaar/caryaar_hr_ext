@@ -164,14 +164,22 @@ class WorkItemRow(NamedTuple):
     title: str
     assignee_email: str | None
     state_group: str
-    module_id: str | None
+    module_id: str | None          # the first module, for display; module_ids has every membership
     labels: tuple[str, ...]
     start_date: str | None
     target_date: str | None
     completed_at: datetime | None
     created_at: datetime
     updated_at: datetime
-    is_deleted: bool
+    is_deleted: bool               # soft-deleted in Plane: gone for good
+    is_archived: bool              # archived in Plane: finished work put away, still counts
+    module_ids: tuple[str, ...] = ()
+
+
+def parse_labels(raw: str | None) -> set[str]:
+    """The mirror's comma list as a set, lower-cased: Plane labels are typed by hand
+    ("Bug", "bug") and the meter must match them all."""
+    return {x.strip().lower() for x in (raw or "").split(",") if x.strip()}
 
 
 def _opt_day(value) -> str | None:
@@ -210,11 +218,18 @@ def validate_work_items_payload(synced_through, items) -> tuple[datetime, list[W
         if not isinstance(labels, list) or any(not isinstance(x, str) for x in labels):
             raise ValueError(f"item {i} labels must be a list of strings")
         module_id = it.get("module_id")
+        module_ids = it.get("module_ids")
+        if module_ids is None:
+            module_ids = [module_id] if module_id else []
+        if not isinstance(module_ids, list) or any(not isinstance(x, str) or not x for x in module_ids):
+            raise ValueError(f"item {i} module_ids must be a list of module ids")
+        mods = tuple(module_ids)
         out.append(WorkItemRow(
             issue_id=issue_id, project_identifier=str(it.get("project_identifier") or "")[:20],
             sequence_id=seq, title=str(it.get("title") or "")[:TITLE_MAX],
             assignee_email=email.strip().lower() if email else None, state_group=state,
-            module_id=str(module_id) if module_id else None, labels=tuple(labels),
+            module_id=mods[0] if mods else None, module_ids=mods, labels=tuple(labels),
+            is_archived=bool(it.get("is_archived", False)),
             start_date=_opt_day(it.get("start_date")), target_date=_opt_day(it.get("target_date")),
             completed_at=_opt_aware(it.get("completed_at")), created_at=_parse_aware(it.get("created_at")),
             updated_at=_parse_aware(it.get("updated_at")), is_deleted=bool(it.get("is_deleted", False))))

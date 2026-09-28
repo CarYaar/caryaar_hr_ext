@@ -13,8 +13,11 @@
  "creation": "2026-09-28 21:00:00.000000",
  "modified": "2026-09-28 21:00:00.000000",
  "roles": [
-  {"role": "HR Manager"},
-  {"role": "HR User"},
-  {"role": "System Manager"}
+  {
+   "role": "HR Manager"
+  },
+  {
+   "role": "System Manager"
+  }
  ]
 }

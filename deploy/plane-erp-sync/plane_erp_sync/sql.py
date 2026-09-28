@@ -74,16 +74,20 @@ GROUP BY m.id, p.identifier, m.name
 """
 
 # Every non-draft work item in the workspace changed since %(since)s (the daily full pass
-# passes the epoch). Soft deletes and archives arrive flagged, never dropped. One assignee
-# (the earliest) and one module (the earliest) per item; labels as a comma list.
+# passes the epoch). Soft deletes and archives arrive flagged, never dropped, and apart:
+# Plane only archives completed or cancelled items (by hand or its auto-archive), so an
+# archived item is finished work that still counts, while a deleted one is gone. One
+# assignee (the earliest) per item; every module membership (oldest first) and the labels
+# as comma lists. The state group arrives raw (Intake's "triage" is mapped in core).
 WORK_ITEMS_SQL = """
 SELECT i.id::text, p.identifier, i.sequence_id, i.name, i.start_date, i.target_date, i.completed_at,
        i.created_at, i.updated_at, coalesce(s."group", 'backlog') AS state_group,
-       (i.deleted_at IS NOT NULL OR i.archived_at IS NOT NULL) AS is_deleted,
+       (i.deleted_at IS NOT NULL) AS is_deleted,
+       (i.archived_at IS NOT NULL) AS is_archived,
        (SELECT lower(u.email) FROM issue_assignees ia JOIN users u ON u.id = ia.assignee_id
          WHERE ia.issue_id = i.id AND ia.deleted_at IS NULL ORDER BY ia.created_at LIMIT 1) AS assignee_email,
-       (SELECT mi.module_id::text FROM module_issues mi
-         WHERE mi.issue_id = i.id AND mi.deleted_at IS NULL ORDER BY mi.created_at LIMIT 1) AS module_id,
+       (SELECT string_agg(mi.module_id::text, ',' ORDER BY mi.created_at) FROM module_issues mi
+         WHERE mi.issue_id = i.id AND mi.deleted_at IS NULL) AS module_ids,
        (SELECT string_agg(l.name, ',' ORDER BY l.name) FROM label_issues li JOIN labels l ON l.id = li.label_id
          WHERE li.issue_id = i.id AND li.deleted_at IS NULL AND l.deleted_at IS NULL) AS labels
 FROM issues i
