@@ -60,3 +60,10 @@ def test_pct():
 
 def test_module_progress_rule():
     assert mr.progress_module(4, 1) == 25.0 and mr.progress_module(0, 0) is None and mr.progress_module(2, 5) == 100.0
+
+
+def test_pack_due_on_1st_15th_and_three_days_before_a_review():
+    assert mr.pack_due_today(date(2026, 10, 1), []) and mr.pack_due_today(date(2026, 10, 15), [])
+    assert not mr.pack_due_today(date(2026, 10, 9), [])
+    assert mr.pack_due_today(date(2026, 10, 9), [date(2026, 10, 12)])
+    assert not mr.pack_due_today(date(2026, 10, 9), [date(2026, 10, 13)])

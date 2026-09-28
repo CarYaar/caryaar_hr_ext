@@ -1,0 +1,23 @@
+<div style="font-family: Inter, Arial, sans-serif; color: #2D2D2D; max-width: 860px">
+  <h2 style="color: #4A1D73; margin-bottom: 4px">Review pack: {{ pack.employee_name }}</h2>
+  <p style="margin-top: 0">Cycle {{ pack.cycle }}, as of {{ frappe.utils.formatdate(pack.as_of, "dd-MMM-yyyy") }}.
+    {% if pack.learning_month %}<b>October is the learning month:</b> readings are shown, goal progress is not yet written.{% endif %}</p>
+  <p>Adherence on working days so far: <b>{{ pack.adherence.pct if pack.adherence.pct is not none else "no judged days" }}</b>
+    ({{ pack.adherence.days }} days). Plane items assigned but not tied to any goal: <b>{{ pack.uncounted_items }}</b>.</p>
+  {% if pack.manual_missing %}<p style="color: #E74C3C"><b>Needs a manual reading:</b> {{ pack.manual_missing | join(", ") }}</p>{% endif %}
+  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 13px">
+    <tr style="background: #E8D5F5; text-align: left">
+      <th>Goal / item</th><th>KRA</th><th>Weight</th><th>Method / state</th><th>Target / due</th><th>Value</th><th>Progress</th><th>Flags</th>
+    </tr>
+    {% for r in rows %}
+    <tr style="border-bottom: 1px solid #eee; {% if r.row_type == 'item' %}color: #555{% endif %}">
+      <td style="{% if r.row_type == 'item' %}padding-left: 24px{% endif %}">{{ r.text }}</td>
+      <td>{{ r.kra or "" }}</td><td>{{ r.weight if r.weight is not none else "" }}</td><td>{{ r.method or "" }}</td>
+      <td>{{ r.target if r.target is not none else "" }}</td><td>{{ r.value if r.value is not none else "" }}</td>
+      <td>{{ (r.progress ~ "%") if r.progress is not none else "" }}</td>
+      <td style="{% if 'overdue' in (r.flags or '') %}color: #E74C3C{% endif %}">{{ r.flags or "" }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p style="font-size: 12px; color: #777">Sent by the ERP on the 1st and 15th of each month and 3 days before a review date. Numbers come from CY Admin, Plane and the ERP; the source of each metric is in the goal meter.</p>
+</div>

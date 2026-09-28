@@ -268,3 +268,26 @@ class TestEngine(IntegrationTestCase):
         frappe.db.set_value("Plane Work Item", "t1-a", "module_id", None)                          # moved out
         meter.run_meter(as_of=getdate("2026-10-07"))
         self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-07", "progress"), 0.0)
+
+    # ─── review pack (phase 1, Task 8) ────────────────────────────────────────
+    def test_pack_flags_manual_goal_without_reading(self):
+        from caryaar_hr_ext.performance import review_pack
+        g = self._seed_goal("T manual")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Manual"}).insert(ignore_permissions=True)
+        pack = review_pack.build_pack(self.emp, self._cycle(), getdate("2026-10-20"))
+        self.assertIn(g.name, pack["manual_missing"])
+        goal = next(x for x in pack["goals"] if x["goal"] == g.name)
+        self.assertIsNone(goal["progress"])
+        rows = review_pack.pack_rows(pack)
+        self.assertTrue(any(r["row_type"] == "goal" and r["goal"] == g.name for r in rows))
+
+    def test_pack_lists_module_items_with_overdue_flag_and_counts_uncounted(self):
+        from caryaar_hr_ext.performance import review_pack
+        g = self._seed_goal("T pack sprint", module="mod-p1")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Plane module"}).insert(ignore_permissions=True)
+        self._item("p1-a", "started", "mod-p1", assignee=self.emp, target_date="2026-10-05", sequence_id=5)
+        self._item("p1-b", "started", None, assignee=self.emp, sequence_id=6)
+        pack = review_pack.build_pack(self.emp, self._cycle(), getdate("2026-10-10"))
+        goal = next(x for x in pack["goals"] if x["goal"] == g.name)
+        self.assertEqual([(i["sequence_id"], i["overdue"]) for i in goal["items"]], [(5, True)])
+        self.assertEqual(pack["uncounted_items"], 1)

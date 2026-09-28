@@ -388,5 +388,16 @@
   "label": "Plane module ID",
   "module": "Caryaar Hr Ext",
   "name": "Goal-cy_plane_module"
+ },
+ {
+  "description": "The review pack is emailed to the manager and the founders 3 days before this date.",
+  "doctype": "Custom Field",
+  "dt": "Appraisal",
+  "fieldname": "cy_next_review_on",
+  "fieldtype": "Date",
+  "insert_after": "appraisal_cycle",
+  "label": "Next review on",
+  "module": "Caryaar Hr Ext",
+  "name": "Appraisal-cy_next_review_on"
  }
 ]

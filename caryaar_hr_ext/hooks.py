@@ -110,6 +110,7 @@ fixtures = [
 scheduler_events = {
     "cron": {
         "30 23 * * *": ["caryaar_hr_ext.performance.engine.run_nightly"],
+        "0 8 * * *": ["caryaar_hr_ext.performance.review_pack.send_scheduled_packs"],
     },
 }
 
