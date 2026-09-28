@@ -15,7 +15,9 @@ METRIC_KEYS: dict[str, tuple[str, ...]] = {
     "Plane": ("activity_count", "completed_count"),
     "CY Admin": ("calls_handled", "calls_answered", "talk_seconds", "dispositions",
                  "status_moves", "notes_written", "bookings_credited",
-                 "leads_assigned", "leads_untouched", "followups_overdue"),
+                 "leads_assigned", "leads_untouched", "followups_overdue",
+                 "leads_assigned_new", "bookings_within_7d", "followups_due",
+                 "followups_done_on_time", "leads_statused_48h"),
 }
 MAX_ROWS = 2000
 MAX_METRIC = 10_000_000
@@ -148,6 +150,74 @@ def validate_module_payload(synced_through, modules) -> tuple[datetime, list[Mod
             raise ValueError(f"module {i} completed_issues ({done}) exceeds total_issues ({total})")
         out.append(ModuleRow(mid.strip(), str(m.get("project_identifier") or ""),
                              str(m.get("module_name") or "")[:140], total, done))
+    return when, out
+
+
+WORK_ITEM_STATES: tuple[str, ...] = ("backlog", "unstarted", "started", "completed", "cancelled")
+TITLE_MAX = 140
+
+
+class WorkItemRow(NamedTuple):
+    issue_id: str
+    project_identifier: str
+    sequence_id: int
+    title: str
+    assignee_email: str | None
+    state_group: str
+    module_id: str | None
+    labels: tuple[str, ...]
+    start_date: str | None
+    target_date: str | None
+    completed_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+    is_deleted: bool
+
+
+def _opt_day(value) -> str | None:
+    return None if value in (None, "") else _parse_day(value)
+
+
+def _opt_aware(value) -> datetime | None:
+    return None if value in (None, "") else _parse_aware(value)
+
+
+def validate_work_items_payload(synced_through, items) -> tuple[datetime, list[WorkItemRow]]:
+    """One intake call from the Plane sync: every non-draft work item changed since the
+    sender's last stamp (or all of them on the daily full pass)."""
+    when = _parse_aware(synced_through)
+    if not isinstance(items, list):
+        raise ValueError("items must be a list")
+    if len(items) > MAX_ROWS:
+        raise ValueError(f"at most {MAX_ROWS} items per call, got {len(items)}")
+    out: list[WorkItemRow] = []
+    for i, it in enumerate(items):
+        if not isinstance(it, dict):
+            raise ValueError(f"item {i} must be an object")
+        issue_id = it.get("issue_id")
+        if not isinstance(issue_id, str) or len(issue_id) < 8:
+            raise ValueError(f"item {i} issue_id is missing")
+        state = it.get("state_group")
+        if state not in WORK_ITEM_STATES:
+            raise ValueError(f"item {i} state_group must be one of {WORK_ITEM_STATES}, got {state!r}")
+        email = it.get("assignee_email")
+        if email is not None and (not isinstance(email, str) or "@" not in email):
+            raise ValueError(f"item {i} assignee_email is not an email address: {email!r}")
+        seq = it.get("sequence_id")
+        if isinstance(seq, bool) or not isinstance(seq, int) or seq < 0:
+            raise ValueError(f"item {i} sequence_id must be a whole number")
+        labels = it.get("labels") or []
+        if not isinstance(labels, list) or any(not isinstance(x, str) for x in labels):
+            raise ValueError(f"item {i} labels must be a list of strings")
+        module_id = it.get("module_id")
+        out.append(WorkItemRow(
+            issue_id=issue_id, project_identifier=str(it.get("project_identifier") or "")[:20],
+            sequence_id=seq, title=str(it.get("title") or "")[:TITLE_MAX],
+            assignee_email=email.strip().lower() if email else None, state_group=state,
+            module_id=str(module_id) if module_id else None, labels=tuple(labels),
+            start_date=_opt_day(it.get("start_date")), target_date=_opt_day(it.get("target_date")),
+            completed_at=_opt_aware(it.get("completed_at")), created_at=_parse_aware(it.get("created_at")),
+            updated_at=_parse_aware(it.get("updated_at")), is_deleted=bool(it.get("is_deleted", False))))
     return when, out
 
 

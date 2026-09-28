@@ -244,3 +244,54 @@ def test_founders_scorecard_never_gets_a_bell_curve_category():
     assert r.stored_category(1, 4.6, "Technology") == "Exceptional"
     assert r.stored_category(0, 4.6, "Technology") == ""       # draft scores stay provisional
     assert r.stored_category(1, None, "Technology") == ""
+
+
+# ─── Plane work items (goal meter phase 1, Task 1) ────────────────────────────
+from datetime import datetime as _dt
+
+from caryaar_hr_ext.performance import rules
+
+
+def _item(**kw):
+    base = {"issue_id": "8f1e0d3a-1111-4444-8888-aaaaaaaaaaaa", "project_identifier": "DEV",
+            "sequence_id": 1233, "title": "Goal meter: nightly readings", "assignee_email": "Shiwans.Vaishya@caryaar.com",
+            "state_group": "started", "module_id": "0b2c-mod", "labels": ["cy-admin", "db"],
+            "start_date": "2026-10-01", "target_date": "2026-10-10", "completed_at": None,
+            "created_at": "2026-09-28T10:00:00+05:30", "updated_at": "2026-09-28T12:30:00+05:30", "is_deleted": False}
+    base.update(kw)
+    return base
+
+
+def test_valid_work_items_payload_normalises_email_and_times():
+    when, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item()])
+    assert when == _dt(2026, 9, 28, 13, 0)
+    row = rows[0]
+    assert row.assignee_email == "shiwans.vaishya@caryaar.com"
+    assert row.labels == ("cy-admin", "db") and row.state_group == "started"
+    assert row.updated_at == _dt(2026, 9, 28, 12, 30) and row.completed_at is None
+
+
+def test_work_item_without_assignee_or_module_is_allowed():
+    _, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30",
+                                                [_item(assignee_email=None, module_id=None, labels=[])])
+    assert rows[0].assignee_email is None and rows[0].module_id is None and rows[0].labels == ()
+
+
+def test_unknown_state_group_rejected():
+    with pytest.raises(ValueError, match="state_group"):
+        rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item(state_group="done")])
+
+
+def test_work_items_over_max_rows_rejected():
+    with pytest.raises(ValueError, match="at most"):
+        rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item()] * (rules.MAX_ROWS + 1))
+
+
+def test_work_item_title_is_clipped_to_140():
+    _, rows = rules.validate_work_items_payload("2026-09-28T13:00:00+05:30", [_item(title="x" * 300)])
+    assert len(rows[0].title) == 140
+
+
+def test_new_cy_admin_metric_keys_are_accepted():
+    for k in ("leads_assigned_new", "bookings_within_7d", "followups_due", "followups_done_on_time", "leads_statused_48h"):
+        assert k in rules.METRIC_KEYS["CY Admin"], k
