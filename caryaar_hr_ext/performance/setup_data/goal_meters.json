@@ -1,0 +1,404 @@
+[
+ {
+  "employee": "HR-EMP-00001",
+  "kra": "Company Profitability",
+  "method": "Manual",
+  "source_note": "Phase 2: contribution_margin from ERP, definition to fix with Shubham; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00001",
+  "kra": "Company Revenue",
+  "method": "Manual",
+  "source_note": "Phase 2: revenue_net from ERP Sales Invoice; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00002",
+  "kra": "Company Profitability",
+  "method": "Manual",
+  "source_note": "Phase 2: contribution_margin from ERP, definition to fix with Shubham; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00002",
+  "kra": "Company Revenue",
+  "method": "Manual",
+  "source_note": "Phase 2: revenue_net from ERP Sales Invoice; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00002",
+  "kra": "New Customers Onboarded",
+  "method": "Manual",
+  "source_note": "Phase 2: first_paid_customers from ERP Sales Invoice; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00002",
+  "kra": "Technology Development",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00002",
+  "kra": "Technology Maintained",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00003",
+  "kra": "Company Profitability",
+  "method": "Manual",
+  "source_note": "Phase 2: contribution_margin from ERP, definition to fix with Shubham; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00003",
+  "kra": "Company Revenue",
+  "method": "Manual",
+  "source_note": "Phase 2: revenue_net from ERP Sales Invoice; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00003",
+  "kra": "Customers Managed",
+  "method": "Manual",
+  "source_note": "Phase 2: returning_paid_customers from ERP Sales Invoice; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00003",
+  "kra": "Workshop Partners Managed",
+  "method": "Manual",
+  "source_note": "Phase 2: turnaround_median_h from WMS job cards; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00003",
+  "kra": "Workshop Partners Onboarded",
+  "method": "Manual",
+  "source_note": "Phase 2: partners_onboarded from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00004",
+  "kra": "Appraisal cycle run on time",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00004",
+  "kra": "Attendance and payroll accuracy",
+  "method": "Manual",
+  "source_note": "Phase 2: unmarked_before_payroll from ERP Attendance; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00004",
+  "kra": "Employee engagement",
+  "method": "Manual"
+ },
+ {
+  "employee": "HR-EMP-00004",
+  "kra": "Hiring turnaround",
+  "method": "Manual",
+  "source_note": "Phase 2: hiring_days_to_fill from ERP Job Opening and Job Applicant; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00004",
+  "kra": "Policy compliance and records",
+  "method": "Manual",
+  "source_note": "Phase 2: handbook_acks from ERP Employee; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00005",
+  "kra": "Founders' office execution",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00005",
+  "kra": "Partner activation",
+  "method": "Manual",
+  "source_note": "Phase 2: partner_first_job_30d from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00005",
+  "kra": "Partner retention",
+  "method": "Manual",
+  "source_note": "Phase 2: partners_active_30d from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00005",
+  "kra": "Partnerships signed",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00005",
+  "kra": "Revenue from partnerships",
+  "method": "Manual",
+  "source_note": "Phase 2: partner_jobs_revenue from ERP invoices; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00006",
+  "kra": "Disputes and escalations resolved",
+  "method": "Manual",
+  "source_note": "Phase 2: escalations_closed_sla from CY Admin tickets; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00006",
+  "kra": "Service Partner quality audits",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00006",
+  "kra": "Service Partner turnaround time",
+  "method": "Manual",
+  "source_note": "Phase 2: turnaround_median_h from WMS job cards; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00006",
+  "kra": "Service Partners onboarded",
+  "method": "Manual",
+  "source_note": "Phase 2: partners_onboarded from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00006",
+  "kra": "Team development",
+  "method": "Ratio to target",
+  "metric": "conversion_pct",
+  "window": "Cycle to date",
+  "target_value": 5,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00007",
+  "kra": "GST and TDS compliance",
+  "method": "Manual",
+  "source_note": "Manual with evidence (filing acknowledgements)"
+ },
+ {
+  "employee": "HR-EMP-00007",
+  "kra": "MIS reports on time",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00007",
+  "kra": "Monthly books closed on time",
+  "method": "Manual",
+  "source_note": "Manual with evidence until a Period Closing Voucher is used"
+ },
+ {
+  "employee": "HR-EMP-00007",
+  "kra": "Payables and receivables on time",
+  "method": "Manual",
+  "source_note": "Phase 2: payables_receivables_on_time from ERP invoices; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00007",
+  "kra": "Service Partner payout reconciliation",
+  "method": "Manual",
+  "source_note": "Phase 2: payouts_reconciled from CY Admin remittances; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00008",
+  "kra": "Committed sprint work delivered",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00008",
+  "kra": "Documentation and knowledge sharing",
+  "method": "Ratio to target",
+  "metric": "wiki_pages",
+  "window": "Cycle to date",
+  "target_value": 12,
+  "unit": "pages",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00008",
+  "kra": "Production reliability and fix time",
+  "method": "Months meeting standard",
+  "metric": "incidents_fixed_24h_pct",
+  "window": "Latest full month",
+  "standard_value": 100,
+  "unit": "% of incidents",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00008",
+  "kra": "Release quality (defects found after release)",
+  "method": "Months meeting standard",
+  "metric": "release_bugs_14d",
+  "window": "Latest full month",
+  "standard_value": 1,
+  "unit": "bugs per release",
+  "direction": "Lower is better"
+ },
+ {
+  "employee": "HR-EMP-00008",
+  "kra": "Support to operations teams",
+  "method": "Ratio to target",
+  "metric": "support_on_time_pct",
+  "window": "Latest full month",
+  "target_value": 90,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00010",
+  "kra": "CRM data completeness",
+  "method": "Ratio to target",
+  "metric": "leads_statused_48h_pct",
+  "window": "Latest full month",
+  "target_value": 100,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00010",
+  "kra": "Customer follow-ups on time",
+  "method": "Ratio to target",
+  "metric": "followups_on_time_pct",
+  "window": "Latest full month",
+  "target_value": 95,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00010",
+  "kra": "Customer satisfaction",
+  "method": "Manual",
+  "source_note": "Rating capture in CY Admin is broken (18 of 19 ratings are 1); manual until fixed"
+ },
+ {
+  "employee": "HR-EMP-00010",
+  "kra": "Job updates to customers on time",
+  "method": "Manual",
+  "source_note": "Phase 2: job_updates_sent_on_time from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00010",
+  "kra": "Lead to booking conversion",
+  "method": "Ratio to target",
+  "metric": "conversion_pct",
+  "window": "Cycle to date",
+  "target_value": 5,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00011",
+  "kra": "Assigned tasks delivered",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00011",
+  "kra": "Code review feedback applied",
+  "method": "Manual"
+ },
+ {
+  "employee": "HR-EMP-00011",
+  "kra": "Documentation and knowledge sharing",
+  "method": "Ratio to target",
+  "metric": "wiki_pages",
+  "window": "Cycle to date",
+  "target_value": 6,
+  "unit": "pages",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00011",
+  "kra": "Learning plan completed",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00011",
+  "kra": "Team participation",
+  "method": "Manual"
+ },
+ {
+  "employee": "HR-EMP-00012",
+  "kra": "CRM data completeness",
+  "method": "Ratio to target",
+  "metric": "leads_statused_48h_pct",
+  "window": "Latest full month",
+  "target_value": 100,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00012",
+  "kra": "Customer follow-ups on time",
+  "method": "Ratio to target",
+  "metric": "followups_on_time_pct",
+  "window": "Latest full month",
+  "target_value": 95,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00012",
+  "kra": "Customer satisfaction",
+  "method": "Manual",
+  "source_note": "Rating capture in CY Admin is broken (18 of 19 ratings are 1); manual until fixed"
+ },
+ {
+  "employee": "HR-EMP-00012",
+  "kra": "Job updates to customers on time",
+  "method": "Manual",
+  "source_note": "Phase 2: job_updates_sent_on_time from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00012",
+  "kra": "Lead to booking conversion",
+  "method": "Ratio to target",
+  "metric": "conversion_pct",
+  "window": "Cycle to date",
+  "target_value": 5,
+  "unit": "%",
+  "direction": "Higher is better"
+ },
+ {
+  "employee": "HR-EMP-00014",
+  "kra": "Brand consistency",
+  "method": "Manual"
+ },
+ {
+  "employee": "HR-EMP-00014",
+  "kra": "Content calendar delivered",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00014",
+  "kra": "Cost per lead",
+  "method": "Manual",
+  "source_note": "Phase 2: ads_spend / bookings from Meta insights; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00014",
+  "kra": "Leads from social and ads",
+  "method": "Manual",
+  "source_note": "Phase 2: ground_leads from CY Admin; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00014",
+  "kra": "Reach and engagement growth",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00016",
+  "kra": "Appraisal cycle run on time",
+  "method": "Plane module"
+ },
+ {
+  "employee": "HR-EMP-00016",
+  "kra": "Attendance and payroll accuracy",
+  "method": "Manual",
+  "source_note": "Phase 2: unmarked_before_payroll from ERP Attendance; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00016",
+  "kra": "Employee engagement",
+  "method": "Manual"
+ },
+ {
+  "employee": "HR-EMP-00016",
+  "kra": "Hiring turnaround",
+  "method": "Manual",
+  "source_note": "Phase 2: hiring_days_to_fill from ERP Job Opening and Job Applicant; manual with evidence until then"
+ },
+ {
+  "employee": "HR-EMP-00016",
+  "kra": "Policy compliance and records",
+  "method": "Manual",
+  "source_note": "Phase 2: handbook_acks from ERP Employee; manual with evidence until then"
+ }
+]

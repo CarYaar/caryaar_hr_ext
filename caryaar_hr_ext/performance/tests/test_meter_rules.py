@@ -67,3 +67,20 @@ def test_pack_due_on_1st_15th_and_three_days_before_a_review():
     assert not mr.pack_due_today(date(2026, 10, 9), [])
     assert mr.pack_due_today(date(2026, 10, 9), [date(2026, 10, 12)])
     assert not mr.pack_due_today(date(2026, 10, 9), [date(2026, 10, 13)])
+
+
+def test_goal_meter_fixture_is_consistent():
+    import json
+    from pathlib import Path
+
+    rows = json.loads((Path(__file__).resolve().parents[1] / "setup_data" / "goal_meters.json").read_text())
+    assert len(rows) >= 60
+    for r in rows:
+        assert r["method"] in mr.METHODS and r.get("window", "Cycle to date") in mr.WINDOWS
+        if r["method"] == "Ratio to target":
+            assert r["metric"] and r["target_value"] > 0
+        if r["method"] == "Months meeting standard":
+            assert r["metric"] and r["standard_value"] is not None
+        if r["method"] in ("Plane module", "Manual"):
+            assert not r.get("metric")
+    assert len({(r["employee"], r["kra"]) for r in rows}) == len(rows)

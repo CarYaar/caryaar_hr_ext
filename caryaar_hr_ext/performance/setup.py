@@ -56,3 +56,27 @@ def ensure_wfh_approval_setup() -> None:
     for doc in missing_docs(load_docs(), exists, workflow_exists_for):
         frappe.get_doc(doc).insert(ignore_permissions=True)
     frappe.db.commit()
+
+
+def ensure_goal_meters() -> int:
+    """after_migrate: a Goal Meter for every goal in a live cycle whose (employee, KRA) is in
+    setup_data/goal_meters.json and has no meter yet. Never updates an existing meter: the
+    founders edit targets in the Goal Meter list and a deploy must not undo that."""
+    rows = json.loads((Path(__file__).parent / "setup_data" / "goal_meters.json").read_text())
+    wanted = {(r["employee"], r["kra"]): r for r in rows}
+    cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])}, pluck="name")
+    if not cycles:
+        return 0
+    created = 0
+    for g in frappe.get_all("Goal", filters={"appraisal_cycle": ("in", cycles), "is_group": 0, "status": ("!=", "Archived")},
+                            fields=["name", "employee", "kra"]):
+        r = wanted.get((g.employee, g.kra))
+        if not r or frappe.db.exists("Goal Meter", g.name):
+            continue
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": r["method"], "metric": r.get("metric"),
+                        "window": r.get("window", "Cycle to date"), "target_value": r.get("target_value"),
+                        "standard_value": r.get("standard_value"), "unit": r.get("unit"),
+                        "direction": r.get("direction", "Higher is better"), "source_note": r.get("source_note"),
+                        "active": 1}).insert(ignore_permissions=True)
+        created += 1
+    return created
