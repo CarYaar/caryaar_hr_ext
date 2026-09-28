@@ -6,7 +6,7 @@ REQUIRED_COLUMNS = {
                "sequence_id", "name", "project_id", "start_date", "target_date", "created_at", "updated_at", "archived_at"},
     "issue_assignees": {"issue_id", "assignee_id", "deleted_at", "created_at"},
     "labels": {"id", "name", "deleted_at"},
-    "label_issues": {"issue_id", "label_id", "deleted_at"},
+    "issue_labels": {"issue_id", "label_id", "deleted_at"},
     "users": {"id", "email", "is_bot", "is_active"},
     "states": {"id", "group"},
     "modules": {"id", "name", "project_id", "workspace_id", "archived_at", "deleted_at"},
@@ -88,7 +88,7 @@ SELECT i.id::text, p.identifier, i.sequence_id, i.name, i.start_date, i.target_d
          WHERE ia.issue_id = i.id AND ia.deleted_at IS NULL ORDER BY ia.created_at LIMIT 1) AS assignee_email,
        (SELECT string_agg(mi.module_id::text, ',' ORDER BY mi.created_at) FROM module_issues mi
          WHERE mi.issue_id = i.id AND mi.deleted_at IS NULL) AS module_ids,
-       (SELECT string_agg(l.name, ',' ORDER BY l.name) FROM label_issues li JOIN labels l ON l.id = li.label_id
+       (SELECT string_agg(l.name, ',' ORDER BY l.name) FROM issue_labels li JOIN labels l ON l.id = li.label_id
          WHERE li.issue_id = i.id AND li.deleted_at IS NULL AND l.deleted_at IS NULL) AS labels
 FROM issues i
 JOIN projects p ON p.id = i.project_id AND p.deleted_at IS NULL

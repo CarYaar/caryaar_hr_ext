@@ -114,7 +114,7 @@ def test_first_ever_run_is_a_full_pass():
 def test_work_items_query_excludes_drafts_and_yaar_copies():
     assert "NOT i.is_draft" in sql.WORK_ITEMS_SQL and "yaar-space" in sql.WORK_ITEMS_SQL
     for t, cols in {"issues": {"sequence_id", "name", "start_date", "target_date", "archived_at", "updated_at"},
-                    "labels": {"id", "name", "deleted_at"}, "label_issues": {"issue_id", "label_id", "deleted_at"}}.items():
+                    "labels": {"id", "name", "deleted_at"}, "issue_labels": {"issue_id", "label_id", "deleted_at"}}.items():
         assert cols <= sql.REQUIRED_COLUMNS[t]
 
 

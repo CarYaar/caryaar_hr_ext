@@ -17,7 +17,7 @@ ALTER ROLE plane_erp_sync WITH LOGIN PASSWORD :'pw';
 ALTER ROLE plane_erp_sync SET default_transaction_read_only = on;
 GRANT CONNECT ON DATABASE plane TO plane_erp_sync;
 GRANT USAGE ON SCHEMA public TO plane_erp_sync;
-GRANT SELECT ON issue_activities, issues, issue_assignees, labels, label_issues, users, states, modules,
+GRANT SELECT ON issue_activities, issues, issue_assignees, labels, issue_labels, users, states, modules,
   module_issues, projects, workspaces, workspace_members TO plane_erp_sync;
 SQL
 unset OWNER_PW
