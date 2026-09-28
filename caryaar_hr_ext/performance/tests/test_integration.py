@@ -8,7 +8,7 @@ import frappe
 from frappe.tests import IntegrationTestCase
 from frappe.utils import getdate
 
-from caryaar_hr_ext.performance import api, engine
+from caryaar_hr_ext.performance import api, engine, meter
 from caryaar_hr_ext.performance.rules import activity_doc_name, adherence_doc_name
 
 WORKDAY = "2026-10-06"      # Tuesday
@@ -193,25 +193,78 @@ class TestEngine(IntegrationTestCase):
         with self.assertRaises(frappe.ValidationError):
             api.recompute("2026-10-01", "2026-12-31")
 
-    def test_bad_module_id_is_recorded_and_other_goals_still_update(self):
+    # ─── goal meter (phase 1, Task 6) ─────────────────────────────────────────
+    def _cycle(self):
+        name = frappe.db.get_value("Appraisal Cycle", {"cycle_name": "Perf Test Cycle"}, "name")
+        if name:
+            return name
         cycle = frappe.get_doc({"doctype": "Appraisal Cycle", "cycle_name": "Perf Test Cycle",
                                 "start_date": "2026-10-01", "end_date": "2027-03-31", "company": _company(),
                                 "kra_evaluation_method": "Automated Based on Goal Progress"}
                                ).insert(ignore_permissions=True)
         frappe.db.set_value("Appraisal Cycle", cycle.name, "status", "In Progress")
-        kra = frappe.get_all("KRA", pluck="name", limit=1)[0]
+        return cycle.name
+
+    def _seed_goal(self, name, kra=None, module=None):
+        kra = kra or frappe.get_all("KRA", pluck="name", limit=1)[0]
+        return frappe.get_doc({"doctype": "Goal", "goal_name": name, "employee": self.emp, "kra": kra,
+                               "appraisal_cycle": self._cycle(), "start_date": "2026-10-01", "end_date": "2027-03-31",
+                               "cy_plane_module": module}).insert(ignore_permissions=True)
+
+    def _item(self, issue_id, state, module_id, **extra):
+        frappe.get_doc({"doctype": "Plane Work Item", "issue_id": issue_id, "project_identifier": "DEV", "sequence_id": 1,
+                        "title": issue_id, "state_group": state, "module_id": module_id,
+                        "created_at": "2026-10-01 09:00:00", "updated_at": "2026-10-01 09:00:00", **extra}
+                       ).insert(ignore_permissions=True)
+
+    def test_bad_module_id_is_recorded_and_other_goals_still_update(self):
         good_module = "5f0c1c1e-8a55-4c3e-9d1a-0b7d7d1e2a10"
-        frappe.get_doc({"doctype": "Plane Module Progress", "module_id": good_module,
-                        "total_issues": 4, "completed_issues": 2}).insert(ignore_permissions=True)
+        self._item("t0-a", "completed", good_module); self._item("t0-b", "started", good_module)
+        bad = self._seed_goal("Perf bad module", module="not a module")
+        good = self._seed_goal("Perf good module", module=f"https://pitstop.mycaryaar.com/caryaar/modules/{good_module}/")
+        for g in (bad, good):
+            frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Plane module"}).insert(ignore_permissions=True)
+        frappe.db.set_single_value("Performance Sync Settings", "plane_items_synced_through", "2026-11-02 23:30:00")
+        meter.run_meter(as_of=getdate("2026-11-02"))
+        self.assertEqual(frappe.db.get_value("Goal", good.name, "progress"), 50.0)
+        self.assertEqual(frappe.db.get_value("Goal", bad.name, "progress"), 0)
+        self.assertIn(bad.name, frappe.db.get_single_value("Performance Sync Settings", "unmatched_goal_modules"))
 
-        def goal(name, module):
-            return frappe.get_doc({"doctype": "Goal", "goal_name": name, "employee": self.emp, "kra": kra,
-                                   "appraisal_cycle": cycle.name, "start_date": "2026-10-01",
-                                   "end_date": "2027-03-31", "cy_plane_module": module}
-                                  ).insert(ignore_permissions=True).name
+    def test_ratio_meter_reads_activity_rows_and_gates_progress(self):
+        g = self._seed_goal("T conversion")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Ratio to target", "metric": "conversion_pct",
+                        "window": "Cycle to date", "target_value": 5, "unit": "%", "direction": "Higher is better"}
+                       ).insert(ignore_permissions=True)
+        for day, assigned, booked in (("2026-10-02", 100, 2), ("2026-10-03", 100, 3)):
+            frappe.get_doc({"doctype": "Work Activity Day", "employee": self.emp, "activity_date": day, "source": "CY Admin",
+                            "leads_assigned_new": assigned, "bookings_within_7d": booked}).insert(ignore_permissions=True)
+        frappe.db.set_single_value("Performance Sync Settings", "cy_admin_synced_through", "2026-10-04 23:30:00")
+        meter.run_meter(as_of=getdate("2026-10-04"))
+        r = frappe.get_doc("Goal Meter Reading", f"{g.name}|2026-10-04")
+        self.assertEqual((r.value, r.progress, r.stale, r.written_to_goal), (2.5, 50.0, 0, 0))   # October: not written
+        self.assertEqual(frappe.db.get_value("Goal", g.name, "progress"), 0)
+        frappe.db.set_single_value("Performance Sync Settings", "cy_admin_synced_through", "2026-11-02 23:30:00")
+        meter.run_meter(as_of=getdate("2026-11-02"))
+        self.assertEqual(frappe.db.get_value("Goal", g.name, "progress"), 50.0)                   # November: written
 
-        bad = goal("Perf bad module", "not a module")
-        good = goal("Perf good module", f"https://pitstop.mycaryaar.com/caryaar/modules/{good_module}/")
-        engine.update_goal_progress()
-        self.assertEqual(frappe.db.get_value("Goal", good, "progress"), 50)
-        self.assertIn(bad, frappe.db.get_single_value("Performance Sync Settings", "unmatched_goal_modules"))
+    def test_stale_source_repeats_last_reading(self):
+        g = self._seed_goal("T stale")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Ratio to target", "metric": "conversion_pct",
+                        "target_value": 5, "direction": "Higher is better"}).insert(ignore_permissions=True)
+        frappe.db.set_single_value("Performance Sync Settings", "cy_admin_synced_through", "2026-10-04 23:30:00")
+        meter.run_meter(as_of=getdate("2026-10-04"))
+        meter.run_meter(as_of=getdate("2026-10-05"))                    # source did not sync past 05-Oct
+        r = frappe.get_doc("Goal Meter Reading", f"{g.name}|2026-10-05")
+        self.assertEqual(r.stale, 1)
+
+    def test_module_completion_uses_current_membership(self):
+        g = self._seed_goal("T sprint", module="mod-t1")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Plane module"}).insert(ignore_permissions=True)
+        for n, state in (("a", "completed"), ("b", "started"), ("c", "cancelled")):
+            self._item(f"t1-{n}", state, "mod-t1")
+        frappe.db.set_single_value("Performance Sync Settings", "plane_items_synced_through", "2026-10-07 23:30:00")
+        meter.run_meter(as_of=getdate("2026-10-06"))
+        self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-06", "progress"), 50.0)
+        frappe.db.set_value("Plane Work Item", "t1-a", "module_id", None)                          # moved out
+        meter.run_meter(as_of=getdate("2026-10-07"))
+        self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-07", "progress"), 0.0)

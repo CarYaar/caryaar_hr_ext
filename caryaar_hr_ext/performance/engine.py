@@ -2,8 +2,8 @@
 
 For each active employee and each of the last four days: builds a DayContext
 from attendance, WFH requests, holidays and synced activity, then stores the
-rules.adherence_day result as a Work Adherence Day. Afterwards updates goal
-progress from Plane modules and appraisal rating categories. Every unit of
+rules.adherence_day result as a Work Adherence Day. Afterwards runs the goal
+meter (performance/meter.py) and updates appraisal rating categories. Every unit of
 work is fail-soft: an error is logged and the run continues.
 """
 from __future__ import annotations
@@ -13,7 +13,7 @@ from datetime import date, datetime, time, timedelta
 import frappe
 from frappe.utils import flt, get_datetime, getdate, nowdate
 
-from caryaar_hr_ext.performance import rules
+from caryaar_hr_ext.performance import meter, rules
 
 _SYNC_FIELD = {"Plane": "plane_synced_through", "CY Admin": "cy_admin_synced_through"}
 _YES_NO = {True: "Yes", False: "No", None: ""}
@@ -24,7 +24,7 @@ def run_nightly() -> None:
     today = getdate(nowdate())
     for i in range(DAYS_BACK):
         _guard(f"adherence {today - timedelta(days=i)}", run_day, today - timedelta(days=i))
-    _guard("goal progress", update_goal_progress)
+    _guard("goal meter", meter.run_meter)
     _guard("performance categories", update_performance_categories)
 
 
@@ -106,42 +106,6 @@ def run_day(day: date) -> int:
             frappe.log_error(title=f"Performance engine: adherence {emp.name} {day}",
                              message=frappe.get_traceback())
     return written
-
-
-def update_goal_progress() -> int:
-    modules = {m.module_id.lower(): m for m in frappe.get_all(
-        "Plane Module Progress", fields=["module_id", "total_issues", "completed_issues"])}
-    # Only goals HRMS will accept an update for: cycle In Progress, employee Active.
-    active_cycles = frappe.get_all("Appraisal Cycle", filters={"status": "In Progress"}, pluck="name")
-    active_emps = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
-    if not active_cycles or not active_emps:
-        return 0
-    updated, unmatched = 0, []
-    for g in frappe.get_all("Goal", filters={"cy_plane_module": ("is", "set"), "is_group": 0,
-                                             "appraisal_cycle": ("in", active_cycles),
-                                             "employee": ("in", active_emps)},
-                            fields=["name", "cy_plane_module", "progress"]):
-        module_id = rules.extract_module_id(g.cy_plane_module)
-        m = modules.get(module_id) if module_id else None
-        if not m:
-            unmatched.append(f"{g.name}: {g.cy_plane_module}")
-            continue
-        p = rules.module_progress(m.total_issues, m.completed_issues)
-        if p is None or abs(p - flt(g.progress)) < 0.5:
-            continue
-        frappe.db.savepoint("cy_goal")
-        try:
-            doc = frappe.get_doc("Goal", g.name)
-            doc.progress = p
-            doc.save(ignore_permissions=True)
-            updated += 1
-        except Exception:
-            frappe.db.rollback(save_point="cy_goal")
-            frappe.log_error(title=f"Performance engine: goal {g.name} skipped",
-                             message=frappe.get_traceback())
-    # Visible to HR on the settings form instead of failing silently.
-    frappe.db.set_single_value("Performance Sync Settings", "unmatched_goal_modules", "\n".join(unmatched))
-    return updated
 
 
 def update_performance_categories() -> int:
