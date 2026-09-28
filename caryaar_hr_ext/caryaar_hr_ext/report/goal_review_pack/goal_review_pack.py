@@ -11,18 +11,23 @@ def execute(filters=None):
     pack = build_pack(filters.employee, filters.appraisal_cycle, getdate(filters.as_of or nowdate()))
     columns = [
         {"fieldname": "row_type", "label": "Row", "fieldtype": "Data", "width": 60},
-        {"fieldname": "text", "label": "Goal / item", "fieldtype": "Data", "width": 420},
-        {"fieldname": "kra", "label": "KRA", "fieldtype": "Data", "width": 220},
+        {"fieldname": "text", "label": "Goal / item", "fieldtype": "Data", "width": 360},
+        {"fieldname": "kra", "label": "KRA", "fieldtype": "Data", "width": 200},
         {"fieldname": "weight", "label": "Weight %", "fieldtype": "Float", "width": 80},
-        {"fieldname": "method", "label": "Method / state", "fieldtype": "Data", "width": 160},
-        {"fieldname": "target", "label": "Target / due", "fieldtype": "Data", "width": 120},
-        {"fieldname": "value", "label": "Value", "fieldtype": "Float", "width": 90},
-        {"fieldname": "progress", "label": "Progress %", "fieldtype": "Percent", "width": 100},
+        {"fieldname": "method", "label": "Method / state", "fieldtype": "Data", "width": 150},
+        {"fieldname": "source", "label": "Source (metric)", "fieldtype": "Data", "width": 200},
+        {"fieldname": "target", "label": "Target / due", "fieldtype": "Data", "width": 170},
+        {"fieldname": "start", "label": "Start", "fieldtype": "Data", "width": 100},
+        {"fieldname": "assignee", "label": "Assignee", "fieldtype": "Data", "width": 120},
+        {"fieldname": "value", "label": "Value", "fieldtype": "Float", "width": 80},
+        {"fieldname": "progress", "label": "Reading %", "fieldtype": "Percent", "width": 90},
+        {"fieldname": "in_appraisal", "label": "In appraisal %", "fieldtype": "Percent", "width": 100},
+        {"fieldname": "trend", "label": "Trend", "fieldtype": "Data", "width": 260},
         {"fieldname": "flags", "label": "Flags", "fieldtype": "Data", "width": 200},
     ]
     summary = [
-        {"value": pack["adherence"]["pct"], "label": "Adherence % (working days)", "datatype": "Percent"},
-        {"value": pack["uncounted_items"], "label": "Plane items not tied to a goal", "datatype": "Int"},
+        {"value": pack["adherence"]["pct"], "label": "Adherence % (judged working days)", "datatype": "Percent"},
+        {"value": pack["uncounted_items"], "label": "Open Plane items not tied to a goal", "datatype": "Int"},
         {"value": len(pack["manual_missing"]), "label": "Manual goals needing a reading", "datatype": "Int"},
     ]
     return columns, pack_rows(pack), None, None, summary

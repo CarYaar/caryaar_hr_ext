@@ -130,9 +130,7 @@ METRICS: dict[str, Callable[[MeterContext], float | None]] = {
     "incidents_fixed_24h_pct": m_incidents_fixed_24h_pct, "support_on_time_pct": m_support_on_time_pct,
     "release_bugs_14d": m_release_bugs_14d, "wiki_pages": m_wiki_pages,
 }
-_SOURCE_OF = {"conversion_pct": "CY Admin", "followups_on_time_pct": "CY Admin", "leads_statused_48h_pct": "CY Admin",
-              "module_completion": "Plane items", "incidents_fixed_24h_pct": "Plane items",
-              "support_on_time_pct": "Plane items", "release_bugs_14d": "Plane items", "wiki_pages": "ERP"}
+_SOURCE_OF = mr.SOURCE_OF
 _STAMP_FIELD = {"CY Admin": "cy_admin_synced_through", "Plane items": "plane_items_synced_through"}
 
 
@@ -187,8 +185,24 @@ def compute_reading(gm, as_of: date) -> dict | None:
     return {"value": value, "progress": progress, "stale": stale, "method": gm.method}
 
 
+def _apply_progress(goal: str, progress, as_of: date, stale: bool) -> tuple[bool, bool]:
+    """Goal.progress from a reading: only past the 01-Nov gate, only when fresh. Returns
+    (applied, changed): applied means the gate let the reading through and it counts as
+    written to the goal; changed means Goal.progress actually moved (a delta under 0.5 is
+    not saved, so HRMS does not re-run its hooks for nothing)."""
+    if not mr.writes_progress(as_of) or progress is None or stale:
+        return False, False
+    current = flt(frappe.db.get_value("Goal", goal, "progress"))
+    if abs(flt(progress) - current) < 0.5:
+        return True, False
+    doc = frappe.get_doc("Goal", goal)
+    doc.progress = flt(progress)
+    doc.save(ignore_permissions=True)
+    return True, True
+
+
 def _write_reading(gm, as_of: date, reading: dict) -> bool:
-    """Store the reading; write Goal.progress only past the gate, only when fresh, only on change."""
+    """Store an automatic reading; Goal.progress follows it under the gate."""
     name = f"{gm.goal}|{as_of}"
     values = {"value": reading["value"], "progress": reading["progress"], "method": reading["method"],
               "stale": 1 if reading["stale"] else 0, "computed_at": now_datetime()}
@@ -197,23 +211,47 @@ def _write_reading(gm, as_of: date, reading: dict) -> bool:
     else:
         frappe.get_doc({"doctype": "Goal Meter Reading", "goal": gm.goal, "reading_date": as_of, **values}
                        ).insert(ignore_permissions=True)
-    written = False
-    if mr.writes_progress(as_of) and reading["progress"] is not None and not reading["stale"]:
-        current = flt(frappe.db.get_value("Goal", gm.goal, "progress"))
-        if abs(reading["progress"] - current) >= 0.5:
-            doc = frappe.get_doc("Goal", gm.goal)
-            doc.progress = reading["progress"]
-            doc.save(ignore_permissions=True)
-            written = True
+    applied, changed = _apply_progress(gm.goal, reading["progress"], as_of, reading["stale"])
+    if applied:
         frappe.db.set_value("Goal Meter Reading", name, "written_to_goal", 1)
-    return written
+    return changed
+
+
+def _apply_latest_manual(gm, as_of: date) -> tuple[bool, bool]:
+    """A Manual meter has no nightly reading: the newest reading entered by hand on or before
+    as_of reaches Goal.progress once the gate is open. Returns (has_reading, changed); a
+    reading already written is left alone, so October's entry is applied once on 01-Nov."""
+    rows = frappe.get_all("Goal Meter Reading", filters={"goal": gm.goal, "reading_date": ("<=", as_of)},
+                          fields=["name", "progress", "written_to_goal"], order_by="reading_date desc", limit=1)
+    if not rows:
+        return False, False
+    r = rows[0]
+    if r.written_to_goal:
+        return True, False
+    applied, changed = _apply_progress(gm.goal, r.progress, as_of, stale=False)
+    if applied:
+        frappe.db.set_value("Goal Meter Reading", r.name, "written_to_goal", 1)
+    return True, changed
+
+
+def apply_manual_reading(reading) -> bool:
+    """Goal Meter Reading.on_update: a reading entered by hand (desk or write_manual_reading)
+    for a Manual meter reaches Goal.progress at once when the gate is open; before 01-Nov it
+    is shown, not written, and the nightly job applies it on the first night of November."""
+    if reading.get("written_to_goal") or frappe.db.get_value("Goal Meter", reading.goal, "method") != "Manual":
+        return False
+    applied, changed = _apply_progress(reading.goal, reading.get("progress"), getdate(nowdate()), stale=False)
+    if applied:
+        frappe.db.set_value("Goal Meter Reading", reading.name, "written_to_goal", 1)
+    return changed
 
 
 def run_meter(as_of: date | None = None) -> dict:
     """One pass over every active meter whose goal's cycle is Not Started or In Progress
-    and whose employee is Active. Called by engine.run_nightly and on demand."""
-    as_of = as_of or getdate(nowdate())
-    counts = {"readings": 0, "written": 0, "stale": 0, "skipped": 0}
+    and whose employee is Active. Called by engine.run_nightly and on demand (a string
+    date from bench execute is accepted)."""
+    as_of = getdate(as_of) if as_of else getdate(nowdate())
+    counts = {"readings": 0, "written": 0, "stale": 0, "skipped": 0, "manual": 0}
     cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])}, pluck="name")
     emps = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
     unmatched: list[str] = []
@@ -228,6 +266,12 @@ def run_meter(as_of: date | None = None) -> dict:
             unmatched.append(f"{gm.goal}: {goal.cy_plane_module or 'no module'}")
         frappe.db.savepoint("cy_meter")
         try:
+            if gm.method == "Manual":
+                has_reading, changed = _apply_latest_manual(gm, as_of)
+                counts["manual"] += 1 if has_reading else 0
+                counts["written"] += 1 if changed else 0
+                counts["skipped"] += 0 if has_reading else 1
+                continue
             reading = compute_reading(gm, as_of)
             if reading is None:
                 counts["skipped"] += 1
@@ -244,16 +288,34 @@ def run_meter(as_of: date | None = None) -> dict:
     return counts
 
 
+def _is_own_goal(employee: str) -> bool:
+    mine = frappe.db.get_value("Employee", {"user_id": frappe.session.user}, "name")
+    return bool(mine) and mine == employee
+
+
 @frappe.whitelist(methods=["POST"])
 def write_manual_reading(goal: str, progress: float, evidence: str = "") -> dict:
-    """A manager's reading for a Manual meter; writes progress at once, under the same gate."""
+    """A manager's reading for a Manual meter (spec G7): evidence required, never for one's
+    own goal, and only where the user may write the Goal itself (User Permissions apply).
+    The reading is saved through the document, so on_update writes Goal.progress under the gate."""
     frappe.only_for(("HR Manager", "HR User", "System Manager"))
-    gm = frappe.get_doc("Goal Meter", goal)
-    if gm.method != "Manual":
-        frappe.throw("This goal is measured automatically.")
+    gm = frappe.db.get_value("Goal Meter", goal, ["method", "active", "employee"], as_dict=True)
+    if not gm:
+        frappe.throw("No meter for this goal.")
+    problem = mr.manual_reading_problem(gm.method, gm.active, evidence, _is_own_goal(gm.employee))
+    if problem:
+        frappe.throw(problem)
+    frappe.has_permission("Goal", "write", doc=goal, throw=True)
     as_of = getdate(nowdate())
-    reading = {"value": flt(progress), "progress": max(0.0, min(100.0, flt(progress))), "stale": False, "method": "Manual"}
-    written = _write_reading(gm, as_of, reading)
-    frappe.db.set_value("Goal Meter Reading", f"{goal}|{as_of}",
-                        {"evidence": (evidence or "")[:500], "entered_by": frappe.session.user})
-    return {"written_to_goal": written}
+    name = f"{goal}|{as_of}"
+    values = {"value": flt(progress), "progress": max(0.0, min(100.0, flt(progress))), "method": "Manual",
+              "stale": 0, "evidence": (evidence or "")[:500], "entered_by": frappe.session.user,
+              "computed_at": now_datetime()}
+    if frappe.db.exists("Goal Meter Reading", name):
+        doc = frappe.get_doc("Goal Meter Reading", name)
+        doc.update(values)
+        doc.save(ignore_permissions=True)
+    else:
+        frappe.get_doc({"doctype": "Goal Meter Reading", "goal": goal, "reading_date": as_of, **values}
+                       ).insert(ignore_permissions=True)
+    return {"written_to_goal": bool(frappe.db.get_value("Goal Meter Reading", name, "written_to_goal"))}

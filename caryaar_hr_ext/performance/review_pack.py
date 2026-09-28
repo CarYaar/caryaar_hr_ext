@@ -10,7 +10,6 @@ from frappe.utils import flt, getdate, nowdate
 
 from caryaar_hr_ext.performance import meter_rules as mr, rules
 
-TREND_STEP_DAYS = 15
 MANUAL_STALE_DAYS = 30
 CYCLE_START = date(2026, 10, 1)
 TEMPLATE = "caryaar_hr_ext/templates/emails/review_pack.html"
@@ -22,17 +21,6 @@ def _readings(goal: str, as_of: date) -> list:
                           order_by="reading_date asc")
 
 
-def _trend(readings: list) -> list[tuple[str, float | None]]:
-    out, last_day = [], None
-    for r in readings:
-        if last_day is None or (getdate(r.reading_date) - last_day).days >= TREND_STEP_DAYS:
-            out.append((str(r.reading_date), r.progress))
-            last_day = getdate(r.reading_date)
-    if readings and out and out[-1][0] != str(readings[-1].reading_date):
-        out.append((str(readings[-1].reading_date), readings[-1].progress))
-    return out
-
-
 def _items_for(module_raw, as_of: date) -> list[dict]:
     mid = rules.extract_module_id(module_raw)
     if not mid:
@@ -41,8 +29,10 @@ def _items_for(module_raw, as_of: date) -> list[dict]:
                           fields=["issue_id", "project_identifier", "sequence_id", "title", "assignee", "assignee_email",
                                   "state_group", "start_date", "target_date", "completed_at", "is_archived"],
                           order_by="target_date asc")
+    names = {a: frappe.db.get_value("Employee", a, "employee_name") for a in {r.assignee for r in rows if r.assignee}}
     return [{**r, "overdue": mr.is_overdue(getdate(r.target_date) if r.target_date else None, r.state_group, as_of),
-             "archived": bool(r.is_archived)} for r in rows]
+             "archived": bool(r.is_archived), "assignee_name": names.get(r.assignee) or r.assignee_email or ""}
+            for r in rows]
 
 
 def _weights(employee: str, cycle: str) -> dict[str, float]:
@@ -69,14 +59,17 @@ def build_pack(employee: str, cycle: str, as_of: date) -> dict:
         items = _items_for(g.cy_plane_module, as_of)
         counted |= {i["issue_id"] for i in items}
         if gm and gm.method == "Manual" and (not latest or (as_of - getdate(latest.reading_date)).days > MANUAL_STALE_DAYS):
-            manual_missing.append(g.name)
+            manual_missing.append(g.goal_name)
         goals.append({"goal": g.name, "goal_name": g.goal_name, "kra": g.kra, "weight": weights.get(g.kra),
                       "method": gm.method if gm else "No meter", "metric": gm.metric if gm else None,
                       "target": gm.target_value if gm else None, "standard": gm.standard_value if gm else None,
-                      "unit": gm.unit if gm else None, "value": latest.value if latest else None,
+                      "unit": gm.unit if gm else None, "direction": gm.direction if gm else None,
+                      "value": latest.value if latest else None,
                       "progress": latest.progress if latest else None, "stale": bool(latest and latest.stale),
-                      "erp_progress": flt(g.progress), "trend": _trend(readings), "items": items,
-                      "evidence": latest.evidence if latest else None})
+                      "reading_date": str(latest.reading_date) if latest else None,
+                      "erp_progress": flt(g.progress),
+                      "trend": mr.trend_points([(getdate(r.reading_date), r.progress) for r in readings]),
+                      "items": items, "evidence": latest.evidence if latest else None})
     # Judged days only: the engine stores 0 with checks_applicable = 0 for a day it has not
     # judged yet (today, a day the sources have not synced), the same filter the department
     # chart uses. Counting those would read as a false 0%.
@@ -95,20 +88,7 @@ def build_pack(employee: str, cycle: str, as_of: date) -> dict:
             "uncounted_items": uncounted, "manual_missing": manual_missing}
 
 
-def pack_rows(pack: dict) -> list[dict]:
-    rows = []
-    for g in pack["goals"]:
-        flags = [f for f, on in (("stale", g["stale"]), ("no reading", g["progress"] is None)) if on]
-        rows.append({"row_type": "goal", "goal": g["goal"], "text": g["goal_name"], "kra": g["kra"], "weight": g["weight"],
-                     "method": g["method"], "target": g["target"], "value": g["value"], "progress": g["progress"],
-                     "flags": ", ".join(flags)})
-        for i in g["items"]:
-            done = f" done {getdate(i['completed_at']).strftime('%d-%b-%Y')}" if i["completed_at"] else ""
-            rows.append({"row_type": "item", "goal": g["goal"],
-                         "text": f"{i['project_identifier']}-{i['sequence_id']} {i['title']}", "kra": "",
-                         "weight": None, "method": i["state_group"], "target": i["target_date"], "value": None,
-                         "progress": None, "flags": ("overdue" if i["overdue"] else "") + done})
-    return rows
+pack_rows = mr.pack_rows   # the rows are pure (meter_rules); the report imports them from here
 
 
 def _recipients(pack: dict) -> list[str]:

@@ -1,23 +1,28 @@
-<div style="font-family: Inter, Arial, sans-serif; color: #2D2D2D; max-width: 860px">
+<div style="font-family: Inter, Arial, sans-serif; color: #2D2D2D; max-width: 980px">
   <h2 style="color: #4A1D73; margin-bottom: 4px">Review pack: {{ pack.employee_name }}</h2>
   <p style="margin-top: 0">Cycle {{ pack.cycle }}, as of {{ frappe.utils.formatdate(pack.as_of, "dd-MMM-yyyy") }}.
-    {% if pack.learning_month %}<b>October is the learning month:</b> readings are shown, goal progress is not yet written.{% endif %}</p>
-  <p>Adherence on working days so far: <b>{{ pack.adherence.pct if pack.adherence.pct is not none else "no judged days" }}</b>
-    ({{ pack.adherence.days }} days). Plane items assigned but not tied to any goal: <b>{{ pack.uncounted_items }}</b>.</p>
-  {% if pack.manual_missing %}<p style="color: #E74C3C"><b>Needs a manual reading:</b> {{ pack.manual_missing | join(", ") }}</p>{% endif %}
-  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 13px">
+    {% if pack.learning_month %}<b>October is the learning month:</b> readings are shown, the appraisal percentage is written from 01-Nov-2026.{% endif %}</p>
+  <p>Adherence on judged working days so far: <b>{{ pack.adherence.pct if pack.adherence.pct is not none else "no judged days" }}</b>
+    ({{ pack.adherence.days }} days). Open Plane items assigned but not tied to any goal: <b>{{ pack.uncounted_items }}</b>.</p>
+  {% if pack.manual_missing %}<p style="color: #E74C3C"><b>Needs a manual reading:</b> {{ pack.manual_missing | join(", ") | e }}</p>{% endif %}
+  <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 12.5px">
     <tr style="background: #E8D5F5; text-align: left">
-      <th>Goal / item</th><th>KRA</th><th>Weight</th><th>Method / state</th><th>Target / due</th><th>Value</th><th>Progress</th><th>Flags</th>
+      <th>Goal / item</th><th>KRA</th><th>Weight</th><th>Method / state</th><th>Source</th><th>Target / due</th>
+      <th>Start</th><th>Assignee</th><th>Value</th><th>Reading</th><th>In appraisal</th><th>Trend</th><th>Flags</th>
     </tr>
     {% for r in rows %}
     <tr style="border-bottom: 1px solid #eee; {% if r.row_type == 'item' %}color: #555{% endif %}">
-      <td style="{% if r.row_type == 'item' %}padding-left: 24px{% endif %}">{{ r.text }}</td>
+      <td style="{% if r.row_type == 'item' %}padding-left: 24px{% endif %}">{{ r.text | e }}</td>
       <td>{{ r.kra or "" }}</td><td>{{ r.weight if r.weight is not none else "" }}</td><td>{{ r.method or "" }}</td>
-      <td>{{ r.target if r.target is not none else "" }}</td><td>{{ r.value if r.value is not none else "" }}</td>
+      <td>{{ r.source or "" }}</td><td>{{ r.target or "" }}</td><td>{{ r.start or "" }}</td><td>{{ r.assignee | e }}</td>
+      <td>{{ r.value if r.value is not none else "" }}</td>
       <td>{{ (r.progress ~ "%") if r.progress is not none else "" }}</td>
-      <td style="{% if 'overdue' in (r.flags or '') %}color: #E74C3C{% endif %}">{{ r.flags or "" }}</td>
+      <td>{{ (r.in_appraisal ~ "%") if r.in_appraisal is not none else "" }}</td>
+      <td>{{ r.trend or "" }}</td>
+      <td style="{% if 'overdue' in (r.flags or '') or 'no reading' in (r.flags or '') %}color: #E74C3C{% endif %}">{{ r.flags or "" }}</td>
     </tr>
     {% endfor %}
   </table>
-  <p style="font-size: 12px; color: #777">Sent by the ERP on the 1st and 15th of each month and 3 days before a review date. Numbers come from CY Admin, Plane and the ERP; the source of each metric is in the goal meter.</p>
+  <p style="font-size: 12px; color: #777">Sent by the ERP on the 1st and 15th of each month and 3 days before a review date.
+    "Reading" is the meter's latest value; "In appraisal" is the percentage HRMS averages into the KRA score (written from 01-Nov-2026).</p>
 </div>

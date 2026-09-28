@@ -281,7 +281,7 @@ class TestEngine(IntegrationTestCase):
         g = self._seed_goal("T manual")
         frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Manual"}).insert(ignore_permissions=True)
         pack = review_pack.build_pack(self.emp, self._cycle(), getdate("2026-10-20"))
-        self.assertIn(g.name, pack["manual_missing"])
+        self.assertIn("T manual", pack["manual_missing"])
         goal = next(x for x in pack["goals"] if x["goal"] == g.name)
         self.assertIsNone(goal["progress"])
         rows = review_pack.pack_rows(pack)
@@ -298,3 +298,43 @@ class TestEngine(IntegrationTestCase):
         goal = next(x for x in pack["goals"] if x["goal"] == g.name)
         self.assertEqual([(i["sequence_id"], i["overdue"]) for i in goal["items"]], [(5, True)])
         self.assertEqual(pack["uncounted_items"], 1)
+
+    # ─── review fix pass (28-Sep): the same paths on a real bench ─────────────
+    def test_manual_reading_is_applied_by_the_meter_once_the_gate_opens(self):
+        g = self._seed_goal("T manual hook")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Manual"}).insert(ignore_permissions=True)
+        frappe.get_doc({"doctype": "Goal Meter Reading", "goal": g.name, "reading_date": "2026-10-20", "progress": 40,
+                        "method": "Manual", "evidence": "1:1"}).insert(ignore_permissions=True)
+        self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-20", "employee"), self.emp)
+        meter.run_meter(as_of=getdate("2026-11-01"))
+        self.assertEqual(frappe.db.get_value("Goal", g.name, "progress"), 40.0)
+        self.assertEqual(frappe.db.get_value("Goal Meter Reading", f"{g.name}|2026-10-20", "written_to_goal"), 1)
+
+    def test_write_manual_reading_refuses_missing_evidence(self):
+        g = self._seed_goal("T manual api")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Manual"}).insert(ignore_permissions=True)
+        with self.assertRaises(frappe.ValidationError):
+            meter.write_manual_reading(g.name, 50, evidence="")
+
+    def test_scheduled_packs_find_the_cycle_appraisees(self):
+        from caryaar_hr_ext.performance import review_pack
+        cycle = self._cycle()
+        if not frappe.db.exists("Appraisee", {"parent": cycle, "employee": self.emp}):
+            doc = frappe.get_doc("Appraisal Cycle", cycle)
+            doc.append("appraisees", {"employee": self.emp})
+            doc.save(ignore_permissions=True)
+        self.assertIn(self.emp, review_pack._appraisees(cycle))
+
+    def test_person_goals_for_the_employee_email(self):
+        g = self._seed_goal("T person view")
+        frappe.get_doc({"doctype": "Goal Meter", "goal": g.name, "method": "Manual"}).insert(ignore_permissions=True)
+        cycle = self._cycle()
+        start = frappe.db.get_value("Appraisal Cycle", cycle, "start_date")
+        frappe.db.set_value("Appraisal Cycle", cycle, "start_date", "2026-09-01")   # live from the test's point of view
+        try:
+            out = api.person_goals("perf.test.two@caryaar.test")
+            self.assertEqual(out["employee"], self.emp)
+            names = [x["goal_name"] for c in out["cycles"] for x in c["goals"]]
+            self.assertIn("T person view", names)
+        finally:
+            frappe.db.set_value("Appraisal Cycle", cycle, "start_date", start)

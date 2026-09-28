@@ -141,6 +141,31 @@ def ingest_work_items(synced_through=None, items=None, full_pass=0):
     return {"accepted": accepted, "unmapped": sorted(unmapped), "synced_through": stamp.isoformat() if stamp else None}
 
 @frappe.whitelist(methods=["GET", "POST"])
+def person_goals(email: str = "") -> dict:
+    """For CY Admin's home screen: one person's goals in each live cycle, how each is measured,
+    the latest reading, the Plane items counted and the next review date. Read by caryaar-api
+    with the Performance Sync key on behalf of the signed-in user; the email is theirs."""
+    frappe.only_for(("Performance Sync", "System Manager"))
+    from frappe.utils import getdate, nowdate
+
+    from caryaar_hr_ext.performance import meter_rules as mr, review_pack
+
+    emp = _email_map().get((email or "").strip().lower())
+    if not emp:
+        return {"employee": None, "employee_name": None, "cycles": []}
+    today = getdate(nowdate())
+    cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"]),
+                                                        "start_date": ("<=", today)}, pluck="name")
+    out = []
+    for cycle in cycles:
+        pack = review_pack.build_pack(emp, cycle, today)
+        review_on = frappe.db.get_value("Appraisal", {"employee": emp, "appraisal_cycle": cycle, "docstatus": ("<", 2)},
+                                        "cy_next_review_on")
+        out.append(mr.person_view(pack, str(review_on) if review_on else None))
+    return {"employee": emp, "employee_name": frappe.db.get_value("Employee", emp, "employee_name"), "cycles": out}
+
+
+@frappe.whitelist(methods=["GET", "POST"])
 def get_sync_state():
     """Each source's "synced through" stamp, so a sender can backfill from it."""
     frappe.only_for(("Performance Sync", "System Manager"))

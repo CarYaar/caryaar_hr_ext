@@ -90,3 +90,52 @@ def test_recipients_merge_settings_list_and_manager():
     assert mr.recipients("a@caryaar.test\n\n b@caryaar.test \n", "m@caryaar.test") == ["a@caryaar.test", "b@caryaar.test", "m@caryaar.test"]
     assert mr.recipients(None, None) == []
     assert mr.recipients("", "m@caryaar.test") == ["m@caryaar.test"]
+
+
+def test_manual_reading_problems_in_plain_words():
+    assert mr.manual_reading_problem("Ratio to target", 1, "x", False) == "This goal is measured automatically."
+    assert mr.manual_reading_problem("Manual", 0, "x", False) == "This goal's meter is switched off."
+    assert "your own goal" in mr.manual_reading_problem("Manual", 1, "x", True)
+    assert "Evidence is required" in mr.manual_reading_problem("Manual", 1, "  ", False)
+    assert mr.manual_reading_problem("Manual", 1, "reviewed in 1:1", False) is None
+
+
+def test_trend_points_every_fifteen_days_and_the_latest():
+    days = [(date(2026, 10, 1) + __import__("datetime").timedelta(days=i), float(i)) for i in range(0, 20)]
+    assert mr.trend_points(days) == [(date(2026, 10, 1), 0.0), (date(2026, 10, 16), 15.0), (date(2026, 10, 20), 19.0)]
+    assert mr.trend_points([]) == []
+
+
+def _goal(**over):
+    g = {"goal": "G1", "goal_name": "Convert leads", "kra": "Customer Experience", "weight": 40,
+         "method": "Ratio to target", "metric": "conversion_pct", "target": 5, "standard": None, "unit": "%",
+         "direction": "Higher is better", "value": 2.5, "progress": 50.0, "stale": False, "erp_progress": 0,
+         "trend": [(date(2026, 10, 1), 20.0), (date(2026, 10, 16), 50.0)], "items": [], "evidence": None}
+    g.update(over)
+    return g
+
+
+def test_pack_rows_carry_source_target_trend_and_item_dates():
+    item = {"project_identifier": "DEV", "sequence_id": 7, "title": "Fix login", "assignee_name": "Shiwans",
+            "state_group": "completed", "start_date": "2026-10-01", "target_date": "2026-10-05",
+            "completed_at": "2026-10-04 10:00:00", "overdue": False, "archived": True}
+    pack = {"goals": [_goal(),
+                      _goal(goal="G2", goal_name="Keep support on time", method="Months meeting standard",
+                            metric="support_on_time_pct", target=None, standard=95, value=1, progress=100.0,
+                            stale=True, erp_progress=100, trend=[], items=[item])]}
+    g1, g2, row = mr.pack_rows(pack)
+    assert g1["source"] == "CY Admin (conversion_pct)" and g1["target"] == "5%" and g1["in_appraisal"] == 0
+    assert g1["trend"] == "20% (01-Oct-2026), 50% (16-Oct-2026)"
+    assert g2["target"] == "95% or better each month" and "stale" in g2["flags"]
+    assert row["text"] == "DEV-7 Fix login" and row["assignee"] == "Shiwans"
+    assert row["start"] == "01-Oct-2026" and row["target"] == "05-Oct-2026"
+    assert row["flags"] == "archived, done 04-Oct-2026"
+
+
+def test_describe_meter_in_the_persons_words():
+    assert mr.describe_meter(_goal()) == "Measured from CY Admin (conversion_pct) against a target of 5%."
+    assert mr.describe_meter(_goal(method="Manual", metric=None, target=None)) == "Your manager updates this after each review."
+    assert mr.describe_meter(_goal(method="Plane module", metric=None, target=None)) == "Share of the items in your Plane module that are done."
+    assert mr.describe_meter(_goal(method="Months meeting standard", metric="support_on_time_pct", standard=95,
+                                   target=None, direction="Higher is better")) == \
+        "Months where support_on_time_pct (Plane items) was 95% or better."

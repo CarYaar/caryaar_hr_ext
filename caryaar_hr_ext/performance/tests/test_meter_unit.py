@@ -84,3 +84,84 @@ def test_documentation_counts_pages_the_person_created_or_edited(monkeypatch):
     stub.seed(fake, "Wiki Page", name="p4", owner=me, modified_by=me, creation="2026-09-20 10:00:00")       # before the cycle
     meter.run_meter(as_of=date(2026, 11, 2))
     assert (_reading(fake)["value"], _reading(fake)["progress"]) == (2, 50.0)
+
+
+# ─── manual meters: the reading is the input, the gate still applies ──────────
+
+def test_manual_reading_entered_in_october_is_applied_on_the_first_night_of_november(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 20))
+    from caryaar_hr_ext.performance import meter
+    import frappe
+
+    _base(fake, method="Manual")
+    frappe.get_doc({"doctype": "Goal Meter Reading", "goal": "HR-GOAL-1", "reading_date": "2026-10-20",
+                    "progress": 40, "method": "Manual", "evidence": "1:1 notes"}).insert()
+    assert fake.db.store["Goal"]["HR-GOAL-1"]["progress"] == 0            # learning month: shown, not written
+    assert not _reading(fake, "2026-10-20").get("written_to_goal")
+    fake.today = date(2026, 11, 1)
+    out = meter.run_meter(as_of=date(2026, 11, 1))
+    assert fake.db.store["Goal"]["HR-GOAL-1"]["progress"] == 40.0 and out["written"] == 1
+    assert _reading(fake, "2026-10-20")["written_to_goal"] == 1
+    assert meter.run_meter(as_of=date(2026, 11, 2))["written"] == 0        # applied once, not every night
+
+
+def test_manual_reading_after_the_gate_writes_at_once(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 11, 5))
+    stub.install  # noqa: B018 - the meter module is loaded by install()
+    import frappe
+
+    _base(fake, method="Manual")
+    frappe.get_doc({"doctype": "Goal Meter Reading", "goal": "HR-GOAL-1", "reading_date": "2026-11-05",
+                    "progress": 60, "method": "Manual", "evidence": "review"}).insert()
+    assert fake.db.store["Goal"]["HR-GOAL-1"]["progress"] == 60.0
+    assert _reading(fake, "2026-11-05")["written_to_goal"] == 1
+    assert _reading(fake, "2026-11-05")["employee"] == EMP               # fetched from the goal, for the Employee read
+
+
+def test_manual_reading_needs_evidence_permission_and_another_person(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 11, 5), roles=("HR User",), user="hiren@caryaar.test")
+    from caryaar_hr_ext.performance import meter
+
+    _base(fake, method="Manual")
+    stub.seed(fake, "Employee", name="HR-EMP-00006", status="Active", user_id="hiren@caryaar.test")
+    with pytest.raises(stub.ValidationError):
+        meter.write_manual_reading("HR-GOAL-1", 40, evidence="")
+    fake.permission_denied.add(("Goal", "HR-GOAL-1"))                       # User Permissions apply
+    with pytest.raises(stub.PermissionError):
+        meter.write_manual_reading("HR-GOAL-1", 40, evidence="reviewed")
+    fake.permission_denied.clear()
+    out = meter.write_manual_reading("HR-GOAL-1", 40, evidence="reviewed in 1:1")
+    assert out["written_to_goal"] is True and fake.db.store["Goal"]["HR-GOAL-1"]["progress"] == 40.0
+    r = _reading(fake, "2026-11-05")
+    assert r["entered_by"] == "hiren@caryaar.test" and r["evidence"] == "reviewed in 1:1"
+
+
+def test_manual_reading_for_own_goal_is_refused(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 11, 5), roles=("HR User",), user="shiwans@caryaar.test")
+    from caryaar_hr_ext.performance import meter
+
+    _base(fake, method="Manual")
+    with pytest.raises(stub.ValidationError):
+        meter.write_manual_reading("HR-GOAL-1", 100, evidence="me")
+
+
+# ─── the person's own view (CY Admin home screen) ────────────────────────────
+
+def test_person_goals_returns_the_live_cycle_for_the_signed_in_email(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Performance Sync",))
+    from caryaar_hr_ext.performance import api
+
+    _base(fake, method="Ratio to target", metric="conversion_pct", target_value=5, unit="%",
+          direction="Higher is better", window="Cycle to date")
+    stub.seed(fake, "Goal Meter Reading", name="HR-GOAL-1|2026-10-01", goal="HR-GOAL-1", employee=EMP,
+              reading_date="2026-10-01", value=2.5, progress=50.0, stale=0, method="Ratio to target")
+    stub.seed(fake, "Appraisal", name="HR-APR-1", employee=EMP, appraisal_cycle=CYCLE, docstatus=0,
+              cy_next_review_on="2026-10-15")
+    out = api.person_goals("Shiwans@caryaar.test")
+    assert out["employee"] == EMP and out["employee_name"] == "Shiwans"
+    c = out["cycles"][0]
+    assert c["learning_month"] is True and c["next_review_on"] == "2026-10-15"
+    g = c["goals"][0]
+    assert (g["progress"], g["value"], g["target"], g["reading_date"]) == (50.0, 2.5, "5%", "2026-10-01")
+    assert g["source"] == "CY Admin" and "target of 5%" in g["how"]
+    assert api.person_goals("nobody@caryaar.test") == {"employee": None, "employee_name": None, "cycles": []}

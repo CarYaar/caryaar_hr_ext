@@ -97,3 +97,153 @@ def recipients(always_raw: str | None, manager_user: str | None) -> list[str]:
     if manager_user:
         people.add(manager_user.strip())
     return sorted(people)
+
+
+# ─── what the pack and the person read ───────────────────────────────────────
+
+SOURCE_OF = {"conversion_pct": "CY Admin", "followups_on_time_pct": "CY Admin", "leads_statused_48h_pct": "CY Admin",
+             "module_completion": "Plane items", "incidents_fixed_24h_pct": "Plane items",
+             "support_on_time_pct": "Plane items", "release_bugs_14d": "Plane items", "wiki_pages": "ERP"}
+
+
+def fmt_day(value) -> str:
+    """DD-MMM-YYYY (house style) from a date, a datetime or an ISO string; empty for nothing."""
+    if value in (None, ""):
+        return ""
+    if isinstance(value, datetime):
+        value = value.date()
+    elif isinstance(value, str):
+        value = date.fromisoformat(value[:10])
+    return value.strftime("%d-%b-%Y")
+
+
+def _num(x) -> str:
+    return f"{int(x)}" if float(x).is_integer() else f"{x}"
+
+
+def _with_unit(x, unit) -> str:
+    unit = unit or ""
+    return f"{_num(x)}{unit}" if unit in ("", "%") else f"{_num(x)} {unit}"
+
+
+def target_text(g: dict) -> str:
+    """The target as the pack and the person read it: "5%", "95% or better each month"."""
+    m = g.get("method")
+    if m == "Ratio to target" and g.get("target") is not None:
+        return _with_unit(g["target"], g.get("unit"))
+    if m == "Months meeting standard" and g.get("standard") is not None:
+        side = "or less" if g.get("direction") == LOWER else "or better"
+        return f"{_with_unit(g['standard'], g.get('unit'))} {side} each month"
+    if m == "Plane module":
+        return "every item in the module done"
+    return ""
+
+
+def source_text(g: dict) -> str:
+    m = g.get("method")
+    if m == "Manual":
+        return "Manual (manager enters)"
+    if m == "Plane module":
+        return "Plane module"
+    metric = g.get("metric") or ""
+    return f"{SOURCE_OF.get(metric, 'ERP')} ({metric})" if metric else "ERP"
+
+
+def source_name(g: dict) -> str:
+    m = g.get("method")
+    if m == "Manual":
+        return "Manager"
+    if m == "Plane module":
+        return "Plane"
+    return SOURCE_OF.get(g.get("metric") or "", "ERP")
+
+
+def describe_meter(g: dict) -> str:
+    """One sentence on how the goal is measured, in the person's words."""
+    m = g.get("method")
+    if m == "Manual":
+        return "Your manager updates this after each review."
+    if m == "Plane module":
+        return "Share of the items in your Plane module that are done."
+    metric = g.get("metric") or ""
+    src = SOURCE_OF.get(metric, "ERP")
+    if m == "Months meeting standard":
+        return f"Months where {metric} ({src}) was {target_text(g).replace(' each month', '')}."
+    return f"Measured from {src} ({metric}) against a target of {target_text(g)}."
+
+
+def trend_points(readings: Sequence[tuple[date, float | None]], step_days: int = 15) -> list[tuple[date, float | None]]:
+    """One point every step_days from the first reading, plus the latest reading."""
+    out: list[tuple[date, float | None]] = []
+    last: date | None = None
+    for day, progress in readings:
+        if last is None or (day - last).days >= step_days:
+            out.append((day, progress))
+            last = day
+    if readings and out[-1][0] != readings[-1][0]:
+        out.append(tuple(readings[-1]))
+    return out
+
+
+def _pct_text(x) -> str:
+    return f"{_num(x)}%"
+
+
+def trend_text(trend) -> str:
+    return ", ".join(f"{_pct_text(p)} ({fmt_day(d)})" for d, p in trend if p is not None)
+
+
+def pack_rows(pack: dict) -> list[dict]:
+    """The review pack as rows: one per goal (source, target, latest value and progress, the
+    percentage HRMS averages, the trend) and one per Plane item counted under it."""
+    rows = []
+    for g in pack["goals"]:
+        flags = [f for f, on in (("stale", g.get("stale")), ("no reading", g.get("progress") is None)) if on]
+        rows.append({"row_type": "goal", "goal": g["goal"], "text": g["goal_name"], "kra": g.get("kra"),
+                     "weight": g.get("weight"), "method": g.get("method"), "source": source_text(g),
+                     "target": target_text(g), "start": "", "assignee": "", "value": g.get("value"),
+                     "progress": g.get("progress"), "in_appraisal": g.get("erp_progress"),
+                     "trend": trend_text(g.get("trend") or []), "flags": ", ".join(flags)})
+        for i in g.get("items") or []:
+            iflags = [f for f, on in (("overdue", i.get("overdue")), ("archived", i.get("archived"))) if on]
+            if i.get("completed_at"):
+                iflags.append(f"done {fmt_day(i['completed_at'])}")
+            rows.append({"row_type": "item", "goal": g["goal"],
+                         "text": f"{i['project_identifier']}-{i['sequence_id']} {i['title']}", "kra": "",
+                         "weight": None, "method": i.get("state_group"), "source": "",
+                         "target": fmt_day(i.get("target_date")), "start": fmt_day(i.get("start_date")),
+                         "assignee": i.get("assignee_name") or "", "value": None, "progress": None,
+                         "in_appraisal": None, "trend": "", "flags": ", ".join(iflags)})
+    return rows
+
+
+def manual_reading_problem(method, active, evidence, is_self: bool) -> str | None:
+    """Why a manual reading cannot be written, in plain words; None when it can."""
+    if method != "Manual":
+        return "This goal is measured automatically."
+    if not active:
+        return "This goal's meter is switched off."
+    if is_self:
+        return "A reading for your own goal must come from your manager."
+    if not (evidence or "").strip():
+        return "Evidence is required: a link or a note on what was checked."
+    return None
+
+
+def person_view(pack: dict, next_review_on=None) -> dict:
+    """What the person sees on their CY Admin home screen: their goals, how each is measured,
+    the latest reading, the Plane items counted and the next review date."""
+    goals = []
+    for g in pack["goals"]:
+        goals.append({"goal": g["goal"], "goal_name": g["goal_name"], "kra": g.get("kra"), "weight": g.get("weight"),
+                      "method": g.get("method"), "source": source_name(g), "target": target_text(g),
+                      "value": g.get("value"), "progress": g.get("progress"), "in_appraisal": g.get("erp_progress"),
+                      "stale": bool(g.get("stale")), "reading_date": g.get("reading_date"), "how": describe_meter(g),
+                      "trend": [(fmt_day(d), p) for d, p in (g.get("trend") or [])],
+                      "items": [{"key": f"{i['project_identifier']}-{i['sequence_id']}", "title": i["title"],
+                                 "state": i.get("state_group"), "target_date": fmt_day(i.get("target_date")),
+                                 "overdue": bool(i.get("overdue")), "done_on": fmt_day(i.get("completed_at"))}
+                                for i in g.get("items") or []]})
+    return {"cycle": pack["cycle"], "as_of": pack["as_of"], "learning_month": pack["learning_month"],
+            "next_review_on": next_review_on, "adherence_pct": (pack.get("adherence") or {}).get("pct"),
+            "uncounted_items": pack.get("uncounted_items"), "goals": goals}

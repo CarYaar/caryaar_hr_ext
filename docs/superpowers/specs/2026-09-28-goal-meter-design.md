@@ -234,3 +234,14 @@ progress.
   with the new metrics dormant behind `PERFORMANCE_SYNC_ENABLED` (already
   on), start the Plane sync's new query, load the fixture, watch two nightly
   runs, then the founders confirm targets in the Goal Meter list.
+
+## Review fix pass, 28-Sep-2026
+
+The whole-branch review (fresh Opus reviewer) found three critical and fourteen important defects; all were fixed on the branch before Task 10. The design changes that matter to readers of this spec:
+
+- **Archived is not deleted.** Plane only archives completed or cancelled items, so an archived item is finished work that still counts. The mirror carries `is_archived` apart from `is_deleted`; the meter and the pack drop deleted items only.
+- **An item can be in several modules.** The mirror carries `module_ids` (every membership, oldest first) and the meter matches on it, so an item added to a goal's module later still counts.
+- **Intake items** arrive in Plane's `triage` state group and are mirrored as backlog.
+- **Manual goals (G7).** A reading entered by hand (the Goal Meter Reading form, or `meter.write_manual_reading`) reaches `Goal.progress` through the reading's `on_update` under the same 01-Nov gate; a reading entered in October is applied on the first night of November. `write_manual_reading` requires evidence, refuses a reading for one's own goal, and checks write permission on the Goal, so User Permissions apply.
+- **Review pack (G9, G10).** Recipients are the settings list plus the manager, backfilled once after migrate; a pack with nobody to send to is logged, not counted. Adherence counts judged working days only. Rows show the source and metric, the target (with standard and unit for Months goals), the latest reading, the percentage HRMS averages ("in appraisal"), a fortnightly trend, and each item's assignee, start and due dates in DD-MMM-YYYY. The report is HR Manager and System Manager only.
+- **The person's own view (founder, 28-Sep).** `caryaar_hr_ext.performance.api.person_goals(email)` returns one person's goals in each live cycle with how each is measured, the latest reading, the items counted and the next review date, for CY Admin's home screen from 01-Oct (readings shown, the appraisal percentage from 01-Nov). The Employee role reads their own Goal Meter and readings in the ERP.

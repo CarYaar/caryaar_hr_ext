@@ -107,8 +107,10 @@ fixtures = [
 
 # ─── Performance engine ──────────────────────────────────────────────────
 # 23:30 IST (site time zone Asia/Kolkata): adherence for today and the three
-# days before (late syncs), then goal progress from Plane modules, then
-# rating categories.
+# days before (late syncs), then the goal meter (one reading per goal from CY
+# Admin, Plane and the ERP; Goal.progress written from 01-Nov-2026), then
+# rating categories. 08:00 IST: review packs on the 1st, 15th and 3 days
+# before a review date.
 scheduler_events = {
     "cron": {
         "30 23 * * *": ["caryaar_hr_ext.performance.engine.run_nightly"],
