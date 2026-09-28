@@ -187,6 +187,19 @@ def test_a_cycle_past_its_end_date_is_not_metered_nor_shown(monkeypatch):
     assert [c["cycle"] for c in out["cycles"]] == [CYCLE]
 
 
+def test_a_live_cycle_with_no_goals_for_the_person_is_not_listed(monkeypatch):
+    """Until 30-Sep the previous cycle is still live by its dates; a person with no goals in it
+    sees the empty state, not an empty cycle."""
+    fake = stub.install(monkeypatch, date(2026, 9, 28), roles=("Performance Sync",))
+    from caryaar_hr_ext.performance import api
+
+    _base(fake, method="Manual")
+    stub.seed(fake, "Appraisal Cycle", name="Cycle Mar-2026", status="Not Started",
+              start_date="2026-03-01", end_date="2026-09-30")
+    out = api.person_goals("shiwans@caryaar.test")
+    assert out["employee"] == EMP and out["cycles"] == []
+
+
 def test_a_goal_without_a_value_gets_no_reading_row(monkeypatch):
     """Frappe stores a None Float as 0.0, so a written "no value" reading would read as 0%
     in the pack and the person's view. Nothing is written until there is a value."""

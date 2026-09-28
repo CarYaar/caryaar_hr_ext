@@ -158,6 +158,8 @@ def person_goals(email: str = "") -> dict:
     out = []
     for cycle in cycles:
         pack = review_pack.build_pack(emp, cycle, today)
+        if not pack["goals"]:
+            continue          # a live cycle the person has no goals in (the previous one, until it ends)
         review_on = frappe.db.get_value("Appraisal", {"employee": emp, "appraisal_cycle": cycle, "docstatus": ("<", 2)},
                                         "cy_next_review_on")
         out.append(mr.person_view(pack, str(review_on) if review_on else None))
