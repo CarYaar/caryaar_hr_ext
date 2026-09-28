@@ -1,0 +1,137 @@
+{
+ "doctype": "DocType",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-28 20:30:00.000000",
+ "modified": "2026-09-28 20:30:00.000000",
+ "name": "Goal Meter",
+ "field_order": [
+  "goal",
+  "employee",
+  "method",
+  "metric",
+  "window",
+  "col1",
+  "target_value",
+  "standard_value",
+  "unit",
+  "direction",
+  "source_note",
+  "active"
+ ],
+ "fields": [
+  {
+   "fieldname": "goal",
+   "fieldtype": "Link",
+   "label": "Goal",
+   "options": "Goal",
+   "reqd": 1,
+   "unique": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "fetch_from": "goal.employee",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "method",
+   "fieldtype": "Select",
+   "label": "Method",
+   "options": "Ratio to target\nMonths meeting standard\nPlane module\nManual",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "metric",
+   "fieldtype": "Data",
+   "label": "Metric key",
+   "description": "Blank for Plane module and Manual. See the metric catalogue in the design spec (docs/superpowers/specs/2026-09-28-goal-meter-design.md)."
+  },
+  {
+   "fieldname": "window",
+   "fieldtype": "Select",
+   "label": "Window",
+   "options": "Cycle to date\nLatest full month",
+   "default": "Cycle to date"
+  },
+  {
+   "fieldname": "col1",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "target_value",
+   "fieldtype": "Float",
+   "label": "Target",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "standard_value",
+   "fieldtype": "Float",
+   "label": "Standard to meet each month"
+  },
+  {
+   "fieldname": "unit",
+   "fieldtype": "Data",
+   "label": "Unit"
+  },
+  {
+   "fieldname": "direction",
+   "fieldtype": "Select",
+   "label": "Direction",
+   "options": "Higher is better\nLower is better",
+   "default": "Higher is better"
+  },
+  {
+   "fieldname": "source_note",
+   "fieldtype": "Small Text",
+   "label": "Where the number comes from"
+  },
+  {
+   "fieldname": "active",
+   "fieldtype": "Check",
+   "label": "Active",
+   "default": "1"
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "report": 1,
+   "export": 1
+  },
+  {
+   "role": "HR User",
+   "read": 1,
+   "report": 1
+  }
+ ],
+ "autoname": "field:goal",
+ "naming_rule": "By fieldname"
+}

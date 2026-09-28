@@ -211,3 +211,42 @@ def test_bell_curve_report_and_chart_leave_out_the_founders_scorecard():
     assert f["appraisal_template"] == ("not in", list(rules.OFF_CURVE_TEMPLATES))
     chart = {c["name"]: c for c in _fx("dashboard_chart")}["Rating categories"]
     assert ["Appraisal", "appraisal_template", "not in", list(rules.OFF_CURVE_TEMPLATES)] in json.loads(chart["filters_json"])
+
+
+# ─── Goal meter phase 1, Task 2 ───────────────────────────────────────────────
+def _nf(name):
+    d = _load(name)
+    return {f["fieldname"]: f for f in d["fields"] if f["fieldtype"] not in ("Section Break", "Column Break", "Tab Break")}, d
+
+
+def test_plane_work_item_doctype_shape():
+    f, d = _nf("plane_work_item")
+    assert d["autoname"] == "field:issue_id"
+    for k in ("issue_id", "project_identifier", "sequence_id", "title", "assignee", "assignee_email", "state_group",
+              "module_id", "labels", "start_date", "target_date", "completed_at", "created_at", "updated_at",
+              "is_deleted", "synced_at"):
+        assert k in f, k
+    assert f["assignee"]["options"] == "Employee"
+    assert f["state_group"]["options"].split("\n") == ["backlog", "unstarted", "started", "completed", "cancelled"]
+    assert set(d["field_order"]) == {x["fieldname"] for x in d["fields"]}
+
+
+def test_goal_meter_doctypes_shape():
+    f, d = _nf("goal_meter")
+    assert d["autoname"] == "field:goal" and f["goal"]["options"] == "Goal" and f["goal"].get("unique") == 1
+    assert f["method"]["options"].split("\n") == ["Ratio to target", "Months meeting standard", "Plane module", "Manual"]
+    assert f["window"]["options"].split("\n") == ["Cycle to date", "Latest full month"]
+    r, _ = _nf("goal_meter_reading")
+    for k in ("goal", "reading_date", "value", "progress", "method", "evidence", "stale", "written_to_goal", "computed_at", "entered_by"):
+        assert k in r, k
+    c, _ = _nf("company_metric_day")
+    assert c["source"]["options"].split("\n") == ["CY Admin", "ERP"]
+
+
+def test_settings_and_activity_fields_added():
+    s, _ = _nf("performance_sync_settings")
+    for k in ("plane_items_synced_through", "plane_items_full_pass_on", "review_pack_recipients"):
+        assert k in s, k
+    a, _ = _nf("work_activity_day")
+    for k in ("leads_assigned_new", "bookings_within_7d", "followups_due", "followups_done_on_time", "leads_statused_48h"):
+        assert a[k]["fieldtype"] == "Int", k

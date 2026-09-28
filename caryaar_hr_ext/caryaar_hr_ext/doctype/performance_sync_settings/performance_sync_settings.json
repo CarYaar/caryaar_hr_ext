@@ -17,9 +17,13 @@
   "plane_synced_through",
   "plane_modules_synced_through",
   "cy_admin_synced_through",
+  "plane_items_synced_through",
+  "plane_items_full_pass_on",
   "unmapped_emails",
   "unmatched_goal_modules",
-  "last_error"
+  "last_error",
+  "sec_pack",
+  "review_pack_recipients"
  ],
  "fields": [
   {
@@ -54,6 +58,18 @@
    "read_only": 1
   },
   {
+   "fieldname": "plane_items_synced_through",
+   "fieldtype": "Datetime",
+   "label": "Plane work items synced through",
+   "read_only": 1
+  },
+  {
+   "fieldname": "plane_items_full_pass_on",
+   "fieldtype": "Date",
+   "label": "Last full pass of Plane work items",
+   "read_only": 1
+  },
+  {
    "fieldname": "unmapped_emails",
    "fieldtype": "Small Text",
    "label": "Emails not matched to an employee",
@@ -71,6 +87,17 @@
    "fieldtype": "Small Text",
    "label": "Last engine error",
    "read_only": 1
+  },
+  {
+   "fieldname": "sec_pack",
+   "fieldtype": "Section Break",
+   "label": "Review packs"
+  },
+  {
+   "fieldname": "review_pack_recipients",
+   "fieldtype": "Small Text",
+   "label": "Review pack always goes to (one user per line)",
+   "default": "maxson.lewis@caryaar.com\njoel.dsouza@caryaar.com\nsahaib.singh@caryaar.com"
   }
  ],
  "permissions": [

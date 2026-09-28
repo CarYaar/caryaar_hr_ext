@@ -36,7 +36,12 @@
   "bookings_credited",
   "leads_assigned",
   "leads_untouched",
-  "followups_overdue"
+  "followups_overdue",
+  "leads_assigned_new",
+  "bookings_within_7d",
+  "followups_due",
+  "followups_done_on_time",
+  "leads_statused_48h"
  ],
  "fields": [
   {
@@ -170,6 +175,36 @@
    "fieldname": "followups_overdue",
    "fieldtype": "Int",
    "label": "Follow-ups overdue (end of day)",
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_assigned_new",
+   "fieldtype": "Int",
+   "label": "Leads assigned that day",
+   "default": "0"
+  },
+  {
+   "fieldname": "bookings_within_7d",
+   "fieldtype": "Int",
+   "label": "Bookings within 7 days of assignment",
+   "default": "0"
+  },
+  {
+   "fieldname": "followups_due",
+   "fieldtype": "Int",
+   "label": "Follow-ups due that day",
+   "default": "0"
+  },
+  {
+   "fieldname": "followups_done_on_time",
+   "fieldtype": "Int",
+   "label": "Follow-ups done on the day",
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_statused_48h",
+   "fieldtype": "Int",
+   "label": "Leads given a status within 48 h",
    "default": "0"
   }
  ],
