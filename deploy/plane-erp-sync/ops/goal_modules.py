@@ -26,6 +26,16 @@ TECH_KRAS = {"Technology Development", "Technology Maintained"}   # the founders
 MODULE_METRICS = ("support_on_time_pct",)   # Ratio meters whose metric reads the goal's module (meter.py)
 
 
+def module_name(goal_name: str) -> str:
+    """The module is named after the goal, cut at 80 characters on a word and stripped, the way
+    Plane stores names (it strips whitespace, so a name ending in a space never matches again)."""
+    name = " ".join((goal_name or "").split())
+    if len(name) <= 80:
+        return name
+    cut = name[:80]
+    return (cut[:cut.rfind(" ")] if " " in cut else cut).rstrip(" ,;:")
+
+
 def needs_module(method: str | None, metric: str | None) -> bool:
     """Plane-module meters, plus any meter whose metric is computed over the goal's module."""
     return method == "Plane module" or (metric or "") in MODULE_METRICS
@@ -48,25 +58,50 @@ def erp(e, method, path, **kw):
 
 
 VM_SCRIPT = r'''
-import json, subprocess, urllib.request
+import json, subprocess, urllib.error, urllib.request
 T = subprocess.check_output(["sudo", "cat", "/opt/plane-chat-app/plane_token"]).decode().strip()
 BASE = "http://127.0.0.1:8080/api/v1/workspaces/caryaar/projects/"
 def req(method, path, body=None):
     data = json.dumps(body).encode() if body is not None else None
     r = urllib.request.Request(BASE + path, data=data, method=method,
                                headers={"X-Api-Key": T, "Host": "pitstop.mycaryaar.com", "Content-Type": "application/json"})
-    with urllib.request.urlopen(r, timeout=60) as resp:
-        return json.loads(resp.read().decode() or "{}")
+    try:
+        with urllib.request.urlopen(r, timeout=60) as resp:
+            return json.loads(resp.read().decode() or "{}")
+    except urllib.error.HTTPError as e:
+        raise SystemExit(f"Plane {method} {path} -> {e.code}: {e.read().decode()[:400]} (body {json.dumps(body)[:200]})")
+def key(name):
+    return " ".join(name.split()).lower()
+def modules(pid):
+    found, cursor = {}, None
+    while True:
+        page = req("GET", f"{pid}/modules/?per_page=100" + (f"&cursor={cursor}" if cursor else "")) or {}
+        for m in page.get("results", []):
+            found[key(m["name"])] = m["id"]
+        if not page.get("next_page_results"):
+            return found
+        cursor = page.get("next_cursor")
 WANTED = __WANTED__
 out, cache = {}, {}
 for w in WANTED:
     pid = w["project"]
     if pid not in cache:
-        cache[pid] = {m["name"]: m["id"] for m in (req("GET", f"{pid}/modules/?per_page=100") or {}).get("results", [])}
-    mid = cache[pid].get(w["name"])
+        cache[pid] = modules(pid)
+    mid = cache[pid].get(key(w["name"]))
     if not mid and not w.get("dry_run"):
-        mid = req("POST", f"{pid}/modules/", {"name": w["name"]})["id"]
-        cache[pid][w["name"]] = mid
+        try:
+            mid = req("POST", f"{pid}/modules/", {"name": w["name"]})["id"]
+        except SystemExit as e:
+            if "MODULE_NAME_ALREADY_EXISTS" in str(e):
+                cache[pid] = modules(pid)
+                mid = cache[pid].get(key(w["name"]))
+            elif "Modules are not enabled" in str(e):
+                # HR, WR and PARTNER were created with the modules view off; a goal module needs it on
+                req("PATCH", f"{pid}/", {"module_view": True})
+                mid = req("POST", f"{pid}/modules/", {"name": w["name"]})["id"]
+            else:
+                raise
+        cache[pid][key(w["name"])] = mid
     out[w["goal"]] = mid
 print(json.dumps(out))
 '''
@@ -103,7 +138,7 @@ def main(argv) -> int:
         if g.get("cy_plane_module"):
             continue
         proj = "DEV" if g["kra"] in TECH_KRAS else BY_EMPLOYEE.get(g["employee"], "CORP")
-        wanted.append({"goal": g["name"], "project": PROJECTS[proj], "name": g["goal_name"][:80], "dry_run": dry})
+        wanted.append({"goal": g["name"], "project": PROJECTS[proj], "name": module_name(g["goal_name"]), "dry_run": dry})
     print(f"{len(wanted)} goals need a module" + (" (dry run)" if dry else ""))
     for w in wanted:
         print("  ", w["goal"], "->", [k for k, v in PROJECTS.items() if v == w["project"]][0], "|", w["name"])

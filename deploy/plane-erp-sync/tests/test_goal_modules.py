@@ -21,3 +21,16 @@ def test_vm_script_carries_the_payload_inline_and_compiles():
     script = gm.vm_script(wanted)
     assert "stdin" not in script and repr(wanted) in script
     compile(script, "vm-script", "exec")
+
+
+def test_module_names_are_cut_on_a_word_and_never_end_in_a_space():
+    long = "Lay the foundation for the next products (Roadside Assistance, WMS as SaaS) and keep the platform stable"
+    name = gm.module_name(long)
+    assert len(name) <= 80 and not name.endswith(" ") and name.endswith("SaaS) and")
+    assert gm.module_name("  Short   name ") == "Short name"
+
+
+def test_vm_script_treats_an_existing_module_name_as_the_module():
+    script = gm.vm_script([{"goal": "G", "project": "p", "name": "Sprint", "dry_run": False}])
+    assert "MODULE_NAME_ALREADY_EXISTS" in script and "next_cursor" in script
+    assert '"module_view": True' in script          # a project with modules switched off gets them on
