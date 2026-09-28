@@ -247,3 +247,18 @@ def person_view(pack: dict, next_review_on=None) -> dict:
     return {"cycle": pack["cycle"], "as_of": pack["as_of"], "learning_month": pack["learning_month"],
             "next_review_on": next_review_on, "adherence_pct": (pack.get("adherence") or {}).get("pct"),
             "uncounted_items": pack.get("uncounted_items"), "goals": goals}
+
+
+def cycle_is_live(status, start_date: date | None, end_date: date | None, as_of: date, *,
+                  started_only: bool = False) -> bool:
+    """A cycle counts only while its dates say so. HRMS never closes a cycle on its own, so
+    the live ERP still carries the previous cycle as In Progress; the end date settles it.
+    started_only also drops a cycle that has not begun (the person's view and the packs),
+    while the meter and its setup keep a Not Started cycle so meters exist before day one."""
+    if status not in ("Not Started", "In Progress"):
+        return False
+    if end_date is not None and end_date < as_of:
+        return False
+    if started_only and start_date is not None and start_date > as_of:
+        return False
+    return True

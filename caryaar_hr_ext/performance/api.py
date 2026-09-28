@@ -148,14 +148,13 @@ def person_goals(email: str = "") -> dict:
     frappe.only_for(("Performance Sync", "System Manager"))
     from frappe.utils import getdate, nowdate
 
-    from caryaar_hr_ext.performance import meter_rules as mr, review_pack
+    from caryaar_hr_ext.performance import meter, meter_rules as mr, review_pack
 
     emp = _email_map().get((email or "").strip().lower())
     if not emp:
         return {"employee": None, "employee_name": None, "cycles": []}
     today = getdate(nowdate())
-    cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"]),
-                                                        "start_date": ("<=", today)}, pluck="name")
+    cycles = meter.live_cycles(today, started_only=True)
     out = []
     for cycle in cycles:
         pack = review_pack.build_pack(emp, cycle, today)

@@ -66,7 +66,11 @@ def ensure_goal_meters() -> int:
 
     rows = json.loads((Path(__file__).parent / "setup_data" / "goal_meters.json").read_text())
     wanted = {(r["employee"], r["kra"]): r for r in rows}
-    cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])}, pluck="name")
+    from frappe.utils import getdate, nowdate
+
+    from caryaar_hr_ext.performance import meter
+
+    cycles = meter.live_cycles(getdate(nowdate()))
     if not cycles:
         return 0
     created = 0

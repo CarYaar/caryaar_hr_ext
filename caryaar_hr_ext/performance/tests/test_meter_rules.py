@@ -139,3 +139,15 @@ def test_describe_meter_in_the_persons_words():
     assert mr.describe_meter(_goal(method="Months meeting standard", metric="support_on_time_pct", standard=95,
                                    target=None, direction="Higher is better")) == \
         "Months where support_on_time_pct (Plane items) was 95% or better."
+
+
+def test_a_cycle_is_live_by_its_dates_not_only_its_status():
+    d = date(2026, 10, 2)
+    # HRMS never closes a cycle on its own: the live ERP still carries Mar-Sep 2026 as In Progress
+    assert mr.cycle_is_live("In Progress", date(2026, 3, 1), date(2026, 9, 30), d) is False
+    assert mr.cycle_is_live("In Progress", date(2026, 10, 1), date(2027, 3, 31), d) is True
+    assert mr.cycle_is_live("Completed", date(2026, 10, 1), date(2027, 3, 31), d) is False
+    # a cycle that has not begun still gets its meters, but is not shown to the person nor packed
+    assert mr.cycle_is_live("Not Started", date(2026, 10, 1), date(2027, 3, 31), date(2026, 9, 30)) is True
+    assert mr.cycle_is_live("Not Started", date(2026, 10, 1), date(2027, 3, 31), date(2026, 9, 30), started_only=True) is False
+    assert mr.cycle_is_live("In Progress", None, None, d) is True

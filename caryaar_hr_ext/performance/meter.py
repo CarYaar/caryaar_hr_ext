@@ -149,6 +149,15 @@ def _last_reading(goal: str, before: date):
     return rows[0] if rows else None
 
 
+def live_cycles(as_of: date, *, started_only: bool = False) -> list[str]:
+    """Cycles the meter, the setup, the packs and the person's view agree on (meter_rules.cycle_is_live)."""
+    rows = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])},
+                          fields=["name", "status", "start_date", "end_date"])
+    return [r.name for r in rows
+            if mr.cycle_is_live(r.status, getdate(r.start_date) if r.start_date else None,
+                                getdate(r.end_date) if r.end_date else None, as_of, started_only=started_only)]
+
+
 def _cycle_start(cycle: str) -> date:
     start = frappe.db.get_value("Appraisal Cycle", cycle, "start_date")
     return getdate(start) if start else DEFAULT_CYCLE_START
@@ -251,8 +260,8 @@ def run_meter(as_of: date | None = None) -> dict:
     and whose employee is Active. Called by engine.run_nightly and on demand (a string
     date from bench execute is accepted)."""
     as_of = getdate(as_of) if as_of else getdate(nowdate())
-    counts = {"readings": 0, "written": 0, "stale": 0, "skipped": 0, "manual": 0}
-    cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])}, pluck="name")
+    counts = {"readings": 0, "written": 0, "stale": 0, "skipped": 0, "manual": 0, "no_value": 0}
+    cycles = live_cycles(as_of)
     emps = frappe.get_all("Employee", filters={"status": "Active"}, pluck="name")
     unmatched: list[str] = []
     for gm in frappe.get_all("Goal Meter", filters={"active": 1},
@@ -275,6 +284,11 @@ def run_meter(as_of: date | None = None) -> dict:
             reading = compute_reading(gm, as_of)
             if reading is None:
                 counts["skipped"] += 1
+                continue
+            if reading["value"] is None and reading["progress"] is None:
+                # Nothing to record yet (no module, no rows in the window). A Float stored as
+                # None reads back as 0.0 in Frappe, which the pack would show as 0%: write nothing.
+                counts["no_value"] += 1
                 continue
             if _write_reading(gm, as_of, reading):
                 counts["written"] += 1

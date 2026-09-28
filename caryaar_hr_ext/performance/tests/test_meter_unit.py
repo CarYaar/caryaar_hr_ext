@@ -165,3 +165,36 @@ def test_person_goals_returns_the_live_cycle_for_the_signed_in_email(monkeypatch
     assert (g["progress"], g["value"], g["target"], g["reading_date"]) == (50.0, 2.5, "5%", "2026-10-01")
     assert g["source"] == "CY Admin" and "target of 5%" in g["how"]
     assert api.person_goals("nobody@caryaar.test") == {"employee": None, "employee_name": None, "cycles": []}
+
+
+def test_a_cycle_past_its_end_date_is_not_metered_nor_shown(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Performance Sync",))
+    from caryaar_hr_ext.performance import api, meter
+
+    _base(fake, method="Manual")
+    stub.seed(fake, "Appraisal Cycle", name="Cycle Mar-2026", status="In Progress",
+              start_date="2026-03-01", end_date="2026-09-30")             # never closed in HRMS
+    stub.seed(fake, "Goal", name="HR-GOAL-OLD", goal_name="Old goal", employee=EMP, appraisal_cycle="Cycle Mar-2026",
+              progress=0, is_group=0, status="Pending")
+    stub.seed(fake, "Goal Meter", goal="HR-GOAL-OLD", employee=EMP, method="Manual", active=1)
+    stub.seed(fake, "Goal Meter Reading", name="HR-GOAL-OLD|2026-10-01", goal="HR-GOAL-OLD", employee=EMP,
+              reading_date="2026-10-01", progress=90, method="Manual", written_to_goal=0)
+    fake.today = date(2026, 11, 2)
+    meter.run_meter(as_of=date(2026, 11, 2))
+    assert fake.db.store["Goal"]["HR-GOAL-OLD"]["progress"] == 0                # skipped: the cycle is over
+    fake.today = date(2026, 10, 2)
+    out = api.person_goals("shiwans@caryaar.test")
+    assert [c["cycle"] for c in out["cycles"]] == [CYCLE]
+
+
+def test_a_goal_without_a_value_gets_no_reading_row(monkeypatch):
+    """Frappe stores a None Float as 0.0, so a written "no value" reading would read as 0%
+    in the pack and the person's view. Nothing is written until there is a value."""
+    fake = stub.install(monkeypatch, date(2026, 10, 2))
+    from caryaar_hr_ext.performance import meter
+
+    _base(fake)
+    fake.db.store["Goal"]["HR-GOAL-1"]["cy_plane_module"] = None       # module not created yet
+    out = meter.run_meter(as_of=date(2026, 10, 2))
+    assert "HR-GOAL-1|2026-10-02" not in fake.db.store.get("Goal Meter Reading", {})
+    assert out["no_value"] == 1 and out["readings"] == 0

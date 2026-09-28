@@ -123,8 +123,9 @@ def send_scheduled_packs() -> dict:
     """08:00 IST daily (hooks.py): sends on the 1st and 15th, and 3 days before an appraisal's review date."""
     as_of = getdate(nowdate())
     sent, skipped = 0, 0
-    for cycle in frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"]),
-                                                             "start_date": ("<=", as_of)}, pluck="name"):
+    from caryaar_hr_ext.performance import meter
+
+    for cycle in meter.live_cycles(as_of, started_only=True):
         for employee in _appraisees(cycle):
             review_dates = [getdate(d) for d in frappe.get_all(
                 "Appraisal", {"employee": employee, "appraisal_cycle": cycle, "cy_next_review_on": ("is", "set")},
