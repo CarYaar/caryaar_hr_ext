@@ -62,6 +62,8 @@ def ensure_goal_meters() -> int:
     """after_migrate: a Goal Meter for every goal in a live cycle whose (employee, KRA) is in
     setup_data/goal_meters.json and has no meter yet. Never updates an existing meter: the
     founders edit targets in the Goal Meter list and a deploy must not undo that."""
+    import frappe
+
     rows = json.loads((Path(__file__).parent / "setup_data" / "goal_meters.json").read_text())
     wanted = {(r["employee"], r["kra"]): r for r in rows}
     cycles = frappe.get_all("Appraisal Cycle", filters={"status": ("in", ["Not Started", "In Progress"])}, pluck="name")
@@ -80,3 +82,25 @@ def ensure_goal_meters() -> int:
                         "active": 1}).insert(ignore_permissions=True)
         created += 1
     return created
+
+
+SETTINGS_JSON = (Path(__file__).resolve().parents[1] / "caryaar_hr_ext" / "doctype" / "performance_sync_settings"
+                 / "performance_sync_settings.json")
+
+
+def default_review_pack_recipients() -> str:
+    """The doctype's own default for review_pack_recipients: one source for the founders' list."""
+    fields = json.loads(SETTINGS_JSON.read_text())["fields"]
+    return next(f.get("default", "") for f in fields if f["fieldname"] == "review_pack_recipients")
+
+
+def ensure_review_pack_recipients() -> bool:
+    """after_migrate: a Single's field default is not stored for a Settings record that already
+    exists, so the founders' list is written once when it is empty. Returns True when written."""
+    import frappe
+
+    if (frappe.db.get_single_value("Performance Sync Settings", "review_pack_recipients") or "").strip():
+        return False
+    frappe.db.set_single_value("Performance Sync Settings", "review_pack_recipients", default_review_pack_recipients())
+    frappe.db.commit()
+    return True

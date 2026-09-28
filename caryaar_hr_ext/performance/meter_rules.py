@@ -88,3 +88,12 @@ def is_overdue(target_date: date | None, state_group: str, as_of: date) -> bool:
 def pack_due_today(as_of: date, review_dates: Sequence[date]) -> bool:
     """G9: the 1st and 15th, and three days before a review date."""
     return as_of.day in (1, 15) or any(rd - as_of == timedelta(days=3) for rd in review_dates)
+
+
+def recipients(always_raw: str | None, manager_user: str | None) -> list[str]:
+    """The pack goes to the settings list (one user per line) plus the person's manager;
+    empty when neither exists, so the caller can skip and log instead of sending to nobody."""
+    people = {x.strip() for x in (always_raw or "").split("\n") if x.strip()}
+    if manager_user:
+        people.add(manager_user.strip())
+    return sorted(people)

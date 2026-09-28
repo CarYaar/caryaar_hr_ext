@@ -59,6 +59,7 @@ after_migrate = [
     "caryaar_hr_ext.utils.fonts.install_fonts",
     "caryaar_hr_ext.performance.setup.ensure_wfh_approval_setup",
     "caryaar_hr_ext.performance.setup.ensure_goal_meters",
+    "caryaar_hr_ext.performance.setup.ensure_review_pack_recipients",
 ]
 
 # Typing "auto" into the card serial field generates 2026-0001-K7QX

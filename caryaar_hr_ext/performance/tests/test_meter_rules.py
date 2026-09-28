@@ -84,3 +84,9 @@ def test_goal_meter_fixture_is_consistent():
         if r["method"] in ("Plane module", "Manual"):
             assert not r.get("metric")
     assert len({(r["employee"], r["kra"]) for r in rows}) == len(rows)
+
+
+def test_recipients_merge_settings_list_and_manager():
+    assert mr.recipients("a@caryaar.test\n\n b@caryaar.test \n", "m@caryaar.test") == ["a@caryaar.test", "b@caryaar.test", "m@caryaar.test"]
+    assert mr.recipients(None, None) == []
+    assert mr.recipients("", "m@caryaar.test") == ["m@caryaar.test"]
