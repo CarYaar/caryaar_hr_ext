@@ -101,11 +101,54 @@ def ingest_module_progress(synced_through=None, modules=None):
     return {"accepted": len(rows)}
 
 
+
+@frappe.whitelist(methods=["POST"])
+def ingest_work_items(synced_through=None, items=None, full_pass=0):
+    """Every Plane project's work items, upserted by issue id. A deleted or archived
+    item arrives flagged and stays flagged: the review pack shows what happened to it.
+    Chunk calls carry a 1970 placeholder stamp; only the sender's final call moves it."""
+    frappe.only_for(("Performance Sync", "System Manager"))
+    try:
+        when, rows = rules.validate_work_items_payload(synced_through, items or [])
+    except ValueError as e:
+        frappe.throw(str(e), exc=frappe.ValidationError)
+    emails = _email_map()
+    accepted, unmapped = 0, set()
+    for r in rows:
+        emp = emails.get(r.assignee_email) if r.assignee_email else None
+        if r.assignee_email and not emp:
+            unmapped.add(r.assignee_email)
+        values = {"project_identifier": r.project_identifier, "sequence_id": r.sequence_id, "title": r.title,
+                  "assignee": emp, "assignee_email": r.assignee_email, "state_group": r.state_group,
+                  "module_id": r.module_id, "labels": ",".join(r.labels), "start_date": r.start_date,
+                  "target_date": r.target_date, "completed_at": r.completed_at, "created_at": r.created_at,
+                  "updated_at": r.updated_at, "is_deleted": 1 if r.is_deleted else 0, "synced_at": now_datetime()}
+        if frappe.db.exists("Plane Work Item", r.issue_id):
+            frappe.db.set_value("Plane Work Item", r.issue_id, values, update_modified=False)
+        else:
+            frappe.get_doc({"doctype": "Plane Work Item", "issue_id": r.issue_id, **values}).insert(ignore_permissions=True)
+        accepted += 1
+    current = _stamp("plane_items_synced_through")
+    if when.year > 1971 and (not current or when > current):
+        _set("plane_items_synced_through", when)
+    if int(full_pass or 0):
+        _set("plane_items_full_pass_on", when.date())
+    if unmapped:
+        known = set(filter(None, (frappe.db.get_single_value(_SINGLE, "unmapped_emails") or "").split("\n")))
+        _set("unmapped_emails", "\n".join(sorted(known | unmapped)))
+    stamp = _stamp("plane_items_synced_through")
+    return {"accepted": accepted, "unmapped": sorted(unmapped), "synced_through": stamp.isoformat() if stamp else None}
+
 @frappe.whitelist(methods=["GET", "POST"])
 def get_sync_state():
     """Each source's "synced through" stamp, so a sender can backfill from it."""
     frappe.only_for(("Performance Sync", "System Manager"))
-    return {src: (_stamp(field).isoformat() if _stamp(field) else None) for src, field in _SYNC_FIELD.items()}
+    state = {src: (_stamp(field).isoformat() if _stamp(field) else None) for src, field in _SYNC_FIELD.items()}
+    items = _stamp("plane_items_synced_through")
+    state["Plane items"] = items.isoformat() if items else None
+    full = frappe.db.get_single_value(_SINGLE, "plane_items_full_pass_on")
+    state["Plane items full pass"] = str(full) if full else None
+    return state
 
 
 @frappe.whitelist(methods=["POST"])

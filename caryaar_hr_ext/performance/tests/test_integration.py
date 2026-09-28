@@ -113,6 +113,32 @@ class TestIngest(IntegrationTestCase):
         self.assertEqual(frappe.db.get_value("Plane Module Progress", "mod-test-1", "progress"), 50.0)
 
 
+    def test_ingest_work_items_upserts_and_flags_deleted(self):
+        item = {"issue_id": "11111111-2222-3333-4444-555555555555", "project_identifier": "DEV", "sequence_id": 9001,
+                "title": "Test item", "assignee_email": None, "state_group": "started", "module_id": None, "labels": ["bug"],
+                "start_date": None, "target_date": "2026-10-10", "completed_at": None,
+                "created_at": "2026-10-01T09:00:00+05:30", "updated_at": "2026-10-01T09:00:00+05:30", "is_deleted": False}
+        out = api.ingest_work_items("2026-10-01T10:00:00+05:30", [item])
+        self.assertEqual(out["accepted"], 1)
+        doc = frappe.get_doc("Plane Work Item", item["issue_id"])
+        self.assertEqual(doc.state_group, "started")
+        self.assertEqual(doc.labels, "bug")
+        item["state_group"] = "completed"
+        item["completed_at"] = "2026-10-02T18:00:00+05:30"
+        item["is_deleted"] = True
+        api.ingest_work_items("2026-10-02T19:00:00+05:30", [item])
+        doc.reload()
+        self.assertEqual(doc.state_group, "completed")
+        self.assertEqual(doc.is_deleted, 1)  # flagged, never removed
+        self.assertEqual(str(frappe.db.get_single_value("Performance Sync Settings", "plane_items_synced_through"))[:16],
+                         "2026-10-02 19:00")
+        frappe.delete_doc("Plane Work Item", item["issue_id"], force=True)
+
+    def test_ingest_work_items_full_pass_records_the_day(self):
+        api.ingest_work_items("2026-10-03T00:30:00+05:30", [], full_pass=1)
+        self.assertEqual(str(frappe.db.get_single_value("Performance Sync Settings", "plane_items_full_pass_on")), "2026-10-03")
+
+
 class TestEngine(IntegrationTestCase):
     def setUp(self):
         self.emp = _employee("perf.test.two@caryaar.test")
