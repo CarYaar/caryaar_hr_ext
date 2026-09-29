@@ -2,6 +2,24 @@
  {
   "cards": [
    {
+    "card": "Calls handled this month"
+   },
+   {
+    "card": "Follow-ups done on the day this month"
+   },
+   {
+    "card": "Job status moves this month"
+   },
+   {
+    "card": "Plane items completed this month"
+   },
+   {
+    "card": "Leads reached by campaigns this month"
+   },
+   {
+    "card": "Service Partners activated this month"
+   },
+   {
     "card": "WFH days this month"
    },
    {
@@ -9,6 +27,38 @@
    }
   ],
   "charts": [
+   {
+    "chart": "Activity: Operations",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Marketing",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Technology",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Finance & Accounts",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Workshop Relations",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Partnerships",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Human Resources",
+    "width": "Half"
+   },
+   {
+    "chart": "Activity: Corporate Management",
+    "width": "Half"
+   },
    {
     "chart": "Adherence by department",
     "width": "Half"

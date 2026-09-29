@@ -400,3 +400,35 @@ def test_goal_one_on_one_survives_scoped_user_permissions_and_tracks_changes():
     assert f["employee_user"]["fetch_from"] == "employee.user_id" and f["employee_user"].get("hidden") == 1
     js = (DT / "goal_one_on_one" / "goal_one_on_one.js").read_text()
     assert "acknowledge_goals" in js and "fill_goals" in js and "employee_user" in js
+
+
+def test_department_activity_charts_and_month_cards_are_wired_end_to_end():
+    """Founder 29-Sep-2026: department and role level activity on the dashboard. Every department chart
+    is a Custom chart on the one source, filtered to a department the rules know and a period the rules
+    know; every month card sums a real Work Activity Day field; the dashboard and the Home page list them."""
+    from caryaar_hr_ext.performance import activity_groups as g
+    src_dir = APP / "caryaar_hr_ext" / "dashboard_chart_source" / "activity_by_department"
+    src = json.loads((src_dir / "activity_by_department.json").read_text())
+    assert (src["doctype"], src["name"], src["module"]) == ("Dashboard Chart Source", "Activity by department", "Caryaar Hr Ext")
+    assert (src_dir / "activity_by_department.py").exists() and "def get(" in (src_dir / "activity_by_department.py").read_text()
+    assert 'chart_sources["Activity by department"]' in (src_dir / "activity_by_department.js").read_text()
+    fields = {f["fieldname"] for f in _load("work_activity_day")["fields"]}
+    charts = {c["name"]: c for c in _fx("dashboard_chart")}
+    custom = {n: c for n, c in charts.items() if c.get("chart_type") == "Custom"}
+    assert len(custom) == len(g.DEPARTMENT_METRICS) == 8
+    for name, c in custom.items():
+        assert c["source"] == "Activity by department" and c["type"] == "Bar" and c["is_public"] == 1, name
+        f = json.loads(c["filters_json"])
+        assert g.department_key(f["department"]) in g.DEPARTMENT_METRICS and f["period"] in g.PERIODS, name
+    cards = {c["name"]: c for c in _fx("number_card")}
+    month = {n: c for n, c in cards.items() if c.get("document_type") == "Work Activity Day"}
+    assert len(month) == 6
+    for name, c in month.items():
+        assert c["function"] == "Sum" and c["aggregate_function_based_on"] in fields, name
+        assert "Timespan" in c["filters_json"] and "this month" in c["filters_json"], name
+    dash = _fx("dashboard")[0]
+    assert set(custom) <= {c["chart"] for c in dash["charts"]} and set(month) <= {c["card"] for c in dash["cards"]}
+    ws = json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / WS_FILE).read_text())
+    blocks = json.loads(ws["content"])
+    assert set(custom) <= {b["data"]["chart_name"] for b in blocks if b["type"] == "chart"}
+    assert set(month) <= {b["data"]["number_card_name"] for b in blocks if b["type"] == "number_card"}
