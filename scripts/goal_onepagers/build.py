@@ -79,9 +79,12 @@ class Erp:
         with urllib.request.urlopen(r, timeout=60) as resp:
             return json.loads(resp.read().decode())
 
-    def get_list(self, doctype: str, fields: list[str], filters: list, limit: int = 200) -> list[dict]:
-        q = urllib.parse.urlencode({"fields": json.dumps(fields), "filters": json.dumps(filters), "limit_page_length": limit})
-        return self._req("GET", f"/api/resource/{urllib.parse.quote(doctype)}?{q}")["data"]
+    def get_list(self, doctype: str, fields: list[str], filters: list, limit: int = 200, parent: str | None = None) -> list[dict]:
+        """A child table must name its parent doctype, or Frappe strips every field but name from the rows."""
+        q = {"fields": json.dumps(fields), "filters": json.dumps(filters), "limit_page_length": limit}
+        if parent:
+            q["parent"] = parent
+        return self._req("GET", f"/api/resource/{urllib.parse.quote(doctype)}?{urllib.parse.urlencode(q)}")["data"]
 
     def call(self, method: str, **kw):
         return self._req("POST", f"/api/method/{method}", kw)["message"]
@@ -96,11 +99,13 @@ def person_payload(erp: Erp, employee: str, cycle_name: str = CYCLE["name"]) -> 
     if emp.get("reports_to"):
         rows = erp.get_list("Employee", ["employee_name"], [["name", "=", emp["reports_to"]]])
         manager_name = rows[0]["employee_name"] if rows else ""
-    template = erp.get_list("Appraisee", ["appraisal_template"], [["parent", "=", cycle_name], ["employee", "=", employee]])
+    template = erp.get_list("Appraisee", ["appraisal_template"], [["parent", "=", cycle_name], ["employee", "=", employee]],
+                            parent="Appraisal Cycle")
     kras = []
     if template:
         kras = [{"kra": r["key_result_area"], "weight": float(r["per_weightage"] or 0)} for r in erp.get_list(
-            "Appraisal Template Goal", ["key_result_area", "per_weightage"], [["parent", "=", template[0]["appraisal_template"]]])]
+            "Appraisal Template Goal", ["key_result_area", "per_weightage"], [["parent", "=", template[0]["appraisal_template"]]],
+            parent="Appraisal Template")]
     weights = {k["kra"]: k["weight"] for k in kras}
     goal_rows = erp.get_list("Goal", ["name", "goal_name", "kra", "description"],
                              [["employee", "=", employee], ["appraisal_cycle", "=", cycle_name], ["is_group", "=", 0], ["status", "!=", "Archived"]])
@@ -119,7 +124,8 @@ def person_payload(erp: Erp, employee: str, cycle_name: str = CYCLE["name"]) -> 
         meter = meters.get(g["name"]) or {}
         reading = readings.get(g["name"]) or {}
         goals.append({"goal": g["name"], "goal_name": g["goal_name"], "kra": row["kra"], "weight": row["weight"],
-                      "method": meter.get("method") or "", "target": row["target_text"], "baseline": _baseline(g.get("description")),
+                      "kra_weight": row["kra_weight"], "kra_goals": row["kra_goals"],
+                      "method": meter.get("method") or "", "target": row["target_text"], "baseline": row["baseline"],
                       "source": mr.source_name(meter) if meter else "", "how": mr.describe_meter(meter) if meter else "",
                       "value": reading.get("value"), "progress": row["progress"], "reading_date": reading.get("reading_date")})
     one = erp.get_list("Goal One on One", ["name", "meeting_date", "employee_acknowledged", "acknowledged_on"],
@@ -128,17 +134,6 @@ def person_payload(erp: Erp, employee: str, cycle_name: str = CYCLE["name"]) -> 
             "department": emp.get("department") or "", "manager_name": manager_name, "cycle": dict(CYCLE),
             "kras": kras, "goals": goals, "one_on_one": one[0] if one else None, "score": SCORE,
             "login": emp.get("user_id") or emp.get("company_email") or ""}
-
-
-def _baseline(description: str) -> str:
-    """The goal descriptions written on 28-Sep-2026 carry 'Baseline: ...' on their own line."""
-    import re
-
-    text = re.sub(r"<[^>]+>", "\n", description or "")
-    for line in text.splitlines():
-        if line.strip().lower().startswith("baseline:"):
-            return line.split(":", 1)[1].strip()
-    return ""
 
 
 def main(argv: list[str] | None = None) -> int:

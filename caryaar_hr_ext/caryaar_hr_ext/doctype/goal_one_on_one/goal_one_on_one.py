@@ -10,9 +10,10 @@ FROZEN_AFTER_ACK = ("employee", "manager", "appraisal_cycle", "meeting_date", "m
 
 def cycle_goal_rows(employee: str, cycle: str) -> list[dict]:
     """The goals table for one person and cycle: every live, non-group Goal with its KRA weight from
-    the person's appraisal template, the meter's target and source, and the latest reading."""
+    the person's appraisal template (shared when several goals sit under one KRA), the meter's target
+    and source (a manual goal's target from the description's 'Target:' line), and the latest reading."""
     goals = frappe.get_all("Goal", filters={"employee": employee, "appraisal_cycle": cycle, "is_group": 0, "status": ("!=", "Archived")},
-                           fields=["name", "goal_name", "kra"], order_by="creation asc")
+                           fields=["name", "goal_name", "kra", "description"], order_by="creation asc")
     names = [g.name for g in goals]
     meters = {}
     for m in frappe.get_all("Goal Meter", filters={"goal": ("in", names)},

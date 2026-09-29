@@ -168,7 +168,7 @@
     <div class="milestones" id="milestones">
       {% for g in goals %}
       <article class="goal" data-goal="{{ loop.index }}">
-        <div class="tag">{{ g.kra }}{% if g.weight %} · {{ g.weight|num }}% of your goals{% endif %}</div>
+        <div class="tag">{{ g.kra }}{% if g.weight %} · {{ g.weight|num }}% of your goals{% if g.kra_goals and g.kra_goals > 1 %} ({{ g.kra_weight|num }}% KRA across {{ g.kra_goals }} goals){% endif %}{% endif %}</div>
         <h3>{{ g.goal_name }}</h3>
         <div class="facts">
           <div class="fact"><small>Target</small>{{ g.target or "set with your manager" }}</div>

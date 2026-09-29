@@ -15,35 +15,37 @@
  },
  "kras": [
   {
-   "kra": "Lead to booking conversion",
-   "weight": 30
-  },
-  {
-   "kra": "Customer follow-ups on time",
-   "weight": 20
-  },
-  {
-   "kra": "Customer satisfaction",
-   "weight": 20
-  },
-  {
    "kra": "Job updates to customers on time",
-   "weight": 15
+   "weight": 15.0
+  },
+  {
+   "kra": "Lead to booking conversion",
+   "weight": 30.0
   },
   {
    "kra": "CRM data completeness",
-   "weight": 15
+   "weight": 15.0
+  },
+  {
+   "kra": "Customer satisfaction",
+   "weight": 20.0
+  },
+  {
+   "kra": "Customer follow-ups on time",
+   "weight": 20.0
   }
  ],
  "goals": [
   {
-   "goal": "HR-GOAL-2026-0350",
-   "goal_name": "Raise the share of leads assigned to me that book a service within 7 days",
+   "goal": "HR-GOAL-2026-0385",
+   "goal_name": "Raise the share of leads assigned to me that book a service within 7 days.",
    "kra": "Lead to booking conversion",
-   "weight": 30,
+   "weight": 15.0,
+   "kra_weight": 30.0,
+   "kra_goals": 2,
    "method": "Ratio to target",
    "target": "5%",
-   "baseline": "1.7% of assigned leads booked within 7 days in Aug-2026; 3% by 31-Dec-2026, 5% by 31-Mar-2027",
+   "baseline": "Aug: 16 of 953 leads (1.7%). Sep to 27th: 4 of 403 (1.0%).",
    "source": "CY Admin",
    "how": "Measured from CY Admin (conversion_pct) against a target of 5%.",
    "value": 2.0,
@@ -51,27 +53,31 @@
    "reading_date": "2026-10-01"
   },
   {
-   "goal": "HR-GOAL-2026-0351",
-   "goal_name": "Finish every scheduled follow-up and callback by its due time",
+   "goal": "HR-GOAL-2026-0386",
+   "goal_name": "Finish every scheduled follow-up and callback by its due time.",
    "kra": "Customer follow-ups on time",
-   "weight": 20,
+   "weight": 20.0,
+   "kra_weight": 20.0,
+   "kra_goals": 1,
    "method": "Ratio to target",
    "target": "95%",
-   "baseline": "60 of 82 follow-ups overdue on 27-Sep-2026; fewer than 5 overdue at the end of each working day",
+   "baseline": "Today: 60 of 82 scheduled follow-ups overdue.",
    "source": "CY Admin",
-   "how": "Measured from CY Admin (followups_on_time_pct) against a target of 95%, latest full month.",
+   "how": "Measured from CY Admin (followups_on_time_pct) against a target of 95%.",
    "value": null,
    "progress": null,
    "reading_date": null
   },
   {
-   "goal": "HR-GOAL-2026-0352",
-   "goal_name": "Ask every customer whose job I handle for a rating, and follow up on every low one",
+   "goal": "HR-GOAL-2026-0387",
+   "goal_name": "Ask every customer whose job I handle for a rating, and follow up on every low one within a day.",
    "kra": "Customer satisfaction",
-   "weight": 20,
+   "weight": 20.0,
+   "kra_weight": 20.0,
+   "kra_goals": 1,
    "method": "Manual",
    "target": "Rating from half of delivered jobs, from Jan-2027",
-   "baseline": "18 of 19 ratings recorded read 1; the capture is being fixed",
+   "baseline": "Not usable yet: 18 of the 19 ratings ever recorded are 1 star, which points to a capture problem.",
    "source": "Manager",
    "how": "Your manager updates this after each review.",
    "value": null,
@@ -79,13 +85,15 @@
    "reading_date": null
   },
   {
-   "goal": "HR-GOAL-2026-0353",
-   "goal_name": "Make sure each customer gets every status update (estimate, work start, ready, delivered)",
+   "goal": "HR-GOAL-2026-0388",
+   "goal_name": "Make sure each customer gets every status update (estimate, work started, ready) on time.",
    "kra": "Job updates to customers on time",
-   "weight": 15,
+   "weight": 15.0,
+   "kra_weight": 15.0,
+   "kra_goals": 1,
    "method": "Manual",
-   "target": "95% of my active jobs, every month from Nov-2026",
-   "baseline": "",
+   "target": "95% of my active jobs, every month from Nov",
+   "baseline": "Company-wide since Jul: 43 of 51 jobs (84%) had customer-notified task updates.",
    "source": "Manager",
    "how": "Your manager updates this after each review.",
    "value": null,
@@ -93,15 +101,33 @@
    "reading_date": null
   },
   {
-   "goal": "HR-GOAL-2026-0354",
-   "goal_name": "Give every lead assigned to me a status within 48 hours",
+   "goal": "HR-GOAL-2026-0389",
+   "goal_name": "Give every lead assigned to me a status within 48 hours.",
    "kra": "CRM data completeness",
-   "weight": 15,
+   "weight": 15.0,
+   "kra_weight": 15.0,
+   "kra_goals": 1,
    "method": "Ratio to target",
    "target": "100%",
-   "baseline": "about 42% of assigned leads had no status in Sep-2026; under 10% by 31-Dec-2026",
+   "baseline": "Today: 571 of 1,356 assigned leads (42%) have no status.",
    "source": "CY Admin",
-   "how": "Measured from CY Admin (leads_statused_48h_pct) against a target of 100%, latest full month.",
+   "how": "Measured from CY Admin (leads_statused_48h_pct) against a target of 100%.",
+   "value": null,
+   "progress": null,
+   "reading_date": null
+  },
+  {
+   "goal": "HR-GOAL-2026-0412",
+   "goal_name": "Turn my bookings into jobs",
+   "kra": "Lead to booking conversion",
+   "weight": 15.0,
+   "kra_weight": 30.0,
+   "kra_goals": 2,
+   "method": "Ratio to target",
+   "target": "60%",
+   "baseline": "Sep-2026: 1 job from 5 bookings (20%)",
+   "source": "CY Admin",
+   "how": "Measured from CY Admin (bookings_to_jobs_pct) against a target of 60%.",
    "value": null,
    "progress": null,
    "reading_date": null
@@ -134,5 +160,6 @@
    "Initiative and innovation",
    10
   ]
- ]
+ ],
+ "login": "anagha.khedekar@caryaar.com"
 }
