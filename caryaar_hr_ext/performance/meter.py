@@ -160,6 +160,15 @@ def m_jobs_moved(ctx):
     return _sum_metric(ctx, "jobs_moved")
 
 
+def m_sweep_items_closed(ctx):
+    """Stuck-delivery items the system raised and the coordinator closed."""
+    return _sum_metric(ctx, "sweep_items_closed")
+
+
+def m_partner_changes(ctx):
+    return _sum_metric(ctx, "partner_changes")
+
+
 def m_partners_activated(ctx):
     return _sum_metric(ctx, "partners_activated")
 
@@ -185,6 +194,7 @@ METRICS: dict[str, Callable[[MeterContext], float | None]] = {
     "calls_to_bookings_pct": m_calls_to_bookings_pct, "campaigns_sent": m_campaigns_sent,
     "campaign_leads_reached": m_campaign_leads_reached, "creatives_approved": m_creatives_approved,
     "leads_from_channels": m_leads_from_channels, "jobs_moved": m_jobs_moved,
+    "sweep_items_closed": m_sweep_items_closed, "partner_changes": m_partner_changes,
     "partners_activated": m_partners_activated, "agreements_signed": m_agreements_signed,
     "payouts_triggered": m_payouts_triggered, "unpaid_cleared": m_unpaid_cleared,
 }

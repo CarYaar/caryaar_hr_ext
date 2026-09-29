@@ -118,14 +118,14 @@ def recipients(always_raw: str | None, manager_user: str | None) -> list[str]:
 
 ROLE_METRICS = ("jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct",          # agents
                 "campaigns_sent", "campaign_leads_reached", "creatives_approved", "leads_from_channels",  # marketing
-                "jobs_moved",                                                                      # ops
+                "jobs_moved", "sweep_items_closed", "partner_changes",                              # ops
                 "partners_activated", "agreements_signed",                                         # Service Partners
                 "payouts_triggered", "unpaid_cleared")                                             # finance
 METRIC_ROLES: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("agents", ("conversion_pct", "followups_on_time_pct", "leads_statused_48h_pct",
                 "jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct")),
     ("marketing", ("campaigns_sent", "campaign_leads_reached", "creatives_approved", "leads_from_channels")),
-    ("operations", ("jobs_moved",)),
+    ("operations", ("jobs_moved", "sweep_items_closed", "partner_changes")),
     ("service partners", ("partners_activated", "agreements_signed")),
     ("finance", ("payouts_triggered", "unpaid_cleared")),
     ("tech", ("incidents_fixed_24h_pct", "support_on_time_pct", "release_bugs_14d")),

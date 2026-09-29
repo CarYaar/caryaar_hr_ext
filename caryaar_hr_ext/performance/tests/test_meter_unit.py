@@ -108,7 +108,7 @@ def _day(fake, day, **metrics):
 
 
 ROLE_METRICS = ("jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct", "campaigns_sent",
-                "campaign_leads_reached", "creatives_approved", "leads_from_channels", "jobs_moved",
+                "campaign_leads_reached", "creatives_approved", "leads_from_channels", "jobs_moved", "sweep_items_closed", "partner_changes",
                 "partners_activated", "agreements_signed", "payouts_triggered", "unpaid_cleared")
 
 
@@ -294,3 +294,14 @@ def test_goal_meter_refuses_a_metric_key_the_meter_does_not_know(monkeypatch):
     frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Ratio to target", "metric": "jobs_from_bookings"}).validate()
     frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Manual", "metric": ""}).validate()
     frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Plane module"}).validate()
+
+
+def test_operations_metrics_sum_the_sweep_items_and_partner_changes(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 11, 2))
+    from caryaar_hr_ext.performance import meter
+
+    _activity_sql(fake)
+    _day(fake, "2026-10-03", sweep_items_closed=2, partner_changes=5)
+    _day(fake, "2026-10-20", sweep_items_closed=4, partner_changes=1)
+    ctx = meter.MeterContext(EMP, CYCLE, date(2026, 10, 1), date(2026, 11, 2), date(2026, 10, 1), date(2026, 10, 31), None)
+    assert meter.m_sweep_items_closed(ctx) == 6 and meter.m_partner_changes(ctx) == 6

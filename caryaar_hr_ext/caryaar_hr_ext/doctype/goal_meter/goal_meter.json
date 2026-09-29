@@ -11,7 +11,7 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "creation": "2026-09-28 20:30:00.000000",
- "modified": "2026-09-29 16:00:00.000000",
+ "modified": "2026-09-30 10:30:00.000000",
  "name": "Goal Meter",
  "field_order": [
   "goal",
@@ -60,7 +60,7 @@
    "fieldname": "metric",
    "fieldtype": "Data",
    "label": "Metric key",
-   "description": "Blank for Plane module and Manual. Keys by role: agents: conversion_pct, followups_on_time_pct, leads_statused_48h_pct, jobs_from_bookings, bookings_to_jobs_pct, calls_to_bookings_pct; marketing: campaigns_sent, campaign_leads_reached, creatives_approved, leads_from_channels; operations: jobs_moved; service partners: partners_activated, agreements_signed; finance: payouts_triggered, unpaid_cleared; tech: incidents_fixed_24h_pct, support_on_time_pct, release_bugs_14d; everyone: module_completion, wiki_pages."
+   "description": "Blank for Plane module and Manual. Keys by role: agents: conversion_pct, followups_on_time_pct, leads_statused_48h_pct, jobs_from_bookings, bookings_to_jobs_pct, calls_to_bookings_pct; marketing: campaigns_sent, campaign_leads_reached, creatives_approved, leads_from_channels; operations: jobs_moved, sweep_items_closed, partner_changes; service partners: partners_activated, agreements_signed; finance: payouts_triggered, unpaid_cleared; tech: incidents_fixed_24h_pct, support_on_time_pct, release_bugs_14d; everyone: module_completion, wiki_pages."
   },
   {
    "fieldname": "window",
