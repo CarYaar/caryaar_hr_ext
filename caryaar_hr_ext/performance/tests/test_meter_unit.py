@@ -312,6 +312,6 @@ def test_goal_meter_warns_when_the_metric_is_off_the_roles_precedence(monkeypatc
     import frappe
 
     _base(fake, method="Ratio to target", metric="conversion_pct", target_value=5)
-    stub.seed(fake, "Appraisee", name="APR-X", parent=CYCLE, parenttype="Appraisal Cycle", employee=EMP, appraisal_template="Accounts")
+    stub.seed(fake, "Appraisee", name="APR-X", parent=CYCLE, parenttype="Appraisal Cycle", employee=EMP, appraisal_template="Technology")
     frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "employee": EMP, "method": "Ratio to target", "metric": "conversion_pct"}).validate()
-    assert fake.messages and "not in the precedence for Accounts" in fake.messages[-1]
+    assert fake.messages and "not in the precedence for Technology" in fake.messages[-1]

@@ -202,7 +202,7 @@
     <h2>How the score is built</h2>
     <svg class="gauge" viewBox="0 0 300 175" aria-hidden="true">
       <g id="gauge-arcs" transform="translate(150,150)"></g>
-      <g id="needle" transform="translate(150,150)"><path d="M-4,0 L0,-118 L4,0 Z" fill="var(--ink)"/><circle r="8" fill="var(--ink)"/><circle r="3.5" fill="var(--paper)"/></g>
+      <g id="needle"><path d="M147,150 L150,42 L153,150 Z" fill="var(--ink)"/><circle cx="150" cy="150" r="8" fill="var(--ink)"/><circle cx="150" cy="150" r="3.5" fill="var(--paper)"/></g>
       <text x="150" y="170" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-size="14" fill="var(--cool)">goals 50, feedback 50</text>
     </svg>
     <ul>
@@ -353,9 +353,8 @@
     document.querySelectorAll(".stone").forEach(function (s) { s.classList.add("reached"); });
   }
 
-  // the gauge needle rests on the goals half and breathes a little
-  if (!reduce) gsap.fromTo("#needle", { rotation: -92, transformOrigin: "0 0" }, { rotation: -88, duration: 3, yoyo: true, repeat: -1, ease: "sine.inOut" });
-  else gsap.set("#needle", { rotation: -90, transformOrigin: "0 0" });
+  // the gauge needle rests on the split between goals and feedback and breathes a little, pivoting on the dial centre
+  if (!reduce) gsap.fromTo("#needle", { rotation: -2.5, svgOrigin: "150 150" }, { rotation: 2.5, duration: 3.2, yoyo: true, repeat: -1, ease: "sine.inOut" });
 
   var resizeTimer;
   window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { road = buildRoad(); ScrollTrigger.refresh(); }, 150); });

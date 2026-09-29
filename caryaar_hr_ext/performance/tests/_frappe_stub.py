@@ -380,7 +380,7 @@ def install(monkeypatch, today: date, roles=("HR Manager",), user="hr@caryaar.te
     Returns the FakeFrappe so the test can seed documents and read what was written."""
     fake = FakeFrappe(today, roles, user)
     frappe = types.ModuleType("frappe")
-    for attr in ("db", "session", "get_doc", "new_doc", "get_all", "get_list", "delete_doc", "throw", "only_for",
+    for attr in ("db", "session", "get_doc", "new_doc", "get_all", "get_list", "delete_doc", "throw", "msgprint", "only_for",
                  "has_permission", "get_roles", "log_error", "get_traceback", "sendmail", "render_template",
                  "whitelist", "logger", "_dict", "ValidationError", "PermissionError", "DoesNotExistError"):
         setattr(frappe, attr, getattr(fake, attr))
