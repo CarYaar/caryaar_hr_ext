@@ -27,9 +27,14 @@ LABELS: dict[str, str] = {
 }
 
 
+SNAPSHOT_KEYS: frozenset[str] = frozenset({"leads_assigned", "leads_untouched", "followups_overdue"})   # end-of-day states, never summed
+
+
 def summarize(rows: list[dict], keys: tuple[str, ...]) -> tuple[list[dict], list[dict]]:
     """rows: sums per (employee, source) as the SQL returns them. Returns (columns, data) for the
-    report: the Plane columns first, then every CY Admin key somebody used, then a total row."""
+    report: the Plane columns first, then every CY Admin key somebody used, then a total row.
+    The end-of-day snapshot keys are left out: a state summed over days means nothing."""
+    keys = tuple(k for k in keys if k not in SNAPSHOT_KEYS)
     if not rows:
         return [], []
     people: dict[str, dict] = {}

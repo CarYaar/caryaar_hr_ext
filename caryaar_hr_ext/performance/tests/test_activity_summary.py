@@ -34,3 +34,12 @@ def test_every_metric_has_a_label():
 
     for key in rules.METRIC_KEYS["CY Admin"]:
         assert key in a.LABELS, key
+
+
+def test_end_of_day_snapshots_are_not_summed():
+    # leads_assigned, leads_untouched and followups_overdue are states at the end of a day, not work done
+    rows = [{"employee": "E1", "employee_name": "Janhavi", "department": "Ops", "source": "CY Admin", "leads_assigned": 1454, "calls_handled": 5},
+            {"employee": "E1", "employee_name": "Janhavi", "department": "Ops", "source": "CY Admin", "leads_assigned": 1460, "calls_handled": 3}]
+    columns, data = a.summarize(rows, ("calls_handled", "leads_assigned", "leads_untouched", "followups_overdue"))
+    assert [c["fieldname"] for c in columns] == ["employee_name", "department", "plane_actions", "plane_items", "calls_handled"]
+    assert data[0]["calls_handled"] == 8 and "leads_assigned" not in data[0]
