@@ -402,7 +402,7 @@ def install(monkeypatch, today: date, roles=("HR Manager",), user="hr@caryaar.te
     ctrl = sys.modules[TARGET_MODULES[-1]]
     fake.controllers["Goal Meter Reading"] = ctrl.GoalMeterReading
     fake.controllers["Goal Meter"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter"].GoalMeter
-    fake.controllers["Goal One on One"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_one_on_one.goal_one_on_one"].GoalOneOnOne
+    fake.controllers["Goal One on One"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_one_on_one.goal_one_on_one"].GoalOneonOne
     return fake
 
 

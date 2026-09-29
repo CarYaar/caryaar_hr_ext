@@ -27,7 +27,7 @@ def cycle_goal_rows(employee: str, cycle: str) -> list[dict]:
     return rules.goal_rows([dict(g) for g in goals], meters, readings, weights)
 
 
-class GoalOneOnOne(Document):
+class GoalOneonOne(Document):   # Frappe looks for the doctype name without spaces, so the lowercase 'on' stays
     """One meeting between a manager and an employee about the cycle's goals. The acknowledgement
     fields are written only by performance.api.acknowledge_goals; the form cannot set them."""
 

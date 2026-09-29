@@ -368,3 +368,12 @@ def test_activity_summary_report_is_registered_for_hr():
     assert {x["role"] for x in r["roles"]} == {"HR Manager", "System Manager"}
     w = _json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / "performance_and_adherence.json").read_text())
     assert any(x["type"] == "Report" and x["link_to"] == "Activity Summary" for x in w["shortcuts"])
+
+def test_controller_class_names_are_the_doctype_names_without_spaces():
+    # Frappe's get_controller looks up doctype.replace(" ", ""); a wrong class makes migrate treat the doctype as orphaned and delete it
+    import re
+
+    for folder, doctype in (("goal_one_on_one", "Goal One on One"), ("goal_one_on_one_goal", "Goal One on One Goal"),
+                            ("goal_meter", "Goal Meter"), ("work_activity_day", "Work Activity Day")):
+        code = (DT / folder / f"{folder}.py").read_text()
+        assert re.search(rf"^class {doctype.replace(' ', '')}\(", code, re.M), (folder, doctype.replace(" ", ""))
