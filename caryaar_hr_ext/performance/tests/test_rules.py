@@ -44,6 +44,13 @@ def test_metric_not_allowed_for_source_rejected():
         r.validate_activity_payload("Plane", "2026-10-01T10:00:00+05:30", [_row(calls_handled=1)], covers_from="2026-10-01")
 
 
+def test_a_misspelt_role_metric_is_rejected_by_name():
+    # a typo in the sender never becomes a silently dropped column
+    with pytest.raises(ValueError, match="jobs_from_booking"):
+        r.validate_activity_payload("CY Admin", "2026-10-01T10:00:00+05:30", [_row(jobs_from_booking=1)],
+                                    covers_from="2026-10-01")
+
+
 @pytest.mark.parametrize("bad", [-1, 1.5, "3", True, 10**8])
 def test_bad_metric_values_rejected(bad):
     with pytest.raises(ValueError):
