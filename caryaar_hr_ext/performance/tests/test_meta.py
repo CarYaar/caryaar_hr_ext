@@ -349,3 +349,12 @@ def test_goal_one_on_one_doctype_shape():
     c = _load("goal_one_on_one_goal")
     assert set(_fields(c)) == {"goal", "goal_name", "kra", "weight", "target_text", "measured_from", "progress"}
     assert c["istable"] == 1 and c["module"] == "Caryaar Hr Ext"
+
+
+def test_workspace_lists_goal_one_on_ones():
+    import json as _json
+
+    w = _json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / "performance_and_adherence.json").read_text())
+    hit = [x for x in w["shortcuts"] if x["link_to"] == "Goal One on One"]
+    assert len(hit) == 1 and hit[0]["label"] == "Goal 1:1s" and '"employee_acknowledged": 0' in hit[0]["stats_filter"]
+    assert any(b.get("type") == "shortcut" and b["data"].get("shortcut_name") == "Goal 1:1s" for b in _json.loads(w["content"]))

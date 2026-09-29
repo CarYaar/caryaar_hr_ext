@@ -14,7 +14,7 @@
    "label": "Rating categories"
   }
  ],
- "content": "[{\"id\": \"cyPerfHead1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>WFH and adherence</b></span>\", \"col\": 12}}, {\"id\": \"cyPerfCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH days this month\", \"col\": 4}}, {\"id\": \"cyPerfCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH requests waiting\", \"col\": 4}}, {\"id\": \"cyPerfChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Adherence by department\", \"col\": 12}}, {\"id\": \"cyPerfChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"WFH days by department\", \"col\": 12}}, {\"id\": \"cyPerfChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Rating categories\", \"col\": 12}}]",
+ "content": "[{\"id\": \"cyPerfHead1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>WFH and adherence</b></span>\", \"col\": 12}}, {\"id\": \"cyPerf1on1Head\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Goal 1:1s</b></span>\", \"col\": 12}}, {\"id\": \"cyPerf1on1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Goal 1:1s\", \"col\": 4}}, {\"id\": \"cyPerfCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH days this month\", \"col\": 4}}, {\"id\": \"cyPerfCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH requests waiting\", \"col\": 4}}, {\"id\": \"cyPerfChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Adherence by department\", \"col\": 12}}, {\"id\": \"cyPerfChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"WFH days by department\", \"col\": 12}}, {\"id\": \"cyPerfChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Rating categories\", \"col\": 12}}]",
  "creation": "2026-09-27 00:30:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -26,7 +26,7 @@
  "is_hidden": 0,
  "label": "Performance and Adherence",
  "links": [],
- "modified": "2026-09-27 00:30:00.000000",
+ "modified": "2026-09-30 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Caryaar Hr Ext",
  "name": "Performance and Adherence",
@@ -53,7 +53,19 @@
   }
  ],
  "sequence_id": 8.0,
- "shortcuts": [],
+ "shortcuts": [
+  {
+   "color": "Purple",
+   "doc_view": "List",
+   "label": "Goal 1:1s",
+   "link_to": "Goal One on One",
+   "stats_filter": "{\"employee_acknowledged\": 0}",
+   "type": "DocType",
+   "parent": "Performance and Adherence",
+   "parentfield": "shortcuts",
+   "parenttype": "Workspace"
+  }
+ ],
  "title": "Performance and Adherence",
  "type": "Workspace"
 }
