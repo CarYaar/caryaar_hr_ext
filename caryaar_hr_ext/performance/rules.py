@@ -17,7 +17,16 @@ METRIC_KEYS: dict[str, tuple[str, ...]] = {
                  "status_moves", "notes_written", "bookings_credited",
                  "leads_assigned", "leads_untouched", "followups_overdue",
                  "leads_assigned_new", "bookings_within_7d", "followups_due",
-                 "followups_done_on_time", "leads_statused_48h"),
+                 "followups_done_on_time", "leads_statused_48h",
+                 # role sections (29-Sep-2026): a row carries only its person's group plus the shared ones
+                 "jobs_from_bookings", "jobs_from_bookings_paid",
+                 "campaigns_sent", "campaign_leads_reached", "pr_campaigns_sent", "pr_replies",
+                 "creatives_rendered", "creatives_approved", "leads_meta", "leads_google", "leads_whatsapp", "leads_web",
+                 "jobs_moved", "estimates_created", "partner_changes", "sweep_items_closed",
+                 "partners_created", "partners_verified", "partners_activated", "partner_documents",
+                 "agreements_created", "agreements_approved", "agreements_signed", "partner_checkins_closed",
+                 "payouts_triggered", "payments_collected_offline", "unpaid_cleared",
+                 "plane_items_completed"),
 }
 MAX_ROWS = 2000
 MAX_METRIC = 10_000_000

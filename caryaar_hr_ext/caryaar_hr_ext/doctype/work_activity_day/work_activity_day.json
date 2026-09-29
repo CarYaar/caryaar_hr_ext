@@ -15,7 +15,7 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "creation": "2026-09-26 18:00:00.000000",
- "modified": "2026-09-26 21:00:00.000000",
+ "modified": "2026-09-29 13:00:00.000000",
  "field_order": [
   "employee",
   "employee_name",
@@ -26,6 +26,7 @@
   "section_plane",
   "activity_count",
   "completed_count",
+  "plane_items_completed",
   "section_cy",
   "calls_handled",
   "calls_answered",
@@ -41,7 +42,39 @@
   "bookings_within_7d",
   "followups_due",
   "followups_done_on_time",
-  "leads_statused_48h"
+  "leads_statused_48h",
+  "section_funnel",
+  "jobs_from_bookings",
+  "jobs_from_bookings_paid",
+  "section_marketing",
+  "campaigns_sent",
+  "campaign_leads_reached",
+  "pr_campaigns_sent",
+  "pr_replies",
+  "creatives_rendered",
+  "creatives_approved",
+  "leads_meta",
+  "leads_google",
+  "leads_whatsapp",
+  "leads_web",
+  "section_ops",
+  "jobs_moved",
+  "estimates_created",
+  "partner_changes",
+  "sweep_items_closed",
+  "section_partners",
+  "partners_created",
+  "partners_verified",
+  "partners_activated",
+  "partner_documents",
+  "agreements_created",
+  "agreements_approved",
+  "agreements_signed",
+  "partner_checkins_closed",
+  "section_finance",
+  "payouts_triggered",
+  "payments_collected_offline",
+  "unpaid_cleared"
  ],
  "fields": [
   {
@@ -113,9 +146,17 @@
    "default": "0"
   },
   {
+   "fieldname": "plane_items_completed",
+   "fieldtype": "Int",
+   "label": "Items completed (CY Admin mirror)",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
    "fieldname": "section_cy",
    "fieldtype": "Section Break",
-   "label": "CY Admin"
+   "label": "CY Admin",
+   "depends_on": "eval:doc.calls_handled || doc.calls_answered || doc.talk_seconds || doc.dispositions || doc.status_moves || doc.notes_written || doc.bookings_credited || doc.leads_assigned || doc.leads_untouched || doc.followups_overdue || doc.leads_assigned_new || doc.bookings_within_7d || doc.followups_due || doc.followups_done_on_time || doc.leads_statused_48h || /Operations|Customer/.test(doc.department || '')"
   },
   {
    "fieldname": "calls_handled",
@@ -205,6 +246,225 @@
    "fieldname": "leads_statused_48h",
    "fieldtype": "Int",
    "label": "Leads given a status within 48 h",
+   "default": "0"
+  },
+  {
+   "fieldname": "section_funnel",
+   "fieldtype": "Section Break",
+   "label": "Booking to job",
+   "depends_on": "eval:doc.jobs_from_bookings || doc.jobs_from_bookings_paid || /Operations|Customer/.test(doc.department || '')"
+  },
+  {
+   "fieldname": "jobs_from_bookings",
+   "fieldtype": "Int",
+   "label": "Jobs from my bookings",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "jobs_from_bookings_paid",
+   "fieldtype": "Int",
+   "label": "Jobs from my bookings, paid",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "section_marketing",
+   "fieldtype": "Section Break",
+   "label": "Marketing (read by the week)",
+   "depends_on": "eval:doc.campaigns_sent || doc.campaign_leads_reached || doc.pr_campaigns_sent || doc.pr_replies || doc.creatives_rendered || doc.creatives_approved || doc.leads_meta || doc.leads_google || doc.leads_whatsapp || doc.leads_web || /Marketing/.test(doc.department || '')"
+  },
+  {
+   "fieldname": "campaigns_sent",
+   "fieldtype": "Int",
+   "label": "Campaigns sent",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "campaign_leads_reached",
+   "fieldtype": "Int",
+   "label": "Leads reached by campaigns",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "pr_campaigns_sent",
+   "fieldtype": "Int",
+   "label": "PR campaigns sent",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "pr_replies",
+   "fieldtype": "Int",
+   "label": "PR replies",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "creatives_rendered",
+   "fieldtype": "Int",
+   "label": "Creatives rendered",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "creatives_approved",
+   "fieldtype": "Int",
+   "label": "Creatives approved",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_meta",
+   "fieldtype": "Int",
+   "label": "New leads from Meta (team)",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_google",
+   "fieldtype": "Int",
+   "label": "New leads from Google (team)",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_whatsapp",
+   "fieldtype": "Int",
+   "label": "New leads from WhatsApp (team)",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "leads_web",
+   "fieldtype": "Int",
+   "label": "New leads from the web (team)",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "section_ops",
+   "fieldtype": "Section Break",
+   "label": "Operations",
+   "depends_on": "eval:doc.jobs_moved || doc.estimates_created || doc.partner_changes || doc.sweep_items_closed || /Operations/.test(doc.department || '')"
+  },
+  {
+   "fieldname": "jobs_moved",
+   "fieldtype": "Int",
+   "label": "Job status moves",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "estimates_created",
+   "fieldtype": "Int",
+   "label": "Estimates created",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "partner_changes",
+   "fieldtype": "Int",
+   "label": "Service Partner changes",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "sweep_items_closed",
+   "fieldtype": "Int",
+   "label": "Sweep items closed",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "section_partners",
+   "fieldtype": "Section Break",
+   "label": "Service Partners",
+   "depends_on": "eval:doc.partners_created || doc.partners_verified || doc.partners_activated || doc.partner_documents || doc.agreements_created || doc.agreements_approved || doc.agreements_signed || doc.partner_checkins_closed || /Workshop Relations|Partnerships/.test(doc.department || '')"
+  },
+  {
+   "fieldname": "partners_created",
+   "fieldtype": "Int",
+   "label": "Service Partners created",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "partners_verified",
+   "fieldtype": "Int",
+   "label": "Service Partners verified",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "partners_activated",
+   "fieldtype": "Int",
+   "label": "Service Partners activated",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "partner_documents",
+   "fieldtype": "Int",
+   "label": "Documents uploaded or verified",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "agreements_created",
+   "fieldtype": "Int",
+   "label": "Agreements created",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "agreements_approved",
+   "fieldtype": "Int",
+   "label": "Agreements approved",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "agreements_signed",
+   "fieldtype": "Int",
+   "label": "Agreements signed",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "partner_checkins_closed",
+   "fieldtype": "Int",
+   "label": "Check-ins closed",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "section_finance",
+   "fieldtype": "Section Break",
+   "label": "Finance",
+   "depends_on": "eval:doc.payouts_triggered || doc.payments_collected_offline || doc.unpaid_cleared || /Finance/.test(doc.department || '')"
+  },
+  {
+   "fieldname": "payouts_triggered",
+   "fieldtype": "Int",
+   "label": "Payouts triggered by hand",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "payments_collected_offline",
+   "fieldtype": "Int",
+   "label": "Offline payments recorded",
+   "read_only": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "unpaid_cleared",
+   "fieldtype": "Int",
+   "label": "Ready-unpaid items closed",
+   "read_only": 1,
    "default": "0"
   }
  ],

@@ -31,6 +31,14 @@ def test_unknown_source_rejected(source):
         r.validate_activity_payload(source, "2026-10-01T10:00:00+05:30", [_row()], covers_from="2026-10-01")
 
 
+def test_role_metric_keys_are_accepted():
+    # Every role's CY Admin metrics travel on the same payload as the contact-centre ones.
+    b = r.validate_activity_payload("CY Admin", "2026-10-02T00:15:00+05:30",
+                                    [_row(jobs_from_bookings=2, campaigns_sent=1, plane_items_completed=3)],
+                                    covers_from="2026-10-01")
+    assert b.rows[0].metrics == {"jobs_from_bookings": 2, "campaigns_sent": 1, "plane_items_completed": 3}
+
+
 def test_metric_not_allowed_for_source_rejected():
     with pytest.raises(ValueError, match="calls_handled"):
         r.validate_activity_payload("Plane", "2026-10-01T10:00:00+05:30", [_row(calls_handled=1)], covers_from="2026-10-01")

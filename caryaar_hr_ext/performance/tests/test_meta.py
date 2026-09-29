@@ -24,6 +24,46 @@ def test_work_activity_day_has_every_metric_as_int():
     assert set(d["field_order"]) == set(f)
 
 
+ROLE_FIELDS = {
+    "section_funnel": ("jobs_from_bookings", "jobs_from_bookings_paid"),
+    "section_marketing": ("campaigns_sent", "campaign_leads_reached", "pr_campaigns_sent", "pr_replies",
+                          "creatives_rendered", "creatives_approved",
+                          "leads_meta", "leads_google", "leads_whatsapp", "leads_web"),
+    "section_ops": ("jobs_moved", "estimates_created", "partner_changes", "sweep_items_closed"),
+    "section_partners": ("partners_created", "partners_verified", "partners_activated", "partner_documents",
+                         "agreements_created", "agreements_approved", "agreements_signed",
+                         "partner_checkins_closed"),
+    "section_finance": ("payouts_triggered", "payments_collected_offline", "unpaid_cleared"),
+    "section_plane": ("plane_items_completed",),
+}
+
+
+def _section_of(d, fieldname):
+    f = _fields(d)
+    section = None
+    for name in d["field_order"]:
+        if f[name]["fieldtype"] == "Section Break":
+            section = name
+        if name == fieldname:
+            return section
+    raise AssertionError(f"{fieldname} not in field_order")
+
+
+def test_every_cy_admin_metric_is_a_field_on_the_doctype():
+    d = _load("work_activity_day")
+    f = _fields(d)
+    for section, names in ROLE_FIELDS.items():
+        assert f[section]["fieldtype"] == "Section Break", section
+        for key in names:
+            assert f[key]["fieldtype"] == "Int" and f[key].get("read_only") == 1, key
+            assert key in rules.METRIC_KEYS["CY Admin"], key
+            assert _section_of(d, key) == section, key
+    # a section a person is not measured on stays hidden: every role section has a depends_on
+    for section in ROLE_FIELDS:
+        if section != "section_plane":
+            assert f[section].get("depends_on", "").startswith("eval:"), section
+
+
 def test_every_new_doctype_is_in_our_module_and_readable_by_hr():
     for name in ("work_activity_day", "work_adherence_day", "plane_module_progress", "performance_sync_settings"):
         d = _load(name)
