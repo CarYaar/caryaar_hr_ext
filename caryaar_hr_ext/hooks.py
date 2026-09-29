@@ -19,6 +19,7 @@ app_license = "MIT"
 # gets it into the PWA — that's done by the HTML rewrite below.
 app_include_js = [
     "/assets/caryaar_hr_ext/js/hrms_handbook_tile.js",
+    "/assets/caryaar_hr_ext/js/handbook_launcher.js",   # the floating Handbook button on every desk page
 ]
 
 # ─── HRMS HTML rewrite ────────────────────────────────────────────────────

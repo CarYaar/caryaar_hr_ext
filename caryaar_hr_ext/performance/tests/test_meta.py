@@ -237,8 +237,21 @@ def test_desktop_icon_opens_the_sidebar_inside_frappe_hr_for_hr_only():
 
 def test_app_level_desk_folders_hold_only_json():
     # Frappe imports every file in these folders, so a stray file breaks migrate.
-    for folder in ("workspace_sidebar", "desktop_icon"):
-        assert [p.name for p in (APP / folder).iterdir()] == [WS_FILE], folder
+    assert [p.name for p in (APP / "workspace_sidebar").iterdir()] == [WS_FILE]
+    assert sorted(p.name for p in (APP / "desktop_icon").iterdir()) == ["employee_handbook.json", WS_FILE]
+
+
+def test_handbook_is_one_click_away_in_the_desk():
+    """Founder 29-Sep-2026 22:55: a handbook app on the home screen and a floating launcher anywhere
+    in the ERP. The desk icon links out to /handbook for every employee; the launcher script is included
+    on every desk page."""
+    icon = json.loads((APP / "desktop_icon" / "employee_handbook.json").read_text())
+    assert (icon["doctype"], icon["link_type"], icon["link"], icon["standard"], icon["app"]) == ("Desktop Icon", "External", "/handbook", 1, "caryaar_hr_ext")
+    assert {r["role"] for r in icon["roles"]} >= {"Employee", "HR Manager"}
+    hooks = (APP / "hooks.py").read_text()
+    assert "/assets/caryaar_hr_ext/js/handbook_launcher.js" in hooks.split("app_include_js = [", 1)[1].split("]", 1)[0]
+    js = (APP / "public" / "js" / "handbook_launcher.js").read_text()
+    assert 'href = "/handbook"' in js and 'indexOf("/handbook") === 0' in js
 
 
 def test_setup_inserts_only_what_is_missing():
