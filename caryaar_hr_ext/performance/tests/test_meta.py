@@ -432,3 +432,21 @@ def test_department_activity_charts_and_month_cards_are_wired_end_to_end():
     blocks = json.loads(ws["content"])
     assert set(custom) <= {b["data"]["chart_name"] for b in blocks if b["type"] == "chart"}
     assert set(month) <= {b["data"]["number_card_name"] for b in blocks if b["type"] == "number_card"}
+
+
+def test_activity_board_page_is_wired_for_hr_with_one_filter_bar():
+    """The board is a desk Page (one period filter feeds tiles, charts and table), listed in the sidebar,
+    served by one whitelisted method that is closed to everyone but HR."""
+    page_dir = APP / "caryaar_hr_ext" / "page" / "activity_board"
+    page = json.loads((page_dir / "activity_board.json").read_text())
+    assert (page["doctype"], page["name"], page["page_name"], page["standard"], page["module"]) == ("Page", "activity-board", "activity-board", "Yes", "Caryaar Hr Ext")
+    assert {r["role"] for r in page["roles"]} == HR_ONLY
+    js = (page_dir / "activity_board.js").read_text()
+    assert 'frappe.pages["activity-board"].on_page_load' in js and "caryaar_hr_ext.performance.api.activity_board" in js
+    for fieldname in ("period", "from_date", "to_date", "department", "group_by"):
+        assert f'fieldname: "{fieldname}"' in js, fieldname
+    sb = json.loads((APP / "workspace_sidebar" / WS_FILE).read_text())
+    assert ("Page", "activity-board") in {(i.get("link_type"), i.get("link_to")) for i in sb["items"]}
+    src = (APP / "performance" / "api.py").read_text()
+    body = src.split("def activity_board(", 1)[1].split("\ndef ", 1)[0]
+    assert "@frappe.whitelist()" in src.split("def activity_board(", 1)[0][-200:] and 'frappe.only_for(("HR Manager", "System Manager"))' in body

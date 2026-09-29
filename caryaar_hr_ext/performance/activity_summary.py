@@ -3,7 +3,8 @@ date range, both sources side by side, columns nobody used hidden, a total row a
 and the grouping live in activity_groups, shared with the dashboard charts."""
 from __future__ import annotations
 
-from caryaar_hr_ext.performance.activity_groups import GROUPS, LABELS, TEAM_KEYS, group_sums  # noqa: F401  (LABELS re-exported)
+from caryaar_hr_ext.performance.activity_groups import (BOARD_CARDS, DEPARTMENT_METRICS, GROUPS, LABELS, PLANE_KEYS,  # noqa: F401
+                                                        TEAM_KEYS, department_chart, department_key, group_sums)
 
 SNAPSHOT_KEYS: frozenset[str] = frozenset({"leads_assigned", "leads_untouched", "followups_overdue"})   # end-of-day states, never summed
 
@@ -37,3 +38,17 @@ def summarize(rows: list[dict], keys: tuple[str, ...], by: str = "person") -> tu
                 {"fieldname": "plane_items", "label": LABELS["completed_count"], "fieldtype": "Int", "width": 130}]
     columns += [{"fieldname": k, "label": LABELS.get(k, k), "fieldtype": "Int", "width": 130} for k in used]
     return columns, data
+
+
+def board(rows: list[dict], keys: tuple[str, ...], by: str = "department", department: str | None = None) -> dict:
+    """The Activity board: one period's rows become the six tiles, one chart per department present (in
+    the rules' order, or just the department asked for) and the grouped table."""
+    total = group_sums(rows, "all", tuple(k for _l, k in BOARD_CARDS if k not in PLANE_KEYS)).get("Total") or {}
+    cards = [{"label": label, "value": int(total.get(key, 0) or 0)} for label, key in BOARD_CARDS]
+    known = list(DEPARTMENT_METRICS)
+    present = sorted({r.get("department") or "" for r in rows},
+                     key=lambda d: (known.index(department_key(d)) if department_key(d) in known else len(known), d))
+    charts = [{"department": d, **department_chart(d, [r for r in rows if (r.get("department") or "") == d])}
+              for d in ([department] if department else present)] if rows else []
+    columns, data = summarize(rows, keys, by)
+    return {"cards": cards, "charts": charts, "columns": columns, "rows": data}

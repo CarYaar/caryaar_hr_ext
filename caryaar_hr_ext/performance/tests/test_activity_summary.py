@@ -79,3 +79,22 @@ def test_person_rows_still_carry_the_department_and_the_total_dedupes_team_count
     columns, data = a.summarize(DAY_ROWS, ("leads_meta", "campaigns_sent", "calls_handled"))
     assert [c["fieldname"] for c in columns][:2] == ["employee_name", "department"]
     assert {d["employee_name"]: d["leads_meta"] for d in data} == {"Janhavi": 0, "Kaushik": 10, "Priya": 6, "Total": 10}
+
+
+def test_board_returns_cards_department_charts_in_rule_order_and_the_grouped_table():
+    """Founder 29-Sep-2026 17:12: 'can we have a date filter on the dashboard'. One period feeds the tiles,
+    the department charts and the table; a department filter keeps one chart."""
+    rows = DAY_ROWS + [{"employee": "E4", "employee_name": "Shiwans", "department": "Technology - CAPL", "role": "Programmer",
+                        "source": "Plane", "activity_date": "2026-09-02", "activity_count": 9, "completed_count": 4}]
+    keys = ("leads_meta", "campaigns_sent", "calls_handled", "campaign_leads_reached", "jobs_moved", "followups_done_on_time", "partners_activated")
+    b = a.board(rows, keys, by="department")
+    assert [c["label"] for c in b["cards"]] == ["Calls handled", "Follow-ups done on the day", "Job status moves", "Plane items completed",
+                                                "Leads reached by campaigns", "Service Partners activated"]
+    assert {c["label"]: c["value"] for c in b["cards"]}["Calls handled"] == 51 and {c["label"]: c["value"] for c in b["cards"]}["Plane items completed"] == 4
+    assert [c["department"] for c in b["charts"]] == ["Operations - CAPL", "Marketing - CAPL", "Technology - CAPL"]   # the rules' order, not alphabetical
+    marketing = b["charts"][1]
+    assert marketing["labels"][0] == "Leads reached by campaigns" and dict(zip(marketing["labels"], marketing["datasets"][0]["values"]))["New leads: Meta (team)"] == 10
+    assert b["columns"][0]["label"] == "Department" and [r["label"] for r in b["rows"]][-1] == "Total"
+    one = a.board(rows, keys, by="role", department="Technology - CAPL")
+    assert [c["department"] for c in one["charts"]] == ["Technology - CAPL"] and one["columns"][0]["label"] == "Role"
+    assert a.board([], keys) == {"cards": [{"label": l, "value": 0} for l, _k in a.BOARD_CARDS], "charts": [], "columns": [], "rows": []}

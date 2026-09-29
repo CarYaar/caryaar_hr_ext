@@ -49,6 +49,10 @@ DEPARTMENT_METRICS: dict[str, tuple[str, ...]] = {
 }
 DEFAULT_METRICS: tuple[str, ...] = ("plane_items", "plane_actions")
 PERIODS: tuple[str, ...] = ("This month", "Last month", "Last 7 days", "Last 30 days", "Custom")
+# the six tiles at the top of the Activity board and the dashboard, in order
+BOARD_CARDS: tuple[tuple[str, str], ...] = (("Calls handled", "calls_handled"), ("Follow-ups done on the day", "followups_done_on_time"),
+                                            ("Job status moves", "jobs_moved"), ("Plane items completed", "plane_items"),
+                                            ("Leads reached by campaigns", "campaign_leads_reached"), ("Service Partners activated", "partners_activated"))
 GROUPS: dict[str, str] = {"person": "Person", "department": "Department", "role": "Role"}
 
 

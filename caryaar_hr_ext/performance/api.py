@@ -211,3 +211,20 @@ def acknowledge_goals(name: str = "") -> dict:
     doc.db_set({"employee_acknowledged": 1, "acknowledged_on": stamp, "acknowledged_by": frappe.session.user}, notify=True)
     doc.add_comment("Info", f"Goals acknowledged by {employee_name or doc.employee}")
     return {"ok": True, "acknowledged_on": str(stamp)}
+
+
+@frappe.whitelist()
+def activity_board(period=None, from_date=None, to_date=None, department=None, group_by="Department"):
+    """The Activity board page: one period feeds the six tiles, the department charts and the grouped table."""
+    frappe.only_for(("HR Manager", "System Manager"))
+    from frappe.utils import formatdate, getdate, nowdate
+
+    from caryaar_hr_ext.performance import activity_groups, activity_rows, activity_summary
+
+    start, end = activity_groups.period_bounds(period, getdate(nowdate()), getdate(from_date) if from_date else None,
+                                               getdate(to_date) if to_date else None)
+    rows = activity_rows.day_rows(start, end, department or None)
+    by = {"Department": "department", "Role": "role", "Person": "person"}.get(group_by, "department")
+    out = activity_summary.board(rows, rules.METRIC_KEYS["CY Admin"], by=by, department=department or None)
+    out.update({"from_date": formatdate(start, "dd-MMM-yyyy"), "to_date": formatdate(end, "dd-MMM-yyyy")})
+    return out
