@@ -1,0 +1,26 @@
+{
+ "employee": "HR-EMP-00012",
+ "employee_name": "Anagha Khedekar",
+ "designation": "Executive - Customer Experience",
+ "department": "Operations - CAPL",
+ "manager_name": "Joel Daniel D'Souza",
+ "cycle": {"name": "Oct 2026 - Mar 2027", "start": "2026-10-01", "end": "2027-03-31", "mid_review": "2027-01-15",
+           "final_review": "2027-03-15", "learning_month": true, "next_review_on": "2027-01-15"},
+ "kras": [{"kra": "Lead to booking conversion", "weight": 30}, {"kra": "Customer follow-ups on time", "weight": 25},
+          {"kra": "CRM data completeness", "weight": 20}, {"kra": "Customer satisfaction", "weight": 25}],
+ "goals": [
+  {"goal": "HR-GOAL-2026-0350", "goal_name": "Lead to booking conversion", "kra": "Lead to booking conversion", "weight": 30,
+   "method": "Ratio to target", "target": "5%", "baseline": "1.7% of assigned leads booked within 7 days in Aug-2026",
+   "source": "CY Admin", "how": "Measured from CY Admin (conversion_pct) against a target of 5%.", "value": 2.0,
+   "progress": 40.0, "reading_date": "2026-10-01"},
+  {"goal": "HR-GOAL-2026-0351", "goal_name": "Customer follow-ups on time", "kra": "Customer follow-ups on time", "weight": 25,
+   "method": "Months meeting standard", "target": "90% or better each month", "baseline": "60 of 82 follow-ups overdue on 27-Sep-2026",
+   "source": "CY Admin", "how": "Months where followups_on_time_pct (CY Admin) was 90% or better.", "value": null,
+   "progress": null, "reading_date": null},
+  {"goal": "HR-GOAL-2026-0352", "goal_name": "Move every lead touch into Plane and the CRM", "kra": "CRM data completeness", "weight": 20,
+   "method": "Plane module", "target": "every item in the module done", "baseline": "",
+   "source": "Plane", "how": "Share of the items in your Plane module that are done.", "value": null, "progress": 25.0, "reading_date": "2026-10-01"}
+ ],
+ "one_on_one": {"name": "1ON1-HR-EMP-00012-2026-10-02", "meeting_date": "2026-10-02", "employee_acknowledged": 0, "acknowledged_on": null},
+ "score": [["Goals", 50], ["Competencies", 20], ["Behaviour and culture", 12.5], ["Process adherence", 7.5], ["Initiative and innovation", 10]]
+}

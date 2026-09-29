@@ -1,0 +1,154 @@
+<title>{{ p.employee_name }} goals</title>
+<meta name="description" content="Goals for the {{ cycle.name }} cycle, how each is measured, and where to acknowledge them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+<style>
+  :root {
+    --paper: #F5F3F0; --ink: #17131F; --purple: #6B2FA0; --tint: #E8D5F5; --cool: #8E86AA; --deep: #2B2440;
+    --card: #FFFFFF; --line: #DDD6E6; --road: #2B2440; --dash: #F5F3F0; --ok: #2E7D4F;
+    --serif: "Newsreader", Georgia, "Times New Roman", serif; --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
+      --card: #211B2E; --line: #3A3150; --road: #E8D5F5; --dash: #17131F; --ok: #7CCB9B; color-scheme: dark; }
+  }
+  :root[data-theme="dark"] { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
+    --card: #211B2E; --line: #3A3150; --road: #E8D5F5; --dash: #17131F; --ok: #7CCB9B; color-scheme: dark; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5; }
+  .wrap { max-width: 880px; margin: 0 auto; padding-block: 28px 56px; padding-inline: 16px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 24px; }
+  .mark { font-family: var(--serif); font-size: 28px; font-weight: 500; letter-spacing: -0.01em; color: var(--purple); }
+  .cycle { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cool); }
+  .road { position: relative; height: 96px; margin: 18px 0 8px; overflow: hidden; }
+  .road svg { width: 100%; height: 100%; display: block; }
+  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 8px 0 4px; text-wrap: balance; }
+  .who { color: var(--cool); margin: 0 0 24px; }
+  .who b { color: var(--ink); font-weight: 500; }
+  h2 { font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 36px 0 12px; }
+  .kras { display: grid; gap: 10px; }
+  .kra { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: baseline; }
+  .kra .bar { grid-column: 1 / -1; height: 6px; background: var(--tint); border-radius: 3px; overflow: hidden; }
+  .kra .bar i { display: block; height: 100%; width: var(--w); background: var(--purple); border-radius: 3px; transform-origin: left; }
+  .kra .w { font-variant-numeric: tabular-nums; color: var(--cool); }
+  .goals { display: grid; gap: 14px; }
+  .goal { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
+  .goal h3 { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 4px; }
+  .goal .kra-tag { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--purple); }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 20px; margin-top: 12px; }
+  .fact small { display: block; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cool); margin-bottom: 2px; }
+  .fact { font-size: 15px; }
+  .reading { margin-top: 12px; display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
+  .reading .track { flex: 1; height: 8px; background: var(--tint); border-radius: 4px; overflow: hidden; }
+  .reading .track i { display: block; height: 100%; width: var(--w); background: var(--purple); border-radius: 4px; }
+  .reading .none { color: var(--cool); font-size: 14px; }
+  .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .score div { background: var(--tint); border-radius: 10px; padding: 12px 14px; }
+  .score b { display: block; font-family: var(--serif); font-size: 26px; font-weight: 500; line-height: 1; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
+  .score span { font-size: 13px; color: var(--deep); }
+  .ack { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--purple); border-radius: 12px; padding: 18px 20px; }
+  .ack .state { font-family: var(--serif); font-size: 22px; margin: 0 0 6px; }
+  .ack .state.ok { color: var(--ok); }
+  .ack a { display: inline-block; margin-top: 10px; padding: 10px 16px; border-radius: 8px; background: var(--purple); color: var(--paper); text-decoration: none; font-weight: 500; }
+  :root[data-theme="dark"] .ack a, :root:not([data-theme="light"]) .ack a { color: var(--paper); }
+  .ack p { margin: 6px 0 0; color: var(--cool); font-size: 14px; }
+  .empty { background: var(--tint); border-radius: 12px; padding: 20px; }
+  footer { margin-top: 40px; color: var(--cool); font-size: 13px; }
+  @media (prefers-reduced-motion: reduce) { .road svg #car { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="mark">CarYaar</div>
+    <div class="cycle">Goals for {{ cycle.name }} · {{ cycle.start|day }} to {{ cycle.end|day }}</div>
+  </header>
+
+  <div class="road" aria-hidden="true">
+    <svg viewBox="0 0 880 96" preserveAspectRatio="none">
+      <path id="lane" d="M-40,64 C120,40 220,88 380,60 S640,36 920,62" fill="none" stroke="var(--road)" stroke-width="2" stroke-dasharray="14 10" opacity="0.45"/>
+      <g id="car">
+        <path d="M-26,-6 L-18,-18 L14,-18 L26,-6 L30,-6 L30,4 L-30,4 L-30,-6 Z" fill="var(--purple)"/>
+        <rect x="-16" y="-15" width="12" height="8" rx="1.5" fill="var(--paper)" opacity="0.9"/>
+        <rect x="0" y="-15" width="12" height="8" rx="1.5" fill="var(--paper)" opacity="0.9"/>
+        <circle cx="-16" cy="6" r="5" fill="var(--deep)"/><circle cx="16" cy="6" r="5" fill="var(--deep)"/>
+        <circle cx="-16" cy="6" r="2" fill="var(--paper)"/><circle cx="16" cy="6" r="2" fill="var(--paper)"/>
+      </g>
+    </svg>
+  </div>
+
+  <h1>{{ p.employee_name }}</h1>
+  <p class="who"><b>{{ p.designation }}</b> · {{ p.department }} · reports to <b>{{ p.manager_name }}</b></p>
+
+  {% if goals %}
+  <h2>What you are measured on</h2>
+  <div class="kras">
+    {% for k in kras %}
+    <div class="kra">
+      <span>{{ k.kra }}</span><span class="w">{{ k.weight|num }}%</span>
+      <span class="bar"><i style="--w: {{ k.weight|num }}%"></i></span>
+    </div>
+    {% endfor %}
+  </div>
+
+  <h2>Your goals</h2>
+  <div class="goals">
+    {% for g in goals %}
+    <article class="goal">
+      <div class="kra-tag">{{ g.kra }}{% if g.weight %} · {{ g.weight|num }}% of your goals{% endif %}</div>
+      <h3>{{ g.goal_name }}</h3>
+      <div class="facts">
+        <div class="fact"><small>Target</small>{{ g.target or "set with your manager" }}</div>
+        {% if g.baseline %}<div class="fact"><small>Where you start</small>{{ g.baseline }}</div>{% endif %}
+        <div class="fact"><small>Measured from</small>{{ g.source }}</div>
+        <div class="fact"><small>How</small>{{ g.how }}</div>
+      </div>
+      <div class="reading">
+        {% if g.progress is not none %}
+        <span class="track"><i style="--w: {{ g.progress|num }}%"></i></span>
+        <span>{{ g.progress|num }}% on {{ g.reading_date|day }}</span>
+        {% else %}
+        <span class="none">No reading yet. The first readings land on 01-Oct-2026; October is a learning month.</span>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+
+  <h2>How the score is built</h2>
+  <div class="score">
+    {% for label, weight in score %}<div><b>{{ weight|num }}%</b><span>{{ label }}</span></div>{% endfor %}
+  </div>
+  <p class="who">Goals are measured by the goal meter from the systems of record. The feedback half comes from your manager at the reviews: mid-cycle on {{ cycle.mid_review|day }}, final on {{ cycle.final_review|day }}. Progress is written into the appraisal from 01-Nov-2026.</p>
+  {% else %}
+  <div class="empty">There are no goals in the ERP for you in this cycle yet. Your manager sets them with you at the goal setting 1:1; this page is regenerated when they exist.</div>
+  {% endif %}
+
+  <h2>Your 1:1 and acknowledgement</h2>
+  <div class="ack">
+    {% if one_on_one %}
+    <p class="state {% if one_on_one.employee_acknowledged %}ok{% endif %}">Status: {{ ack_state }}</p>
+    <p>Goal setting 1:1 with {{ p.manager_name }} on {{ one_on_one.meeting_date|day }}. The acknowledgement is recorded in the ERP, on your own record, with your own login.</p>
+    {% if not one_on_one.employee_acknowledged %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record in the ERP and press Acknowledge</a>{% else %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record</a>{% endif %}
+    {% else %}
+    <p class="state">1:1 not scheduled yet</p>
+    <p>Your manager creates the goal setting 1:1 in the ERP; you acknowledge the goals there afterwards.</p>
+    {% endif %}
+  </div>
+
+  <footer>Generated from the ERP on {{ generated_on|day }}. Questions go to your manager or to humanresource@caryaar.com.</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/MotionPathPlugin.min.js"></script>
+<script>
+  (function () {
+    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!window.gsap || reduce) return;
+    gsap.registerPlugin(MotionPathPlugin);
+    gsap.set("#car", { transformOrigin: "50% 50%" });
+    gsap.to("#car", { duration: 42, repeat: -1, ease: "none",
+      motionPath: { path: "#lane", align: "#lane", alignOrigin: [0.5, 0.75], autoRotate: true } });
+    gsap.to("#car", { y: "-=1.5", duration: 0.9, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    gsap.from(".goal", { y: 16, duration: 0.9, stagger: 0.12, ease: "power2.out", clearProps: "transform" });
+    gsap.from(".kra .bar i, .reading .track i", { scaleX: 0, duration: 1.4, ease: "power3.out", stagger: 0.08, clearProps: "transform" });
+  })();
+</script>
