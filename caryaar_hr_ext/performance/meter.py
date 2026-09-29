@@ -124,11 +124,69 @@ def m_wiki_pages(ctx):
     return len(pages)
 
 
+# ─── role metrics (29-Sep-2026): every role measured on its own CY Admin work ─────
+
+def m_jobs_from_bookings(ctx):
+    """An agent's achievement is the job created from her booking (founder, 29-Sep-2026)."""
+    return _sum_metric(ctx, "jobs_from_bookings")
+
+
+def m_bookings_to_jobs_pct(ctx):
+    return mr.pct(_sum_metric(ctx, "jobs_from_bookings"), _sum_metric(ctx, "bookings_credited"))
+
+
+def m_calls_to_bookings_pct(ctx):
+    return mr.pct(_sum_metric(ctx, "bookings_credited"), _sum_metric(ctx, "calls_answered"))
+
+
+def m_campaigns_sent(ctx):
+    return _sum_metric(ctx, "campaigns_sent")
+
+
+def m_campaign_leads_reached(ctx):
+    return _sum_metric(ctx, "campaign_leads_reached")
+
+
+def m_creatives_approved(ctx):
+    return _sum_metric(ctx, "creatives_approved")
+
+
+def m_leads_from_channels(ctx):
+    """The team's new leads by channel; a goal on it belongs to the marketing lead."""
+    return sum(_sum_metric(ctx, k) for k in ("leads_meta", "leads_google", "leads_whatsapp", "leads_web"))
+
+
+def m_jobs_moved(ctx):
+    return _sum_metric(ctx, "jobs_moved")
+
+
+def m_partners_activated(ctx):
+    return _sum_metric(ctx, "partners_activated")
+
+
+def m_agreements_signed(ctx):
+    return _sum_metric(ctx, "agreements_signed")
+
+
+def m_payouts_triggered(ctx):
+    return _sum_metric(ctx, "payouts_triggered")
+
+
+def m_unpaid_cleared(ctx):
+    return _sum_metric(ctx, "unpaid_cleared")
+
+
 METRICS: dict[str, Callable[[MeterContext], float | None]] = {
     "conversion_pct": m_conversion_pct, "followups_on_time_pct": m_followups_on_time_pct,
     "leads_statused_48h_pct": m_leads_statused_48h_pct, "module_completion": m_module_completion,
     "incidents_fixed_24h_pct": m_incidents_fixed_24h_pct, "support_on_time_pct": m_support_on_time_pct,
     "release_bugs_14d": m_release_bugs_14d, "wiki_pages": m_wiki_pages,
+    "jobs_from_bookings": m_jobs_from_bookings, "bookings_to_jobs_pct": m_bookings_to_jobs_pct,
+    "calls_to_bookings_pct": m_calls_to_bookings_pct, "campaigns_sent": m_campaigns_sent,
+    "campaign_leads_reached": m_campaign_leads_reached, "creatives_approved": m_creatives_approved,
+    "leads_from_channels": m_leads_from_channels, "jobs_moved": m_jobs_moved,
+    "partners_activated": m_partners_activated, "agreements_signed": m_agreements_signed,
+    "payouts_triggered": m_payouts_triggered, "unpaid_cleared": m_unpaid_cleared,
 }
 _SOURCE_OF = mr.SOURCE_OF
 _STAMP_FIELD = {"CY Admin": "cy_admin_synced_through", "Plane items": "plane_items_synced_through"}

@@ -8,7 +8,7 @@ from typing import Sequence
 
 PROGRESS_GATE = date(2026, 11, 1)   # G8: readings from 01-Oct, Goal.progress written from 01-Nov
 METHODS = ("Ratio to target", "Months meeting standard", "Plane module", "Manual")
-WINDOWS = ("Cycle to date", "Latest full month")
+WINDOWS = ("Cycle to date", "Latest full month", "Latest full week")
 HIGHER, LOWER = "Higher is better", "Lower is better"
 
 
@@ -64,11 +64,26 @@ def month_windows(cycle_start: date, as_of: date) -> list[tuple[date, date]]:
     return out
 
 
+def week_windows(cycle_start: date, as_of: date) -> list[tuple[date, date]]:
+    """Every Monday-to-Sunday week that starts on or after cycle_start and whose Sunday has
+    passed before as_of (marketing goals read the week, never the day)."""
+    out, monday = [], cycle_start + timedelta(days=(7 - cycle_start.weekday()) % 7)
+    while monday + timedelta(days=6) < as_of:
+        out.append((monday, monday + timedelta(days=6)))
+        monday += timedelta(days=7)
+    return out
+
+
 def window_bounds(window: str, as_of: date, cycle_start: date) -> tuple[date, date]:
+    """The dates a reading sums over; a window with no full period yet reads cycle to date."""
     if window == "Latest full month":
         months = month_windows(cycle_start, as_of)
         if months:
             return months[-1]
+    elif window == "Latest full week":
+        weeks = week_windows(cycle_start, as_of)
+        if weeks:
+            return weeks[-1]
     return cycle_start, as_of
 
 
@@ -101,9 +116,15 @@ def recipients(always_raw: str | None, manager_user: str | None) -> list[str]:
 
 # ─── what the pack and the person read ───────────────────────────────────────
 
+ROLE_METRICS = ("jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct",          # agents
+                "campaigns_sent", "campaign_leads_reached", "creatives_approved", "leads_from_channels",  # marketing
+                "jobs_moved",                                                                      # ops
+                "partners_activated", "agreements_signed",                                         # Service Partners
+                "payouts_triggered", "unpaid_cleared")                                             # finance
 SOURCE_OF = {"conversion_pct": "CY Admin", "followups_on_time_pct": "CY Admin", "leads_statused_48h_pct": "CY Admin",
              "module_completion": "Plane items", "incidents_fixed_24h_pct": "Plane items",
-             "support_on_time_pct": "Plane items", "release_bugs_14d": "Plane items", "wiki_pages": "ERP"}
+             "support_on_time_pct": "Plane items", "release_bugs_14d": "Plane items", "wiki_pages": "ERP",
+             **{k: "CY Admin" for k in ROLE_METRICS}}
 
 
 def fmt_day(value) -> str:

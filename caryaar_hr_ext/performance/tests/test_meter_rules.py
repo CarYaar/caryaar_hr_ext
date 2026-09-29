@@ -41,6 +41,21 @@ def test_windows_in_cycle():
                                                                      (date(2026, 11, 1), date(2026, 11, 30))]
 
 
+def test_week_windows_are_monday_to_sunday_inside_the_cycle():
+    # the cycle starts Thu 01-Oct-2026: the first week is Mon 05-Oct; a week counts once its Sunday has passed
+    assert mr.week_windows(date(2026, 10, 1), date(2026, 10, 20)) == [(date(2026, 10, 5), date(2026, 10, 11)),
+                                                                     (date(2026, 10, 12), date(2026, 10, 18))]
+    assert mr.week_windows(date(2026, 10, 1), date(2026, 10, 18)) == [(date(2026, 10, 5), date(2026, 10, 11))]
+    assert mr.week_windows(date(2026, 10, 5), date(2026, 10, 12)) == [(date(2026, 10, 5), date(2026, 10, 11))]
+    assert mr.week_windows(date(2026, 10, 1), date(2026, 10, 11)) == []
+
+
+def test_latest_full_week_falls_back_to_cycle_to_date():
+    assert "Latest full week" in mr.WINDOWS
+    assert mr.window_bounds("Latest full week", date(2026, 10, 20), date(2026, 10, 1)) == (date(2026, 10, 12), date(2026, 10, 18))
+    assert mr.window_bounds("Latest full week", date(2026, 10, 4), date(2026, 10, 1)) == (date(2026, 10, 1), date(2026, 10, 4))
+
+
 def test_progress_gate_is_first_november():
     assert mr.writes_progress(date(2026, 10, 31)) is False and mr.writes_progress(date(2026, 11, 1)) is True
 

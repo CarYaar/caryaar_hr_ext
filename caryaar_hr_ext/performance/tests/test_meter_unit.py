@@ -88,6 +88,76 @@ def test_documentation_counts_pages_the_person_created_or_edited(monkeypatch):
 
 # ─── manual meters: the reading is the input, the gate still applies ──────────
 
+def _activity_sql(fake):
+    """Stand-in for the meter's one raw query: the sum of a Work Activity Day column over a window."""
+    import re
+
+    def handler(query, values):
+        col = re.search(r"sum\(`(\w+)`\)", query).group(1)
+        emp, source, d_from, d_to = values
+        rows = fake.db.store.get("Work Activity Day", {}).values()
+        return [[sum(int(r.get(col) or 0) for r in rows
+                     if r["employee"] == emp and r["source"] == source
+                     and str(d_from) <= str(r["activity_date"]) <= str(d_to))]]
+    fake.db.sql_handler = handler
+
+
+def _day(fake, day, **metrics):
+    stub.seed(fake, "Work Activity Day", name=f"{EMP}-{day}", employee=EMP, source="CY Admin",
+              activity_date=day, **metrics)
+
+
+ROLE_METRICS = ("jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct", "campaigns_sent",
+                "campaign_leads_reached", "creatives_approved", "leads_from_channels", "jobs_moved",
+                "partners_activated", "agreements_signed", "payouts_triggered", "unpaid_cleared")
+
+
+def test_every_meter_metric_has_a_source(monkeypatch):
+    stub.install(monkeypatch, date(2026, 10, 20))
+    from caryaar_hr_ext.performance import meter
+    from caryaar_hr_ext.performance import meter_rules as mr
+
+    assert set(meter.METRICS) <= set(mr.SOURCE_OF)          # compute_reading indexes SOURCE_OF by metric
+    for key in ROLE_METRICS:
+        assert key in meter.METRICS and mr.SOURCE_OF[key] == "CY Admin", key
+
+
+def test_bookings_to_jobs_pct_and_counts(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 20))
+    from caryaar_hr_ext.performance import meter
+
+    _base(fake, method="Ratio to target", metric="bookings_to_jobs_pct", target_value=50, unit="%",
+          direction="Higher is better")
+    fake.db.singles[("Performance Sync Settings", "cy_admin_synced_through")] = "2026-10-20 23:30:00"
+    _activity_sql(fake)
+    _day(fake, "2026-10-05", bookings_credited=6, jobs_from_bookings=3)
+    _day(fake, "2026-10-19", bookings_credited=4, jobs_from_bookings=1)
+    meter.run_meter(as_of=date(2026, 10, 20))
+    r = _reading(fake, "2026-10-20")
+    assert (r["value"], r["progress"]) == (40.0, 80.0)
+    ctx = meter.MeterContext(EMP, CYCLE, date(2026, 10, 1), date(2026, 10, 20), date(2026, 10, 1), date(2026, 10, 20), None)
+    assert meter.m_jobs_from_bookings(ctx) == 4
+    assert meter.m_calls_to_bookings_pct(ctx) is None       # no answered calls: nothing to divide by
+
+
+def test_marketing_metrics_sum_the_window(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 20))
+    from caryaar_hr_ext.performance import meter
+
+    _base(fake, method="Ratio to target", metric="leads_from_channels", target_value=100,
+          direction="Higher is better", window="Latest full week")
+    fake.db.singles[("Performance Sync Settings", "cy_admin_synced_through")] = "2026-10-20 23:30:00"
+    _activity_sql(fake)
+    _day(fake, "2026-10-11", leads_meta=50, campaigns_sent=1)                                  # the week before
+    _day(fake, "2026-10-13", leads_meta=10, leads_google=5, leads_whatsapp=3, leads_web=2, campaigns_sent=2)
+    _day(fake, "2026-10-19", leads_meta=40, campaigns_sent=1)                                  # this week, not over
+    meter.run_meter(as_of=date(2026, 10, 20))
+    r = _reading(fake, "2026-10-20")
+    assert (r["value"], r["progress"]) == (20, 20.0)
+    ctx = meter.MeterContext(EMP, CYCLE, date(2026, 10, 1), date(2026, 10, 20), date(2026, 10, 12), date(2026, 10, 18), None)
+    assert meter.m_campaigns_sent(ctx) == 2
+
+
 def test_manual_reading_entered_in_october_is_applied_on_the_first_night_of_november(monkeypatch):
     fake = stub.install(monkeypatch, date(2026, 10, 20))
     from caryaar_hr_ext.performance import meter

@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 
+from caryaar_hr_ext.performance import meter_rules as rules_mr
 from caryaar_hr_ext.performance import rules
 
 APP = Path(__file__).resolve().parents[2]
@@ -62,6 +63,12 @@ def test_every_cy_admin_metric_is_a_field_on_the_doctype():
     for section in ROLE_FIELDS:
         if section != "section_plane":
             assert f[section].get("depends_on", "").startswith("eval:"), section
+
+
+def test_goal_meter_window_options_match_the_rules():
+    from caryaar_hr_ext.performance import meter_rules as mr
+
+    assert _fields(_load("goal_meter"))["window"]["options"].split("\n") == list(mr.WINDOWS)
 
 
 def test_every_new_doctype_is_in_our_module_and_readable_by_hr():
@@ -275,7 +282,7 @@ def test_goal_meter_doctypes_shape():
     f, d = _nf("goal_meter")
     assert d["autoname"] == "field:goal" and f["goal"]["options"] == "Goal" and f["goal"].get("unique") == 1
     assert f["method"]["options"].split("\n") == ["Ratio to target", "Months meeting standard", "Plane module", "Manual"]
-    assert f["window"]["options"].split("\n") == ["Cycle to date", "Latest full month"]
+    assert f["window"]["options"].split("\n") == list(rules_mr.WINDOWS)
     r, _ = _nf("goal_meter_reading")
     for k in ("goal", "reading_date", "value", "progress", "method", "evidence", "stale", "written_to_goal", "computed_at", "entered_by"):
         assert k in r, k

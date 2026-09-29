@@ -206,6 +206,23 @@ meter as the Plane module method, so there is one writer of `Goal.progress`.
 | payouts_reconciled | partner payouts matched to jobs and settlements | Company Metric Day (CY Admin remittances) | Payout reconciliation |
 | mis_on_time | MIS delivered by the agreed day | Plane module item per month | MIS reports |
 
+Added 29-Sep-2026 with the role-based activity metrics (spec
+`2026-09-29-role-activity-metrics-design.md`); all read Work Activity Day rows
+with source CY Admin over the goal's window, and the window "Latest full week"
+(Monday to Sunday) exists for marketing goals:
+
+| Metric key | Definition | Feeds goals |
+|---|---|---|
+| jobs_from_bookings | jobs created from the agent's credited bookings | the agent's achievement (Anagha, Janhavi) |
+| bookings_to_jobs_pct | jobs_from_bookings / bookings_credited | booking to job conversion |
+| calls_to_bookings_pct | bookings_credited / calls_answered | call to booking conversion |
+| campaigns_sent, campaign_leads_reached | WhatsApp campaigns sent by the person and the leads they reached | Marketing (Kaushik), weekly |
+| creatives_approved | Creative Studio approvals by the person | Marketing, weekly |
+| leads_from_channels | new leads from Meta, Google, WhatsApp and the web (the team's number) | the marketing lead's goal, weekly |
+| jobs_moved | job status moves made by the person | Operations coordination (Nayan) |
+| partners_activated, agreements_signed | Service Partners activated and agreements signed by the person | Service Partner management (Hiren) |
+| payouts_triggered, unpaid_cleared | payouts triggered by hand; ready-unpaid items closed | Finance (Shubham) |
+
 Phase 1 (by 15-Oct): Plane Work Items, Goal Meter and Readings, Plane and
 per-agent CY Admin metrics, review pack v1 (report and email).
 Phase 2 (by 01-Nov): company metrics, ERP finance and HR metrics, Meta

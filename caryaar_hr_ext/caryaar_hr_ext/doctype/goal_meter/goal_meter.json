@@ -11,7 +11,7 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "creation": "2026-09-28 20:30:00.000000",
- "modified": "2026-09-28 20:30:00.000000",
+ "modified": "2026-09-29 13:30:00.000000",
  "name": "Goal Meter",
  "field_order": [
   "goal",
@@ -66,8 +66,9 @@
    "fieldname": "window",
    "fieldtype": "Select",
    "label": "Window",
-   "options": "Cycle to date\nLatest full month",
-   "default": "Cycle to date"
+   "options": "Cycle to date\nLatest full month\nLatest full week",
+   "default": "Cycle to date",
+   "description": "Marketing goals read the latest full week (Monday to Sunday); until a week has ended the reading is cycle to date."
   },
   {
    "fieldname": "col1",
