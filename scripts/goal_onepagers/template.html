@@ -94,9 +94,8 @@
   .yaar .pupil { fill: var(--ink); }
   .yaar .shine { fill: var(--paper); }
   .yaar .lid { fill: var(--purple); }
-  .yaar .mouth { fill: var(--ink); opacity: 0.88; }
-  .yaar .teeth { fill: var(--paper); }
-  .yaar .lamp { fill: var(--glow); opacity: 0.9; }
+  .yaar .smile { fill: none; stroke: var(--paper); stroke-width: 22; stroke-linecap: round; }
+  .yaar .lamp { fill: var(--glow); opacity: 0.85; }
   .yaar .lampcore { fill: var(--paper); }
   .yaar .shadow { fill: var(--ink); opacity: 0.1; }
 
@@ -116,15 +115,14 @@
   <ellipse class="shadow" cx="592" cy="700" rx="360" ry="22"/>
   <g class="bumper">
     <path class="body" d="M574.31,658.58h172.3c8.28,0,15.98-4.21,20.46-11.17l86.75-134.94c2.24-3.48,6.09-5.58,10.23-5.58h156.05c4.45,0,8.54-2.43,10.67-6.33l54.07-98.94c4.43-8.1-1.44-17.99-10.67-17.99h-167.16c-8.34,0-16.11,4.28-20.56,11.34l-67.11,106.26c-2.23,3.53-6.11,5.67-10.28,5.67h-443.33c-4.17,0-8.05-2.14-10.28-5.67l-67.11-106.26c-4.46-7.06-12.22-11.34-20.57-11.34H100.59c-9.24,0-15.1,9.89-10.67,17.99l54.07,98.94c2.13,3.9,6.22,6.33,10.67,6.33h156.05c4.14,0,7.99,2.11,10.23,5.58l86.75,134.94c4.48,6.96,12.18,11.17,20.46,11.17h146.17Z"/>
-    <path class="mouth" d="M386,496 L829,496 L896,390 L319,390 Z"/>
-    <path class="teeth" d="M424,462 Q607,506 792,462 L792,490 Q607,514 424,490 Z"/>
-    <circle class="lamp" cx="176" cy="440" r="38"/><circle class="lamp" cx="1010" cy="440" r="38"/>
-    <circle class="lampcore" cx="176" cy="440" r="16"/><circle class="lampcore" cx="1010" cy="440" r="16"/>
+    <path class="smile" d="M488,556 Q592,604 696,556"/>
+    <circle class="lamp" cx="170" cy="440" r="30"/><circle class="lamp" cx="1014" cy="440" r="30"/>
+    <circle class="lampcore" cx="170" cy="440" r="11"/><circle class="lampcore" cx="1014" cy="440" r="11"/>
   </g>
   <g class="cabin-g">
     <path class="body" d="M946.56,297.89H228.37c-12.32,0-20.43-12.84-15.13-23.97l92.03-193.16h563.33l93.06,193.09c5.36,11.12-2.74,24.03-15.09,24.03"/>
-    <g class="eye-l"><ellipse class="eye" cx="470" cy="196" rx="82" ry="70"/><circle class="pupil" cx="486" cy="204" r="30"/><circle class="shine" cx="500" cy="188" r="9"/><rect class="lid" x="382" y="118" width="176" height="0" rx="34"/></g>
-    <g class="eye-r"><ellipse class="eye" cx="704" cy="196" rx="82" ry="70"/><circle class="pupil" cx="720" cy="204" r="30"/><circle class="shine" cx="734" cy="188" r="9"/><rect class="lid" x="616" y="118" width="176" height="0" rx="34"/></g>
+    <g class="eye-l"><circle class="eye" cx="492" cy="198" r="44"/><circle class="pupil" cx="500" cy="204" r="19"/><circle class="shine" cx="508" cy="194" r="6"/><rect class="lid" x="444" y="150" width="96" height="0" rx="20"/></g>
+    <g class="eye-r"><circle class="eye" cx="692" cy="198" r="44"/><circle class="pupil" cx="700" cy="204" r="19"/><circle class="shine" cx="708" cy="194" r="6"/><rect class="lid" x="644" y="150" width="96" height="0" rx="20"/></g>
   </g>
 </g></g>{% endmacro %}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -309,15 +307,15 @@
   function idle(sel, s) {
     gsap.set(sel, { transformOrigin: "50% 100%" });
     gsap.to(sel, { y: "-=" + (3 * s), duration: 1.7, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    gsap.to(sel, { rotation: 1.2, duration: 2.9, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.4 });
-    gsap.to(sel + " .pupil, " + sel + " .shine", { x: 14 * s, duration: 2.6, yoyo: true, repeat: -1, ease: "sine.inOut", delay: Math.random() });
-    var blink = gsap.timeline({ repeat: -1, repeatDelay: 2.8 + Math.random() * 3 });
-    blink.to(sel + " .lid", { attr: { height: 150 }, duration: 0.08, ease: "power1.in" }).to(sel + " .lid", { attr: { height: 0 }, duration: 0.16, ease: "power1.out" });
-    gsap.to(sel + " .lamp", { opacity: 0.45, duration: 1.2, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    var hop = gsap.timeline({ repeat: -1, repeatDelay: 6 + Math.random() * 4, delay: 2 });
-    hop.to(sel, { scaleY: 0.94, scaleX: 1.04, duration: 0.14, ease: "power1.in" })
-       .to(sel, { scaleY: 1.06, scaleX: 0.97, y: "-=" + (10 * s), duration: 0.22, ease: "power2.out" })
-       .to(sel, { scaleY: 1, scaleX: 1, y: "+=" + (10 * s), duration: 0.3, ease: "bounce.out" });
+    gsap.to(sel, { rotation: 0.8, duration: 3.4, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.4 });
+    gsap.to(sel + " .pupil, " + sel + " .shine", { x: 7 * s, duration: 3.2, yoyo: true, repeat: -1, ease: "sine.inOut", delay: Math.random() });
+    var blink = gsap.timeline({ repeat: -1, repeatDelay: 3.5 + Math.random() * 3 });
+    blink.to(sel + " .lid", { attr: { height: 100 }, duration: 0.06, ease: "power1.in" }).to(sel + " .lid", { attr: { height: 0 }, duration: 0.1, ease: "power1.out" });
+    gsap.to(sel + " .lamp", { opacity: 0.55, duration: 1.4, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    var hop = gsap.timeline({ repeat: -1, repeatDelay: 9 + Math.random() * 5, delay: 3 });
+    hop.to(sel, { scaleY: 0.97, scaleX: 1.02, duration: 0.12, ease: "power1.in" })
+       .to(sel, { scaleY: 1.03, scaleX: 0.985, y: "-=" + (6 * s), duration: 0.2, ease: "power2.out" })
+       .to(sel, { scaleY: 1, scaleX: 1, y: "+=" + (6 * s), duration: 0.28, ease: "bounce.out" });
   }
 
   // hero: the road draws itself under the character, which settles in with a small bounce and then idles
