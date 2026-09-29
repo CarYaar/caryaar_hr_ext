@@ -274,6 +274,7 @@ class FakeFrappe:
                             ("Goal Meter Reading", "employee"): ("goal", "Goal", "employee")}
         self.permission_denied: set[tuple[str, str]] = set()
         self.comments: list[tuple] = []
+        self.messages: list[str] = []
         self._dict = _Dict
         self.ValidationError = ValidationError
         self.PermissionError = PermissionError
@@ -310,6 +311,9 @@ class FakeFrappe:
     # control flow
     def throw(self, msg, exc=None, **_):
         raise (exc or ValidationError)(msg)
+
+    def msgprint(self, msg, **_):
+        self.messages.append(str(msg))
 
     def only_for(self, roles, **_):
         wanted = {roles} if isinstance(roles, str) else set(roles)

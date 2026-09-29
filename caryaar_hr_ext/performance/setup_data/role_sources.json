@@ -1,0 +1,46 @@
+{
+ "Customer Experience": [
+  "CY Admin",
+  "Plane"
+ ],
+ "Workshop Relations": [
+  "CY Admin",
+  "Plane"
+ ],
+ "Marketing": [
+  "CY Admin",
+  "Plane"
+ ],
+ "Technology Intern": [
+  "Plane",
+  "CY Admin"
+ ],
+ "Technology": [
+  "Plane"
+ ],
+ "Accounts": [
+  "ERP",
+  "CY Admin",
+  "Plane"
+ ],
+ "HR and Admin": [
+  "Plane",
+  "Manual"
+ ],
+ "Partnerships": [
+  "Plane",
+  "Manual"
+ ],
+ "Leadership - Company Scorecard": [
+  "Plane",
+  "Manual"
+ ],
+ "Leadership - Sahaib": [
+  "Plane",
+  "Manual"
+ ],
+ "Leadership - Joel": [
+  "Plane",
+  "Manual"
+ ]
+}

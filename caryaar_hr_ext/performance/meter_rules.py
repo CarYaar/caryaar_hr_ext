@@ -133,6 +133,27 @@ METRIC_ROLES: tuple[tuple[str, tuple[str, ...]], ...] = (
 )
 
 
+def role_sources() -> dict[str, list[str]]:
+    """Which systems count for each role, in order (setup_data/role_sources.json): the founder's
+    precedence of 29-Sep-2026, kept as data so a new role or a change is one line."""
+    import json
+    from pathlib import Path
+
+    return json.loads((Path(__file__).resolve().parent / "setup_data" / "role_sources.json").read_text())
+
+
+_SOURCE_FAMILY = {"CY Admin": "CY Admin", "Plane items": "Plane", "ERP": "ERP"}
+
+
+def source_fits_role(template: str, metric: str) -> bool:
+    """False only when the role has a precedence and the metric's system is not in it."""
+    allowed = role_sources().get(template)
+    if not allowed:
+        return True
+    family = _SOURCE_FAMILY.get(SOURCE_OF.get(metric, ""), "")
+    return family in allowed
+
+
 def metric_keys_text() -> str:
     """The metric keys HR may put on a Goal Meter, by role (the Setup page and the validation error)."""
     return "; ".join(f"{role}: {', '.join(keys)}" for role, keys in METRIC_ROLES)

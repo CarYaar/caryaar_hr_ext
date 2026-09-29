@@ -173,3 +173,16 @@ def test_metric_keys_text_lists_every_key_by_role():
     for key in mr.SOURCE_OF:
         assert key in text, key
     assert text.index("agents:") < text.index("marketing:") < text.index("finance:")
+
+
+def test_role_sources_follow_the_founders_precedence():
+    # Sahaib 29-Sep-2026: Shubham ERP then CY Admin then Plane; agents CY Admin with very little Plane; Shiwans Plane;
+    # Nayan Plane and CY Admin; Hiren and Kaushik CY Admin and Plane; Reema, Zoeb and the founders Plane and manual
+    rs = mr.role_sources()
+    assert rs["Accounts"] == ["ERP", "CY Admin", "Plane"] and rs["Customer Experience"][0] == "CY Admin"
+    assert rs["Technology"] == ["Plane"] and rs["Technology Intern"] == ["Plane", "CY Admin"]
+    assert mr.source_fits_role("HR and Admin", "conversion_pct") is False    # a CY Admin metric on an HR role is off precedence
+    assert mr.source_fits_role("Accounts", "unpaid_cleared") is True
+    assert mr.source_fits_role("Technology", "campaigns_sent") is False
+    assert mr.source_fits_role("Customer Experience", "module_completion") is True   # Plane is allowed, just last
+    assert mr.source_fits_role("Unknown template", "anything") is True              # no rule, no objection

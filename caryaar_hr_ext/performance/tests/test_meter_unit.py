@@ -305,3 +305,13 @@ def test_operations_metrics_sum_the_sweep_items_and_partner_changes(monkeypatch)
     _day(fake, "2026-10-20", sweep_items_closed=4, partner_changes=1)
     ctx = meter.MeterContext(EMP, CYCLE, date(2026, 10, 1), date(2026, 11, 2), date(2026, 10, 1), date(2026, 10, 31), None)
     assert meter.m_sweep_items_closed(ctx) == 6 and meter.m_partner_changes(ctx) == 6
+
+
+def test_goal_meter_warns_when_the_metric_is_off_the_roles_precedence(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 20))
+    import frappe
+
+    _base(fake, method="Ratio to target", metric="conversion_pct", target_value=5)
+    stub.seed(fake, "Appraisee", name="APR-X", parent=CYCLE, parenttype="Appraisal Cycle", employee=EMP, appraisal_template="Accounts")
+    frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "employee": EMP, "method": "Ratio to target", "metric": "conversion_pct"}).validate()
+    assert fake.messages and "not in the precedence for Accounts" in fake.messages[-1]
