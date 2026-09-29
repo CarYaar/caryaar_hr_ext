@@ -16,7 +16,7 @@ def test_one_row_per_person_with_both_sources_and_only_used_columns():
     columns, data = a.summarize(ROWS, ("calls_handled", "jobs_from_bookings", "campaigns_sent"))
     names = [c["fieldname"] for c in columns]
     assert names == ["employee_name", "department", "plane_actions", "plane_items", "calls_handled", "jobs_from_bookings", "campaigns_sent"]
-    assert [c["label"] for c in columns][2:] == ["Plane actions", "Plane items completed", "Calls handled", "Jobs from bookings", "Campaigns sent"]
+    assert [c["label"] for c in columns][2:] == ["Plane actions", "Plane items completed", "Calls dialled or received", "Jobs from bookings", "Campaigns sent"]
     assert data[0] == {"employee": "E1", "employee_name": "Janhavi", "department": "Operations - CAPL", "plane_actions": 4, "plane_items": 1,
                        "calls_handled": 51, "jobs_from_bookings": 7, "campaigns_sent": 0}
     assert data[1]["campaigns_sent"] == 10 and data[1]["plane_actions"] == 0
@@ -88,9 +88,9 @@ def test_board_returns_cards_department_charts_in_rule_order_and_the_grouped_tab
                         "source": "Plane", "activity_date": "2026-09-02", "activity_count": 9, "completed_count": 4}]
     keys = ("leads_meta", "campaigns_sent", "calls_handled", "campaign_leads_reached", "jobs_moved", "followups_done_on_time", "partners_activated")
     b = a.board(rows, keys, by="department")
-    assert [c["label"] for c in b["cards"]] == ["Calls handled", "Follow-ups done on the day", "Job status moves", "Plane items completed",
+    assert [c["label"] for c in b["cards"]] == ["Calls dialled or received", "Follow-ups done on the day", "Job status moves", "Plane items completed",
                                                 "Leads reached by campaigns", "Service Partners activated"]
-    assert {c["label"]: c["value"] for c in b["cards"]}["Calls handled"] == 51 and {c["label"]: c["value"] for c in b["cards"]}["Plane items completed"] == 4
+    assert {c["label"]: c["value"] for c in b["cards"]}["Calls dialled or received"] == 51 and {c["label"]: c["value"] for c in b["cards"]}["Plane items completed"] == 4
     assert [c["department"] for c in b["charts"]] == ["Operations - CAPL", "Marketing - CAPL", "Technology - CAPL"]   # the rules' order, not alphabetical
     marketing = b["charts"][1]
     assert marketing["labels"][0] == "Leads reached by campaigns" and dict(zip(marketing["labels"], marketing["datasets"][0]["values"]))["New leads: Meta (team)"] == 10

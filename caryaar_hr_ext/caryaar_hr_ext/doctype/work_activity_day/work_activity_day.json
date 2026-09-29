@@ -161,7 +161,7 @@
   {
    "fieldname": "calls_handled",
    "fieldtype": "Int",
-   "label": "Calls handled",
+   "label": "Calls dialled or received",
    "default": "0"
   },
   {

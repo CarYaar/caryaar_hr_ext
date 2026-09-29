@@ -12,41 +12,9 @@
   {
    "chart_name": "Rating categories",
    "label": "Rating categories"
-  },
-  {
-   "chart_name": "Activity: Operations",
-   "label": "Activity: Operations"
-  },
-  {
-   "chart_name": "Activity: Marketing",
-   "label": "Activity: Marketing"
-  },
-  {
-   "chart_name": "Activity: Technology",
-   "label": "Activity: Technology"
-  },
-  {
-   "chart_name": "Activity: Finance & Accounts",
-   "label": "Activity: Finance & Accounts"
-  },
-  {
-   "chart_name": "Activity: Workshop Relations",
-   "label": "Activity: Workshop Relations"
-  },
-  {
-   "chart_name": "Activity: Partnerships",
-   "label": "Activity: Partnerships"
-  },
-  {
-   "chart_name": "Activity: Human Resources",
-   "label": "Activity: Human Resources"
-  },
-  {
-   "chart_name": "Activity: Corporate Management",
-   "label": "Activity: Corporate Management"
   }
  ],
- "content": "[{\"id\": \"cyPerfHead1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>WFH and adherence</b></span>\", \"col\": 12}}, {\"id\": \"cyPerfCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH days this month\", \"col\": 4}}, {\"id\": \"cyPerfCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH requests waiting\", \"col\": 4}}, {\"id\": \"cyPerf1on1Head\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Goal 1:1s</b></span>\", \"col\": 12}}, {\"id\": \"cyPerf1on1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Goal 1:1s\", \"col\": 4}}, {\"id\": \"cyPerfActivity\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Activity Summary\", \"col\": 4}}, {\"id\": \"cyActHead\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Activity this month</b></span>\", \"col\": 12}}, {\"id\": \"cyActCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Calls handled this month\", \"col\": 4}}, {\"id\": \"cyActCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Follow-ups done on the day this month\", \"col\": 4}}, {\"id\": \"cyActCard3\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Job status moves this month\", \"col\": 4}}, {\"id\": \"cyActCard4\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Plane items completed this month\", \"col\": 4}}, {\"id\": \"cyActCard5\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Leads reached by campaigns this month\", \"col\": 4}}, {\"id\": \"cyActCard6\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"Service Partners activated this month\", \"col\": 4}}, {\"id\": \"cyActChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Operations\", \"col\": 6}}, {\"id\": \"cyActChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Marketing\", \"col\": 6}}, {\"id\": \"cyActChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Technology\", \"col\": 6}}, {\"id\": \"cyActChart4\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Finance & Accounts\", \"col\": 6}}, {\"id\": \"cyActChart5\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Workshop Relations\", \"col\": 6}}, {\"id\": \"cyActChart6\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Partnerships\", \"col\": 6}}, {\"id\": \"cyActChart7\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Human Resources\", \"col\": 6}}, {\"id\": \"cyActChart8\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Activity: Corporate Management\", \"col\": 6}}, {\"id\": \"cyPerfChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Adherence by department\", \"col\": 12}}, {\"id\": \"cyPerfChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"WFH days by department\", \"col\": 12}}, {\"id\": \"cyPerfChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Rating categories\", \"col\": 12}}]",
+ "content": "[{\"id\": \"cyPerfHead1\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>WFH and adherence</b></span>\", \"col\": 12}}, {\"id\": \"cyPerfCard1\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH days this month\", \"col\": 4}}, {\"id\": \"cyPerfCard2\", \"type\": \"number_card\", \"data\": {\"number_card_name\": \"WFH requests waiting\", \"col\": 4}}, {\"id\": \"cyPerf1on1Head\", \"type\": \"header\", \"data\": {\"text\": \"<span class=\\\"h4\\\"><b>Goal 1:1s</b></span>\", \"col\": 12}}, {\"id\": \"cyPerf1on1\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Goal 1:1s\", \"col\": 4}}, {\"id\": \"cyPerfActivity\", \"type\": \"shortcut\", \"data\": {\"shortcut_name\": \"Activity Summary\", \"col\": 4}}, {\"id\": \"cyPerfChart1\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Adherence by department\", \"col\": 12}}, {\"id\": \"cyPerfChart2\", \"type\": \"chart\", \"data\": {\"chart_name\": \"WFH days by department\", \"col\": 12}}, {\"id\": \"cyPerfChart3\", \"type\": \"chart\", \"data\": {\"chart_name\": \"Rating categories\", \"col\": 12}}]",
  "creation": "2026-09-27 00:30:00.000000",
  "custom_blocks": [],
  "docstatus": 0,
@@ -58,7 +26,7 @@
  "is_hidden": 0,
  "label": "Performance and Adherence",
  "links": [],
- "modified": "2026-09-30 14:00:00.000000",
+ "modified": "2026-09-30 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Caryaar Hr Ext",
  "name": "Performance and Adherence",
@@ -70,30 +38,6 @@
   {
    "label": "WFH requests waiting",
    "number_card_name": "WFH requests waiting"
-  },
-  {
-   "label": "Calls handled this month",
-   "number_card_name": "Calls handled this month"
-  },
-  {
-   "label": "Follow-ups done on the day this month",
-   "number_card_name": "Follow-ups done on the day this month"
-  },
-  {
-   "label": "Job status moves this month",
-   "number_card_name": "Job status moves this month"
-  },
-  {
-   "label": "Plane items completed this month",
-   "number_card_name": "Plane items completed this month"
-  },
-  {
-   "label": "Leads reached by campaigns this month",
-   "number_card_name": "Leads reached by campaigns this month"
-  },
-  {
-   "label": "Service Partners activated this month",
-   "number_card_name": "Service Partners activated this month"
   }
  ],
  "owner": "Administrator",
