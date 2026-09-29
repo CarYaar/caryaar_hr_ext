@@ -341,7 +341,7 @@ def test_goal_one_on_one_doctype_shape():
     for name in ("employee_acknowledged", "acknowledged_on", "acknowledged_by"):
         assert f[name].get("read_only") == 1, name
     assert f["goals"]["options"] == "Goal One on One Goal"
-    assert d["autoname"] == "format:1ON1-{employee}-{meeting_date}" and d["module"] == "Caryaar Hr Ext"
+    assert d["autoname"] == "format:1ON1-{employee}-{meeting_date}-{meeting_type}" and d["module"] == "Caryaar Hr Ext"
     assert f["meeting_type"]["options"].split("\n") == ["Goal setting", "Monthly check-in", "Mid-cycle review", "Final review"]
     roles = {p["role"]: p for p in d["permissions"]}
     assert roles["Employee"]["read"] == 1 and roles["Employee"].get("write", 0) == 1 and roles["Employee"].get("delete", 0) == 0
@@ -373,7 +373,20 @@ def test_controller_class_names_are_the_doctype_names_without_spaces():
     # Frappe's get_controller looks up doctype.replace(" ", ""); a wrong class makes migrate treat the doctype as orphaned and delete it
     import re
 
-    for folder, doctype in (("goal_one_on_one", "Goal One on One"), ("goal_one_on_one_goal", "Goal One on One Goal"),
-                            ("goal_meter", "Goal Meter"), ("work_activity_day", "Work Activity Day")):
+    for folder in sorted(p.name for p in DT.iterdir() if p.is_dir() and (p / f"{p.name}.json").exists()):
+        doctype = _load(folder)["name"]
         code = (DT / folder / f"{folder}.py").read_text()
-        assert re.search(rf"^class {doctype.replace(' ', '')}\(", code, re.M), (folder, doctype.replace(" ", ""))
+        assert re.search(rf"^class {doctype.replace(' ', '').replace('-', '')}\(", code, re.M), (folder, doctype)
+
+
+def test_goal_one_on_one_survives_scoped_user_permissions_and_tracks_changes():
+    d = _load("goal_one_on_one")
+    f = _fields(d)
+    # Hiren and Kaushik carry an Employee user permission that applies to every doctype; the hook decides
+    # visibility, so both links must skip the user-permission check
+    assert f["employee"].get("ignore_user_permissions") == 1 and f["manager"].get("ignore_user_permissions") == 1
+    assert f["employee"].get("set_only_once") == 1
+    assert d["track_changes"] == 1
+    assert f["employee_user"]["fetch_from"] == "employee.user_id" and f["employee_user"].get("hidden") == 1
+    js = (DT / "goal_one_on_one" / "goal_one_on_one.js").read_text()
+    assert "acknowledge_goals" in js and "fill_goals" in js and "employee_user" in js

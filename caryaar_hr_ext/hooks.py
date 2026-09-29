@@ -64,8 +64,9 @@ after_migrate = [
 
 # Typing "auto" into the card serial field generates 2026-0001-K7QX
 # style serials (sequential + random suffix, founder call 28-Aug).
-# A Goal One on One is visible to the employee and the manager it names (and to HR); the hook
-# decides, so a manager's self-scoped Employee user permission does not hide their reports' records.
+# A Goal One on One is visible to the employee and the manager it names (and to HR). The hook narrows
+# the list and refuses what it must; the two Link fields carry ignore_user_permissions so a manager's
+# self-scoped Employee user permission does not hide their reports' records.
 permission_query_conditions = {
     "Goal One on One": "caryaar_hr_ext.performance.one_on_one_permissions.query_conditions",
 }

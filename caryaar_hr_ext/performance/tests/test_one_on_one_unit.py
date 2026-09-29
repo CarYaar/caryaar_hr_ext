@@ -81,9 +81,90 @@ def test_manager_sees_and_edits_reports_records(monkeypatch):
     cond = p.query_conditions("joel@caryaar.test")
     assert "HR-EMP-00003" in cond and "`tabGoal One on One`.manager" in cond and "`tabGoal One on One`.employee" in cond
     doc = stub._Dict(employee=EMP, manager=MGR)
-    assert p.has_permission(doc, "write", "joel@caryaar.test") is True
-    assert p.has_permission(doc, "write", "anagha@caryaar.test") is True      # the employee edits notes on their own record
+    assert p.has_permission(doc, "write", "joel@caryaar.test") is True         # the manager writes
+    assert p.has_permission(doc, "create", "joel@caryaar.test") is True        # Joel is Anagha's reports_to
+    assert p.has_permission(doc, "read", "anagha@caryaar.test") is True
+    assert p.has_permission(doc, "write", "anagha@caryaar.test") is False      # the employee reads, never edits
     assert p.has_permission(doc, "read", "kaushik@caryaar.test") is False
     assert p.has_permission(doc, "delete", "joel@caryaar.test") is False
+    forged = stub._Dict(employee=EMP, manager="HR-EMP-00099")                  # someone naming themselves manager
+    stub.seed(fake, "Employee", name="HR-EMP-00099", status="Active", user_id="kaushik@caryaar.test", employee_name="Kaushik")
+    assert p.has_permission(forged, "create", "kaushik@caryaar.test") is False  # not Anagha's reports_to
     fake.roles = {"HR Manager"}
     assert p.query_conditions("hr@caryaar.test") == "" and p.has_permission(doc, "delete", "hr@caryaar.test") is True
+
+
+def test_a_forged_acknowledgement_on_insert_is_cleared(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2))
+    import frappe
+
+    _seed(fake)
+    doc = frappe.get_doc({"doctype": "Goal One on One", "employee": EMP, "manager": MGR, "appraisal_cycle": CYCLE,
+                          "meeting_date": "2026-10-02", "meeting_type": "Goal setting",
+                          "employee_acknowledged": 1, "acknowledged_on": "2026-10-02 10:00:00", "acknowledged_by": "anagha@caryaar.test"})
+    doc.validate()
+    assert (doc.employee_acknowledged, doc.acknowledged_on, doc.acknowledged_by) == (0, None, None)
+
+
+def test_archived_goals_are_left_out_and_the_manager_default_fills_names(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2))
+    import frappe
+
+    _seed(fake)
+    stub.seed(fake, "Goal", name="HR-GOAL-9", goal_name="Old draft", employee=EMP, appraisal_cycle=CYCLE, kra="Conversion", is_group=0, status="Archived")
+    doc = frappe.get_doc({"doctype": "Goal One on One", "employee": EMP, "appraisal_cycle": CYCLE, "meeting_date": "2026-10-02", "meeting_type": "Goal setting"})
+    doc.validate()
+    assert [g["goal"] for g in doc.goals] == ["HR-GOAL-1"]
+    assert (doc.manager, doc.manager_name, doc.manager_user) == (MGR, "Joel", "joel@caryaar.test")
+
+
+def test_goals_are_frozen_after_acknowledgement_for_everyone_but_hr(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="joel@caryaar.test")
+    import frappe
+
+    _seed(fake)
+    _record(fake, employee_acknowledged=1, acknowledged_on="2026-10-03 11:05:00", acknowledged_by="anagha@caryaar.test")
+    stub.seed(fake, "Goal One on One Goal", name="row-1", parent=REC, parenttype="Goal One on One", goal="HR-GOAL-1")
+    doc = frappe.get_doc("Goal One on One", REC)
+    doc.goals = [{"goal": "HR-GOAL-1"}, {"goal": "HR-GOAL-2"}]
+    with pytest.raises(frappe.ValidationError, match="acknowledged"):
+        doc.validate()
+    doc.goals = [{"goal": "HR-GOAL-1"}]
+    doc.notes = "the manager may still add notes"
+    doc.validate()
+    fake.roles = {"HR Manager"}
+    doc.goals = [{"goal": "HR-GOAL-1"}, {"goal": "HR-GOAL-2"}]
+    doc.validate()
+
+
+def test_manager_change_by_non_hr_is_refused(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="joel@caryaar.test")
+    import frappe
+
+    _seed(fake)
+    _record(fake)
+    doc = frappe.get_doc("Goal One on One", REC)
+    doc.manager = "HR-EMP-00099"
+    with pytest.raises(frappe.ValidationError, match="manager"):
+        doc.validate()
+
+
+def test_fill_goals_needs_write_permission_on_the_record(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="anagha@caryaar.test")
+    import frappe
+
+    _seed(fake)
+    _record(fake)
+    fake.permission_denied.add(("Goal One on One", REC))
+    with pytest.raises(frappe.PermissionError):
+        frappe.get_doc("Goal One on One", REC).fill_goals()
+
+
+def test_acknowledgement_leaves_an_info_comment_with_the_name(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="anagha@caryaar.test")
+    from caryaar_hr_ext.performance import api
+
+    _seed(fake)
+    _record(fake, employee_name="Anagha")
+    api.acknowledge_goals(REC)
+    assert fake.comments[-1][2] == "Info" and "Anagha" in fake.comments[-1][3] and "@" not in fake.comments[-1][3]

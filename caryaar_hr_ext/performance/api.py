@@ -196,18 +196,18 @@ def recompute(from_date=None, to_date=None):
 @frappe.whitelist(methods=["POST"])
 def acknowledge_goals(name: str = "") -> dict:
     """The employee acknowledges the goals on their own Goal One on One record. Any logged-in user
-    may call it; the rule decides, and only the employee's own login passes."""
+    may call it; the rule decides, and only the employee's own login passes. The row is locked
+    while it is stamped, so two clicks cannot both write."""
     from frappe.utils import now_datetime
 
-    from caryaar_hr_ext.performance import one_on_one_rules as rules
+    from caryaar_hr_ext.performance import one_on_one_rules as o2o
 
-    doc = frappe.get_doc("Goal One on One", name)
-    employee_user = frappe.db.get_value("Employee", doc.employee, "user_id")
-    problem = rules.can_acknowledge(frappe.session.user, employee_user, bool(doc.get("employee_acknowledged")))
+    doc = frappe.get_doc("Goal One on One", name, for_update=True)
+    employee_user, employee_name = frappe.db.get_value("Employee", doc.employee, ["user_id", "employee_name"]) or (None, None)
+    problem = o2o.can_acknowledge(frappe.session.user, employee_user, bool(doc.get("employee_acknowledged")))
     if problem:
         frappe.throw(problem)
     stamp = now_datetime()
     doc.db_set({"employee_acknowledged": 1, "acknowledged_on": stamp, "acknowledged_by": frappe.session.user}, notify=True)
-    doc.add_comment("Comment", f"Goals acknowledged by {frappe.session.user}")
+    doc.add_comment("Info", f"Goals acknowledged by {employee_name or doc.employee}")
     return {"ok": True, "acknowledged_on": str(stamp)}
-
