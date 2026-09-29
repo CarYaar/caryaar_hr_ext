@@ -71,3 +71,12 @@ def test_department_chart_lists_the_departments_metrics_in_order_with_labels():
     assert chart["type"] == "bar"
     empty = g.department_chart("Technology - CAPL", [])
     assert empty["datasets"][0]["values"] == [0, 0, 0, 0]
+
+
+def test_roadside_assistance_is_a_department_read_from_plane_for_now():
+    """Founder 29-Sep-2026 18:40: a department of its own for RSA; Amey's work comes from Plane until the
+    RSA tech exists in CY Admin. The board and the precedence rules must know the department by name."""
+    from caryaar_hr_ext.performance import meter_rules as mr
+    assert g.metrics_for("Roadside Assistance - CAPL")[:2] == ("plane_items", "plane_actions")
+    assert "Roadside Assistance" in g.DEPARTMENT_METRICS
+    assert mr.role_sources().get("Roadside Assistance") == ["Plane", "CY Admin"]

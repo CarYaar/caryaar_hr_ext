@@ -44,6 +44,7 @@ DEPARTMENT_METRICS: dict[str, tuple[str, ...]] = {
     "Finance & Accounts": ("payouts_triggered", "payments_collected_offline", "unpaid_cleared", "plane_items"),
     "Workshop Relations": ("partners_activated", "partners_verified", "agreements_signed", "partner_checkins_closed", "partner_documents"),
     "Partnerships": ("plane_items", "plane_actions", "partners_created"),
+    "Roadside Assistance": ("plane_items", "plane_actions"),          # read from Plane until the RSA tech exists in CY Admin
     "Human Resources": ("plane_items", "plane_actions"),
     "Corporate Management": ("plane_items", "plane_actions"),
 }
