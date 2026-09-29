@@ -191,3 +191,23 @@ def recompute(from_date=None, to_date=None):
         frappe.throw(str(e), exc=frappe.ValidationError)
     written = sum(engine.run_day(d) for d in days)
     return {"days": len(days), "rows": written}
+
+
+@frappe.whitelist(methods=["POST"])
+def acknowledge_goals(name: str = "") -> dict:
+    """The employee acknowledges the goals on their own Goal One on One record. Any logged-in user
+    may call it; the rule decides, and only the employee's own login passes."""
+    from frappe.utils import now_datetime
+
+    from caryaar_hr_ext.performance import one_on_one_rules as rules
+
+    doc = frappe.get_doc("Goal One on One", name)
+    employee_user = frappe.db.get_value("Employee", doc.employee, "user_id")
+    problem = rules.can_acknowledge(frappe.session.user, employee_user, bool(doc.get("employee_acknowledged")))
+    if problem:
+        frappe.throw(problem)
+    stamp = now_datetime()
+    doc.db_set({"employee_acknowledged": 1, "acknowledged_on": stamp, "acknowledged_by": frappe.session.user}, notify=True)
+    doc.add_comment("Comment", f"Goals acknowledged by {frappe.session.user}")
+    return {"ok": True, "acknowledged_on": str(stamp)}
+

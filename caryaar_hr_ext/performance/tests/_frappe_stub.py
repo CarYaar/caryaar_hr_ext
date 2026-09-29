@@ -170,6 +170,10 @@ class FakeDB:
         for r in self._rows(doctype, filters):
             del self.store[doctype][r["name"]]
 
+    @staticmethod
+    def escape(value, percent=True):
+        return "'" + str(value).replace("'", "''") + "'"
+
     def savepoint(self, name):
         pass
 

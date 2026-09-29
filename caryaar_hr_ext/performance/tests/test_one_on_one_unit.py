@@ -53,3 +53,37 @@ def test_hand_edited_acknowledgement_is_restored(monkeypatch):
     doc.employee_acknowledged, doc.acknowledged_by = 1, "hr@caryaar.test"
     doc.validate()
     assert doc.employee_acknowledged == 0 and doc.acknowledged_by is None
+
+
+def test_only_the_employees_own_login_can_acknowledge(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="hr@caryaar.test")
+    import frappe
+    from caryaar_hr_ext.performance import api
+
+    _seed(fake)
+    _record(fake)
+    with pytest.raises(frappe.ValidationError, match="own login"):
+        api.acknowledge_goals(REC)
+    fake.session.user = "anagha@caryaar.test"
+    out = api.acknowledge_goals(REC)
+    row = fake.db.store["Goal One on One"][REC]
+    assert out["ok"] and row["employee_acknowledged"] == 1 and row["acknowledged_by"] == "anagha@caryaar.test" and row["acknowledged_on"]
+    assert fake.comments and "acknowledged" in fake.comments[-1][3]
+    with pytest.raises(frappe.ValidationError, match="already"):
+        api.acknowledge_goals(REC)
+
+
+def test_manager_sees_and_edits_reports_records(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 2), roles=("Employee",), user="joel@caryaar.test")
+    from caryaar_hr_ext.performance import one_on_one_permissions as p
+
+    _seed(fake)
+    cond = p.query_conditions("joel@caryaar.test")
+    assert "HR-EMP-00003" in cond and "`tabGoal One on One`.manager" in cond and "`tabGoal One on One`.employee" in cond
+    doc = stub._Dict(employee=EMP, manager=MGR)
+    assert p.has_permission(doc, "write", "joel@caryaar.test") is True
+    assert p.has_permission(doc, "write", "anagha@caryaar.test") is True      # the employee edits notes on their own record
+    assert p.has_permission(doc, "read", "kaushik@caryaar.test") is False
+    assert p.has_permission(doc, "delete", "joel@caryaar.test") is False
+    fake.roles = {"HR Manager"}
+    assert p.query_conditions("hr@caryaar.test") == "" and p.has_permission(doc, "delete", "hr@caryaar.test") is True

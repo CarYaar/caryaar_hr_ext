@@ -88,5 +88,41 @@
   "send_to_all_assignees": 0,
   "subject": "Your WFH request for {{ frappe.utils.formatdate(doc.from_date, \"dd-MMM-yyyy\") }} was {{ doc.workflow_state | lower }}",
   "value_changed": "workflow_state"
+ },
+ {
+  "attach_files": "",
+  "attach_print": 0,
+  "channel": "Email",
+  "condition": "doc.employee_acknowledged == 1",
+  "condition_type": "Python",
+  "days_in_advance": 0,
+  "docstatus": 0,
+  "doctype": "Notification",
+  "document_type": "Goal One on One",
+  "enabled": 1,
+  "event": "Value Change",
+  "is_standard": 0,
+  "message": "<p>{{ doc.employee_name }} acknowledged the goals discussed with {{ doc.manager_name }} on {{ frappe.utils.format_date(doc.meeting_date) }}.</p><p>Record: {{ frappe.utils.get_url_to_form(doc.doctype, doc.name) }}</p>",
+  "message_type": "HTML",
+  "minutes_offset": 0,
+  "name": "Goals acknowledged",
+  "send_system_notification": 1,
+  "send_to_all_assignees": 0,
+  "subject": "{{ doc.employee_name }} acknowledged their goals for {{ doc.appraisal_cycle }}",
+  "value_changed": "employee_acknowledged",
+  "recipients": [
+   {
+    "cc": "humanresource@caryaar.com",
+    "parent": "Goals acknowledged",
+    "parentfield": "recipients",
+    "parenttype": "Notification"
+   },
+   {
+    "receiver_by_document_field": "manager_user",
+    "parent": "Goals acknowledged",
+    "parentfield": "recipients",
+    "parenttype": "Notification"
+   }
+  ]
  }
 ]
