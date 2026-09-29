@@ -212,9 +212,19 @@ def test_sidebar_links_every_screen_of_the_program():
     links = {(i["link_type"], i["link_to"]) for i in sb["items"] if i["type"] == "Link"}
     program = {"Work Activity Day", "Work Adherence Day", "Plane Module Progress", "Performance Sync Settings"}
     assert ("Workspace", WS_NAME) in links
-    assert {n for t, n in links if t == "DocType"} >= program
-    assert ("Report", "Rating Distribution") in links
+    assert {n for t, n in links if t == "DocType"} >= program | {"Goal One on One"}
+    assert ("Report", "Rating Distribution") in links and ("Report", "Activity Summary") in links
     assert ("Dashboard", _fx("dashboard")[0]["name"]) in links
+
+
+def test_goal_shortcuts_sit_above_the_charts_on_the_home_page():
+    """29-Sep-2026, founder: 'where is the new screen, I don't see anything'. The v16 sidebar is the navigation
+    people use, and the Home page's shortcut block had been placed under three charts, below the fold."""
+    ws = json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / WS_FILE).read_text())
+    blocks = json.loads(ws["content"])
+    first_chart = next(i for i, b in enumerate(blocks) if b["type"] == "chart")
+    shortcuts = [i for i, b in enumerate(blocks) if b["type"] == "shortcut"]
+    assert shortcuts and max(shortcuts) < first_chart
 
 
 def test_desktop_icon_opens_the_sidebar_inside_frappe_hr_for_hr_only():

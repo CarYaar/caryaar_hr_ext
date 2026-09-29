@@ -57,6 +57,18 @@
   {
    "child": 0,
    "collapsible": 1,
+   "icon": "users",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Goal 1:1s",
+   "link_to": "Goal One on One",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 0,
+   "collapsible": 1,
    "icon": "clipboard-check",
    "indent": 0,
    "keep_closed": 0,
@@ -85,6 +97,18 @@
    "keep_closed": 0,
    "label": "Rating Distribution",
    "link_to": "Rating Distribution",
+   "link_type": "Report",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "icon": "",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Activity Summary",
+   "link_to": "Activity Summary",
    "link_type": "Report",
    "show_arrow": 0,
    "type": "Link"
@@ -125,7 +149,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-27 00:30:00.000000",
+ "modified": "2026-09-30 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Caryaar Hr Ext",
  "name": "Performance and Adherence",
