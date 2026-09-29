@@ -1,0 +1,207 @@
+{
+ "doctype": "DocType",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 0,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-28 20:30:00.000000",
+ "name": "Goal One on One",
+ "modified": "2026-09-30 10:00:00.000000",
+ "sort_field": "meeting_date",
+ "sort_order": "DESC",
+ "field_order": [
+  "employee",
+  "employee_name",
+  "manager",
+  "manager_name",
+  "manager_user",
+  "column_break_meeting",
+  "appraisal_cycle",
+  "meeting_date",
+  "meeting_type",
+  "section_goals",
+  "goals",
+  "section_notes",
+  "notes",
+  "agreed_actions",
+  "one_pager_url",
+  "section_ack",
+  "employee_acknowledged",
+  "acknowledged_on",
+  "acknowledged_by"
+ ],
+ "fields": [
+  {
+   "fieldname": "employee",
+   "fieldtype": "Link",
+   "label": "Employee",
+   "options": "Employee",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "employee_name",
+   "fieldtype": "Data",
+   "label": "Employee name",
+   "fetch_from": "employee.employee_name",
+   "read_only": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "manager",
+   "fieldtype": "Link",
+   "label": "Manager",
+   "options": "Employee",
+   "reqd": 1,
+   "in_standard_filter": 1,
+   "description": "The reporting manager who holds the 1:1; defaults to the employee's Reports To."
+  },
+  {
+   "fieldname": "manager_name",
+   "fieldtype": "Data",
+   "label": "Manager name",
+   "fetch_from": "manager.employee_name",
+   "read_only": 1
+  },
+  {
+   "fieldname": "manager_user",
+   "fieldtype": "Data",
+   "label": "Manager user",
+   "fetch_from": "manager.user_id",
+   "read_only": 1,
+   "hidden": 1
+  },
+  {
+   "fieldname": "column_break_meeting",
+   "fieldtype": "Column Break",
+   "label": ""
+  },
+  {
+   "fieldname": "appraisal_cycle",
+   "fieldtype": "Link",
+   "label": "Appraisal cycle",
+   "options": "Appraisal Cycle",
+   "reqd": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "meeting_date",
+   "fieldtype": "Date",
+   "label": "Meeting date",
+   "reqd": 1,
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "meeting_type",
+   "fieldtype": "Select",
+   "label": "Meeting type",
+   "options": "Goal setting\nMonthly check-in\nMid-cycle review\nFinal review",
+   "default": "Goal setting",
+   "reqd": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1
+  },
+  {
+   "fieldname": "section_goals",
+   "fieldtype": "Section Break",
+   "label": "Goals discussed"
+  },
+  {
+   "fieldname": "goals",
+   "fieldtype": "Table",
+   "label": "Goals",
+   "options": "Goal One on One Goal",
+   "description": "Filled from the cycle's goals on the first save; the Fill goals button refreshes them."
+  },
+  {
+   "fieldname": "section_notes",
+   "fieldtype": "Section Break",
+   "label": "Discussion"
+  },
+  {
+   "fieldname": "notes",
+   "fieldtype": "Text Editor",
+   "label": "Notes"
+  },
+  {
+   "fieldname": "agreed_actions",
+   "fieldtype": "Small Text",
+   "label": "Agreed actions",
+   "description": "Who does what, by when."
+  },
+  {
+   "fieldname": "one_pager_url",
+   "fieldtype": "Data",
+   "label": "One-pager link",
+   "description": "The employee's goal one-pager, set by the generator."
+  },
+  {
+   "fieldname": "section_ack",
+   "fieldtype": "Section Break",
+   "label": "Acknowledgement"
+  },
+  {
+   "fieldname": "employee_acknowledged",
+   "fieldtype": "Check",
+   "label": "Goals acknowledged by the employee",
+   "read_only": 1,
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "default": "0"
+  },
+  {
+   "fieldname": "acknowledged_on",
+   "fieldtype": "Datetime",
+   "label": "Acknowledged on",
+   "read_only": 1
+  },
+  {
+   "fieldname": "acknowledged_by",
+   "fieldtype": "Link",
+   "label": "Acknowledged by",
+   "options": "User",
+   "read_only": 1
+  }
+ ],
+ "permissions": [
+  {
+   "role": "System Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "HR Manager",
+   "read": 1,
+   "write": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "report": 1,
+   "share": 1
+  },
+  {
+   "role": "Employee",
+   "read": 1,
+   "write": 1,
+   "create": 1
+  }
+ ],
+ "autoname": "format:1ON1-{employee}-{meeting_date}",
+ "naming_rule": "Expression",
+ "title_field": "employee_name"
+}

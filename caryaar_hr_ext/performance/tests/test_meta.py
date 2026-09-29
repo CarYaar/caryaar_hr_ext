@@ -72,7 +72,7 @@ def test_goal_meter_window_options_match_the_rules():
 
 
 def test_every_new_doctype_is_in_our_module_and_readable_by_hr():
-    for name in ("work_activity_day", "work_adherence_day", "plane_module_progress", "performance_sync_settings"):
+    for name in ("work_activity_day", "work_adherence_day", "plane_module_progress", "performance_sync_settings", "goal_one_on_one"):
         d = _load(name)
         assert d["module"] == "Caryaar Hr Ext"
         assert d["custom"] == 0
@@ -328,3 +328,24 @@ def test_goal_meter_metric_field_describes_every_key_and_role_sections_hide_when
     w = _fields(_load("work_activity_day"))
     assert "Operations" not in w["section_ops"]["depends_on"]           # Nayan sits in Technology; agents sit in Operations
     assert "Partnerships" not in w["section_partners"]["depends_on"]    # Zoeb's row carries no partner keys
+
+
+def test_goal_one_on_one_doctype_shape():
+    d = _load("goal_one_on_one")
+    f = _fields(d)
+    for name, ftype in (("employee", "Link"), ("manager", "Link"), ("appraisal_cycle", "Link"), ("meeting_date", "Date"),
+                        ("meeting_type", "Select"), ("goals", "Table"), ("notes", "Text Editor"),
+                        ("agreed_actions", "Small Text"), ("one_pager_url", "Data"), ("employee_acknowledged", "Check"),
+                        ("acknowledged_on", "Datetime"), ("acknowledged_by", "Link"), ("manager_user", "Data")):
+        assert f[name]["fieldtype"] == ftype, name
+    for name in ("employee_acknowledged", "acknowledged_on", "acknowledged_by"):
+        assert f[name].get("read_only") == 1, name
+    assert f["goals"]["options"] == "Goal One on One Goal"
+    assert d["autoname"] == "format:1ON1-{employee}-{meeting_date}" and d["module"] == "Caryaar Hr Ext"
+    assert f["meeting_type"]["options"].split("\n") == ["Goal setting", "Monthly check-in", "Mid-cycle review", "Final review"]
+    roles = {p["role"]: p for p in d["permissions"]}
+    assert roles["Employee"]["read"] == 1 and roles["Employee"].get("write", 0) == 1 and roles["Employee"].get("delete", 0) == 0
+    assert "HR Manager" in roles and "System Manager" in roles
+    c = _load("goal_one_on_one_goal")
+    assert set(_fields(c)) == {"goal", "goal_name", "kra", "weight", "target_text", "measured_from", "progress"}
+    assert c["istable"] == 1 and c["module"] == "Caryaar Hr Ext"

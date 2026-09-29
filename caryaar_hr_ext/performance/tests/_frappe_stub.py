@@ -225,6 +225,25 @@ class Document(_Dict):
     def reload(self):
         self.update(self._fake.db.store[self.doctype][self["name"]])
 
+    # what real controllers call on a Document
+    def get(self, key, default=None):
+        return dict.get(self, key, default)
+
+    def set(self, key, value):
+        self[key] = value
+
+    def append(self, table, row=None):
+        rows = self.get(table) or []
+        rows.append(dict(row or {}))
+        self[table] = rows
+        return rows[-1]
+
+    def is_new(self):
+        return not self.get("name") or self.get("name") not in self._fake.db.store.get(self.doctype, {})
+
+    def add_comment(self, comment_type="Comment", text=""):
+        self._fake.comments.append((self.doctype, self.get("name"), comment_type, text))
+
     def db_set(self, field, value=None, **_):
         self._fake.db.set_value(self.doctype, self["name"], field, value)
         if isinstance(field, dict):
@@ -250,6 +269,7 @@ class FakeFrappe:
         self.fetch_rules = {("Goal Meter", "employee"): ("goal", "Goal", "employee"),
                             ("Goal Meter Reading", "employee"): ("goal", "Goal", "employee")}
         self.permission_denied: set[tuple[str, str]] = set()
+        self.comments: list[tuple] = []
         self._dict = _Dict
         self.ValidationError = ValidationError
         self.PermissionError = PermissionError
@@ -341,7 +361,8 @@ class FakeFrappe:
 
 
 TARGET_MODULES = (
-    "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter","caryaar_hr_ext.performance.meter", "caryaar_hr_ext.performance.review_pack",
+    "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter",
+    "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_one_on_one.goal_one_on_one","caryaar_hr_ext.performance.meter", "caryaar_hr_ext.performance.review_pack",
                   "caryaar_hr_ext.performance.setup", "caryaar_hr_ext.performance.api",
                   "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter_reading.goal_meter_reading")
 
@@ -373,6 +394,7 @@ def install(monkeypatch, today: date, roles=("HR Manager",), user="hr@caryaar.te
     ctrl = sys.modules[TARGET_MODULES[-1]]
     fake.controllers["Goal Meter Reading"] = ctrl.GoalMeterReading
     fake.controllers["Goal Meter"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter"].GoalMeter
+    fake.controllers["Goal One on One"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_one_on_one.goal_one_on_one"].GoalOneOnOne
     return fake
 
 

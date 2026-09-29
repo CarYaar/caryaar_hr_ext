@@ -1,0 +1,74 @@
+{
+ "doctype": "DocType",
+ "module": "Caryaar Hr Ext",
+ "custom": 0,
+ "istable": 1,
+ "issingle": 0,
+ "engine": "InnoDB",
+ "track_changes": 0,
+ "owner": "Administrator",
+ "modified_by": "Administrator",
+ "creation": "2026-09-28 20:30:00.000000",
+ "name": "Goal One on One Goal",
+ "modified": "2026-09-30 10:00:00.000000",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "field_order": [
+  "goal",
+  "goal_name",
+  "kra",
+  "weight",
+  "target_text",
+  "measured_from",
+  "progress"
+ ],
+ "fields": [
+  {
+   "fieldname": "goal",
+   "fieldtype": "Link",
+   "label": "Goal",
+   "options": "Goal",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "goal_name",
+   "fieldtype": "Data",
+   "label": "Goal",
+   "in_list_view": 1,
+   "columns": 3
+  },
+  {
+   "fieldname": "kra",
+   "fieldtype": "Link",
+   "label": "KRA",
+   "options": "KRA",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "weight",
+   "fieldtype": "Percent",
+   "label": "Weight",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "target_text",
+   "fieldtype": "Data",
+   "label": "Target",
+   "in_list_view": 1
+  },
+  {
+   "fieldname": "measured_from",
+   "fieldtype": "Data",
+   "label": "Measured from"
+  },
+  {
+   "fieldname": "progress",
+   "fieldtype": "Percent",
+   "label": "Progress",
+   "in_list_view": 1
+  }
+ ],
+ "permissions": [],
+ "autoname": "hash",
+ "naming_rule": "Random"
+}
