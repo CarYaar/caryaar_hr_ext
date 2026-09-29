@@ -1,155 +1,365 @@
 <meta charset="utf-8">
 <title>{{ p.employee_name }} goals</title>
-<meta name="description" content="Goals for the {{ cycle.name }} cycle, how each is measured, and where to acknowledge them.">
+<meta name="description" content="Goals for the {{ cycle.name }} cycle as a road: every goal a milestone, and where to acknowledge them.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap">
 <style>
   :root {
-    --paper: #F5F3F0; --ink: #17131F; --purple: #6B2FA0; --tint: #E8D5F5; --cool: #8E86AA; --deep: #2B2440;
-    --card: #FFFFFF; --line: #DDD6E6; --road: #2B2440; --dash: #F5F3F0; --ok: #2E7D4F; --logo: #6D28D9;
+    --paper: #F5F3F0; --ink: #17131F; --purple: #6D28D9; --tint: #E8D5F5; --cool: #8E86AA; --deep: #2B2440;
+    --card: #FFFFFF; --line: #DDD6E6; --stroke: #2B2440; --faint: rgba(43, 36, 64, 0.22); --ok: #2E7D4F; --glow: #FFD47A;
+    --grain: rgba(23, 19, 31, 0.035); --btn-text: #F5F3F0;
     --serif: "Newsreader", Georgia, "Times New Roman", serif; --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
-      --card: #211B2E; --line: #3A3150; --road: #E8D5F5; --dash: #17131F; --ok: #7CCB9B; --logo: #F5F3F0; color-scheme: dark; }
+      --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; color-scheme: dark; }
   }
   :root[data-theme="dark"] { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
-    --card: #211B2E; --line: #3A3150; --road: #E8D5F5; --dash: #17131F; --ok: #7CCB9B; --logo: #F5F3F0; color-scheme: dark; }
-  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.5; }
-  .wrap { max-width: 880px; margin: 0 auto; padding-block: 28px 56px; padding-inline: 16px; }
-  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 12px 24px; }
-  .mark { width: 150px; height: auto; display: block; fill: var(--logo); }   /* the official wordmark: purple on paper, white on dark */
-  .cycle { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cool); }
-  .road { position: relative; height: 96px; margin: 18px 0 8px; overflow: hidden; }
-  .road svg { width: 100%; height: 100%; display: block; }
-  h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(30px, 5vw, 44px); line-height: 1.1; margin: 8px 0 4px; text-wrap: balance; }
-  .who { color: var(--cool); margin: 0 0 24px; }
-  .who b { color: var(--ink); font-weight: 500; }
-  h2 { font-family: var(--serif); font-weight: 500; font-size: 24px; margin: 36px 0 12px; }
-  .kras { display: grid; gap: 10px; }
-  .kra { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; align-items: baseline; }
-  .kra .bar { grid-column: 1 / -1; height: 6px; background: var(--tint); border-radius: 3px; overflow: hidden; }
-  .kra .bar i { display: block; height: 100%; width: var(--w); background: var(--purple); border-radius: 3px; transform-origin: left; }
-  .kra .w { font-variant-numeric: tabular-nums; color: var(--cool); }
-  .goals { display: grid; gap: 14px; }
-  .goal { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; }
-  .goal h3 { font-family: var(--serif); font-weight: 500; font-size: 21px; margin: 0 0 4px; }
-  .goal .kra-tag { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--purple); }
-  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px 20px; margin-top: 12px; }
-  .fact small { display: block; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cool); margin-bottom: 2px; }
+    --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; color-scheme: dark; }
+
+  body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55;
+         background-image: radial-gradient(var(--grain) 1px, transparent 1.2px); background-size: 7px 7px; }
+  .wrap { max-width: 920px; margin: 0 auto; padding-block: 24px 64px; padding-inline: 16px; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .mark { width: 128px; height: auto; display: block; fill: var(--purple); }
+  .kicker { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cool); text-align: right; line-height: 1.5; }
+
+  /* ─── the hero: the character at the start of the road ─── */
+  .hero { position: relative; margin-top: 18px; }
+  .stage { width: 100%; height: auto; display: block; overflow: visible; }
+  .hero h1 { font-family: var(--serif); font-weight: 500; font-size: clamp(34px, 6vw, 58px); line-height: 1.02; margin: 4px 0 6px; text-wrap: balance; letter-spacing: -0.01em; }
+  .hero .who { margin: 0; color: var(--cool); font-size: 17px; }
+  .hero .who b { color: var(--ink); font-weight: 500; }
+  .hero .story { font-family: var(--serif); font-style: italic; font-size: 21px; color: var(--deep); margin: 18px 0 0; max-width: 40ch; line-height: 1.35; }
+
+  /* ─── the journey: a road drawn between milestones ─── */
+  .journey { position: relative; margin-top: 44px; }
+  .journey h2 { font-family: var(--serif); font-weight: 500; font-size: 26px; margin: 0 0 4px; padding-left: 76px; }
+  .journey .sub { color: var(--cool); margin: 0 0 22px; max-width: 60ch; padding-left: 76px; }
+  .roadbed { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
+  .roadbed .ahead { fill: none; stroke: var(--faint); stroke-width: 3; stroke-dasharray: 9 11; stroke-linecap: round; }
+  .roadbed .drawn { fill: none; stroke: var(--stroke); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+  .roadbed .stone circle { fill: var(--paper); stroke: var(--stroke); stroke-width: 3; transition: fill .3s; }
+  .roadbed .stone text { font-family: var(--serif); font-size: 13px; fill: var(--ink); transition: fill .3s; }
+  .roadbed .stone.reached circle { fill: var(--purple); }
+  .roadbed .stone.reached text { fill: var(--paper); }
+  .milestones { position: relative; display: grid; gap: 30px; padding-left: 76px; }
+  .goal { background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 20px 22px; position: relative;
+          box-shadow: 0 1px 0 var(--line), 0 12px 30px -22px rgba(23, 19, 31, 0.35); }
+  .goal .tag { font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--purple); font-weight: 500; }
+  .goal h3 { font-family: var(--serif); font-weight: 500; font-size: 23px; line-height: 1.2; margin: 4px 0 10px; text-wrap: balance; }
+  .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px 22px; }
+  .fact small { display: block; font-size: 11.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cool); margin-bottom: 3px; }
   .fact { font-size: 15px; }
-  .reading { margin-top: 12px; display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; }
-  .reading .track { flex: 1; height: 8px; background: var(--tint); border-radius: 4px; overflow: hidden; }
-  .reading .track i { display: block; height: 100%; width: var(--w); background: var(--purple); border-radius: 4px; }
-  .reading .none { color: var(--cool); font-size: 14px; }
-  .score { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
-  .score div { background: var(--tint); border-radius: 10px; padding: 12px 14px; }
-  .score b { display: block; font-family: var(--serif); font-size: 26px; font-weight: 500; line-height: 1; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
-  .score span { font-size: 13px; color: var(--deep); }
-  .ack { background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--purple); border-radius: 12px; padding: 18px 20px; }
-  .ack .state { font-family: var(--serif); font-size: 22px; margin: 0 0 6px; }
-  .ack .state.ok { color: var(--ok); }
-  .ack a { display: inline-block; margin-top: 10px; padding: 10px 16px; border-radius: 8px; background: var(--purple); color: var(--paper); text-decoration: none; font-weight: 500; }
-  :root[data-theme="dark"] .ack a, :root:not([data-theme="light"]) .ack a { color: var(--paper); }
-  .ack p { margin: 6px 0 0; color: var(--cool); font-size: 14px; }
-  .empty { background: var(--tint); border-radius: 12px; padding: 20px; }
-  footer { margin-top: 40px; color: var(--cool); font-size: 13px; }
-  @media (prefers-reduced-motion: reduce) { .road svg #car { animation: none; } }
+  .reading { margin-top: 14px; display: flex; align-items: center; gap: 12px; font-variant-numeric: tabular-nums; font-size: 15px; }
+  .reading .track { flex: 1; height: 9px; background: var(--tint); border-radius: 5px; overflow: hidden; }
+  .reading .track i { display: block; height: 100%; width: var(--w); background: var(--purple); border-radius: 5px; }
+  .reading .none { color: var(--cool); font-size: 15px; font-style: italic; font-family: var(--serif); }
+
+  /* ─── the road signs: what you are measured on ─── */
+  .signs { margin-top: 48px; }
+  .signs h2, .dash h2, .start h2 { font-family: var(--serif); font-weight: 500; font-size: 26px; margin: 0 0 14px; }
+  .signrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; align-items: end; }
+  .sign { text-align: center; }
+  .sign .board { border: 2.5px solid var(--stroke); border-radius: 10px; padding: 12px 10px 10px; background: var(--card); min-height: 64px; display: flex; flex-direction: column; justify-content: center; }
+  .sign .board b { font-family: var(--serif); font-weight: 500; font-size: 30px; line-height: 1; color: var(--purple); font-variant-numeric: tabular-nums; }
+  .sign .board span { font-size: 13px; margin-top: 5px; color: var(--deep); line-height: 1.3; }
+  .sign .post { width: 4px; height: var(--h, 40px); margin: 0 auto; background: var(--stroke); border-radius: 0 0 2px 2px; }
+
+  /* ─── the dashboard: how the score is built ─── */
+  .dash { margin-top: 48px; display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 20px 32px; align-items: center; }
+  .dash h2 { grid-column: 1 / -1; }
+  .gauge { width: 100%; height: auto; display: block; }
+  .dash ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+  .dash li { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; font-size: 15px; }
+  .dash li i { width: 14px; height: 14px; border-radius: 4px; display: block; }
+  .dash li b { font-variant-numeric: tabular-nums; font-weight: 500; }
+  .dash p { grid-column: 1 / -1; color: var(--cool); margin: 4px 0 0; max-width: 70ch; }
+
+  /* ─── the start line: acknowledgement ─── */
+  .start { margin-top: 48px; }
+  .startline { display: grid; grid-template-columns: minmax(150px, 220px) minmax(0, 1fr); gap: 16px 28px; align-items: center;
+               background: var(--card); border: 1.5px solid var(--line); border-radius: 16px; padding: 22px 24px; }
+  .startline svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .startline .state { font-family: var(--serif); font-size: 24px; margin: 0 0 6px; }
+  .startline .state.ok { color: var(--ok); }
+  .startline p { margin: 0; color: var(--cool); font-size: 15px; }
+  .startline a { display: inline-block; margin-top: 12px; padding: 11px 18px; border-radius: 10px; background: var(--purple); color: var(--btn-text); text-decoration: none; font-weight: 500; }
+  .empty { background: var(--tint); border-radius: 14px; padding: 20px; font-family: var(--serif); font-size: 19px; margin-top: 30px; }
+  footer { margin-top: 44px; color: var(--cool); font-size: 13px; }
+
+  /* the character */
+  .yaar .body { fill: var(--purple); }
+  .yaar .eye { fill: var(--paper); }
+  .yaar .pupil { fill: var(--ink); }
+  .yaar .shine { fill: var(--paper); }
+  .yaar .lid { fill: var(--purple); }
+  .yaar .mouth { fill: var(--ink); opacity: 0.88; }
+  .yaar .teeth { fill: var(--paper); }
+  .yaar .lamp { fill: var(--glow); opacity: 0.9; }
+  .yaar .lampcore { fill: var(--paper); }
+  .yaar .shadow { fill: var(--ink); opacity: 0.1; }
+
+  @media (max-width: 640px) {
+    .milestones { padding-left: 54px; }
+    .journey h2, .journey .sub { padding-left: 54px; }
+    .dash { grid-template-columns: 1fr; }
+    .startline { grid-template-columns: 1fr; }
+    .hero .story { font-size: 19px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .roadbed .drawn { stroke-dashoffset: 0 !important; }
+  }
 </style>
+
+{% macro yaar(id, transform) %}<g id="{{ id }}" class="yaar"><g transform="{{ transform }}">
+  <ellipse class="shadow" cx="592" cy="700" rx="360" ry="22"/>
+  <g class="bumper">
+    <path class="body" d="M574.31,658.58h172.3c8.28,0,15.98-4.21,20.46-11.17l86.75-134.94c2.24-3.48,6.09-5.58,10.23-5.58h156.05c4.45,0,8.54-2.43,10.67-6.33l54.07-98.94c4.43-8.1-1.44-17.99-10.67-17.99h-167.16c-8.34,0-16.11,4.28-20.56,11.34l-67.11,106.26c-2.23,3.53-6.11,5.67-10.28,5.67h-443.33c-4.17,0-8.05-2.14-10.28-5.67l-67.11-106.26c-4.46-7.06-12.22-11.34-20.57-11.34H100.59c-9.24,0-15.1,9.89-10.67,17.99l54.07,98.94c2.13,3.9,6.22,6.33,10.67,6.33h156.05c4.14,0,7.99,2.11,10.23,5.58l86.75,134.94c4.48,6.96,12.18,11.17,20.46,11.17h146.17Z"/>
+    <path class="mouth" d="M386,496 L829,496 L896,390 L319,390 Z"/>
+    <path class="teeth" d="M424,462 Q607,506 792,462 L792,490 Q607,514 424,490 Z"/>
+    <circle class="lamp" cx="176" cy="440" r="38"/><circle class="lamp" cx="1010" cy="440" r="38"/>
+    <circle class="lampcore" cx="176" cy="440" r="16"/><circle class="lampcore" cx="1010" cy="440" r="16"/>
+  </g>
+  <g class="cabin-g">
+    <path class="body" d="M946.56,297.89H228.37c-12.32,0-20.43-12.84-15.13-23.97l92.03-193.16h563.33l93.06,193.09c5.36,11.12-2.74,24.03-15.09,24.03"/>
+    <g class="eye-l"><ellipse class="eye" cx="470" cy="196" rx="82" ry="70"/><circle class="pupil" cx="486" cy="204" r="30"/><circle class="shine" cx="500" cy="188" r="9"/><rect class="lid" x="382" y="118" width="176" height="0" rx="34"/></g>
+    <g class="eye-r"><ellipse class="eye" cx="704" cy="196" rx="82" ry="70"/><circle class="pupil" cx="720" cy="204" r="30"/><circle class="shine" cx="734" cy="188" r="9"/><rect class="lid" x="616" y="118" width="176" height="0" rx="34"/></g>
+  </g>
+</g></g>{% endmacro %}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
 <div class="wrap">
   <header>
-    <svg class="mark" viewBox="0 0 1568.01 349.5" role="img" aria-label="CarYaar" xmlns="http://www.w3.org/2000/svg"><path d="M252.5,283.93h65.11c3.13,0,6.04-1.59,7.73-4.22l32.78-51c.85-1.31,2.3-2.11,3.87-2.11h58.97c1.68,0,3.23-.92,4.03-2.39l20.43-37.39c1.67-3.06-.54-6.8-4.03-6.8h-63.17c-3.15,0-6.09,1.62-7.77,4.28l-25.36,40.16c-.84,1.33-2.31,2.14-3.89,2.14h-167.54c-1.58,0-3.04-.81-3.89-2.14l-25.36-40.16c-1.68-2.67-4.62-4.28-7.77-4.28h-63.17c-3.49,0-5.71,3.74-4.03,6.8l20.43,37.39c.81,1.47,2.35,2.39,4.03,2.39h58.97c1.56,0,3.02.8,3.87,2.11l32.78,51c1.69,2.63,4.6,4.22,7.73,4.22h55.24Z"/><path d="M393.18,147.62H121.77c-4.66,0-7.72-4.85-5.72-9.06l34.78-72.99h212.89l35.17,72.97c2.03,4.2-1.04,9.08-5.7,9.08"/><path d="M630.68,92.9h-78.75c-36.91,0-51.28,17.47-51.28,62.3v39.1c0,44.83,14.38,62.3,51.28,62.3h78.75c2.29,0,6.13-.95,6.13-7.28v-22.28c0-6.34-3.84-7.28-6.13-7.28h-77.88c-15.49,0-20.99-4.36-20.99-28.87v-32.28c0-21.3,3.17-28.87,20.99-28.87h77.88c2.29,0,6.13-.95,6.13-7.28v-22.28c0-6.34-3.84-7.28-6.13-7.28Z"/><path d="M788.38,236.14v-60.7c0-35.14-11.91-48.21-43.93-48.21h-75.43c-1.27,0-5.43.46-5.43,6.37v20.01c0,5.91,4.16,6.37,5.43,6.37h72.98c13.32,0,16.97,3.76,16.97,17.49h-69.12c-19.94,0-29.23,10.69-29.23,33.65v10.91c0,24.87,8.2,34.56,29.23,34.56h83.3c10.32,0,15.23-3.06,15.23-20.47ZM697.19,224.99c-6.31,0-7.34-1.05-7.34-7.5v-4.77c0-6.22,1.83-7.27,7.34-7.27h61.77v14.32c0,5.22-1.46,5.22-3.15,5.22h-58.63Z"/><path d="M908.95,127.23h-49c-31.9,0-43.76,13.06-43.76,48.21v73.89c0,6.34,3.84,7.28,6.13,7.28h17.15c2.29,0,6.13-.95,6.13-7.28v-67.52c0-16.9,2.2-21.82,16.79-21.82h46.55c1.27,0,5.43-.46,5.43-6.37v-20.01c0-5.91-4.16-6.37-5.43-6.37Z"/><path d="M1022.89,249.32v-43.03l62.55-105.49c1.09-2.03,1.17-4.21.2-5.83-.79-1.32-2.17-2.08-3.79-2.08h-23.45c-2.74,0-4.52,1.11-6.17,3.86l-44.23,75.95-44.03-75.9c-1.44-2.78-3.24-3.91-6.2-3.91h-24.5c-1.66,0-3.08.79-3.9,2.16-.97,1.63-.92,3.78.18,5.82l61.99,105.41v43.03c0,5.37,3.26,7.28,6.31,7.28h18.73c3.05,0,6.31-1.91,6.31-7.28Z"/><path d="M1205.25,256.61c10.32,0,15.23-3.06,15.23-20.47v-60.7c0-35.14-11.91-48.21-43.93-48.21h-75.43c-1.27,0-5.43.46-5.43,6.37v20.01c0,5.91,4.16,6.37,5.43,6.37h72.98c13.32,0,16.97,3.76,16.97,17.49h-69.12c-19.94,0-29.23,10.69-29.23,33.65v10.91c0,24.87,8.2,34.56,29.23,34.56h83.3ZM1121.95,217.49v-4.77c0-6.22,1.83-7.27,7.34-7.27h61.77v14.32c0,5.22-1.46,5.22-3.15,5.22h-58.63c-6.31,0-7.34-1.05-7.34-7.5Z"/><path d="M1372.56,175.43c0-35.14-11.91-48.21-43.93-48.21h-75.43c-1.27,0-5.43.46-5.43,6.37v20.01c0,5.91,4.16,6.37,5.43,6.37h72.98c13.32,0,16.97,3.76,16.97,17.49h-69.12c-19.94,0-29.23,10.69-29.23,33.65v10.91c0,24.87,8.2,34.56,29.23,34.56h83.3c10.32,0,15.23-3.06,15.23-20.47v-60.7ZM1343.15,205.45v14.32c0,5.22-1.46,5.22-3.15,5.22h-58.63c-6.31,0-7.34-1.05-7.34-7.5v-4.77c0-6.22,1.83-7.27,7.34-7.27h61.77Z"/><path d="M1429.79,249.32v-67.52c0-16.9,2.2-21.82,16.79-21.82h46.55c1.27,0,5.43-.46,5.43-6.37v-20.01c0-5.91-4.16-6.37-5.43-6.37h-49c-31.9,0-43.76,13.06-43.76,48.21v73.89c0,6.34,3.84,7.28,6.13,7.28h17.15c2.29,0,6.13-.95,6.13-7.28Z"/></svg>
-    <div class="cycle">Goals for {{ cycle.name }} · {{ cycle.start|day }} to {{ cycle.end|day }}</div>
+    <svg class="mark" viewBox="0 0 1568.01 349.5" role="img" aria-label="CarYaar" xmlns="http://www.w3.org/2000/svg">{{ WORDMARK|safe }}</svg>
+    <div class="kicker">{{ cycle.name }}<br>{{ cycle.start|day }} to {{ cycle.end|day }}</div>
   </header>
 
-  <div class="road" aria-hidden="true">
-    <svg viewBox="0 0 880 96" preserveAspectRatio="none">
-      <path id="lane" d="M-40,64 C120,40 220,88 380,60 S640,36 920,62" fill="none" stroke="var(--road)" stroke-width="2" stroke-dasharray="14 10" opacity="0.45"/>
-      <g id="car">
-        <path d="M-26,-6 L-18,-18 L14,-18 L26,-6 L30,-6 L30,4 L-30,4 L-30,-6 Z" fill="var(--purple)"/>
-        <rect x="-16" y="-15" width="12" height="8" rx="1.5" fill="var(--paper)" opacity="0.9"/>
-        <rect x="0" y="-15" width="12" height="8" rx="1.5" fill="var(--paper)" opacity="0.9"/>
-        <circle cx="-16" cy="6" r="5" fill="var(--deep)"/><circle cx="16" cy="6" r="5" fill="var(--deep)"/>
-        <circle cx="-16" cy="6" r="2" fill="var(--paper)"/><circle cx="16" cy="6" r="2" fill="var(--paper)"/>
-      </g>
+  <section class="hero">
+    <svg class="stage" viewBox="0 0 920 300" aria-hidden="true">
+      <path id="hero-road" d="M-20,246 C140,236 220,262 380,250 S640,232 940,248" fill="none" stroke="var(--faint)" stroke-width="3" stroke-dasharray="9 11" stroke-linecap="round" filter="url(#rough)"/>
+      <path id="hero-drawn" d="M-20,246 C140,236 220,262 380,250 S640,232 940,248" fill="none" stroke="var(--stroke)" stroke-width="3.5" stroke-linecap="round" filter="url(#rough)"/>
+      {{ yaar("hero-yaar", "translate(300,68) scale(0.27)") }}
+      <text x="0" y="292" font-family="Newsreader, Georgia, serif" font-style="italic" font-size="15" fill="var(--cool)">the road for this cycle</text>
     </svg>
-  </div>
-
-  <h1>{{ p.employee_name }}</h1>
-  <p class="who"><b>{{ p.designation }}</b> · {{ p.department }} · reports to <b>{{ p.manager_name }}</b></p>
+    <h1>{{ p.employee_name }}</h1>
+    <p class="who"><b>{{ p.designation }}</b> · {{ p.department }} · with <b>{{ p.manager_name }}</b> as your manager</p>
+    <p class="story">{% if goals %}{{ goals|length }} goals, one road. The meter reads it every night from the systems you already work in; you never have to report a number.{% else %}The road is drawn when your goals are set with your manager. This page is regenerated the moment they exist.{% endif %}</p>
+  </section>
 
   {% if goals %}
-  <h2>What you are measured on</h2>
-  <div class="kras">
-    {% for k in kras %}
-    <div class="kra">
-      <span>{{ k.kra }}</span><span class="w">{{ k.weight|num }}%</span>
-      <span class="bar"><i style="--w: {{ k.weight|num }}%"></i></span>
+  <section class="journey" id="journey">
+    <h2>Your milestones</h2>
+    <p class="sub">The road ahead is sketched. It draws itself as you pass each milestone, and the car moves with you.</p>
+    <svg class="roadbed" aria-hidden="true">
+      <path class="ahead" id="road-ahead" d="M0,0" filter="url(#rough)"/>
+      <path class="drawn" id="road-drawn" d="M0,0" filter="url(#rough)"/>
+      <g id="stones"></g>
+      {{ yaar("road-yaar", "scale(0.064)") }}
+    </svg>
+    <div class="milestones" id="milestones">
+      {% for g in goals %}
+      <article class="goal" data-goal="{{ loop.index }}">
+        <div class="tag">{{ g.kra }}{% if g.weight %} · {{ g.weight|num }}% of your goals{% endif %}</div>
+        <h3>{{ g.goal_name }}</h3>
+        <div class="facts">
+          <div class="fact"><small>Target</small>{{ g.target or "set with your manager" }}</div>
+          {% if g.baseline %}<div class="fact"><small>Where you start</small>{{ g.baseline }}</div>{% endif %}
+          <div class="fact"><small>Measured from</small>{{ g.source }}</div>
+          <div class="fact"><small>How</small>{{ g.how }}</div>
+        </div>
+        <div class="reading">
+          {% if g.progress is not none %}
+          <span class="track"><i style="--w: {{ g.progress|num }}%"></i></span>
+          <span>{{ g.progress|num }}% on {{ g.reading_date|day }}</span>
+          {% else %}
+          <span class="none">No reading yet. The first readings land on 01-Oct-2026; October is a learning month.</span>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
+  </section>
 
-  <h2>Your goals</h2>
-  <div class="goals">
-    {% for g in goals %}
-    <article class="goal">
-      <div class="kra-tag">{{ g.kra }}{% if g.weight %} · {{ g.weight|num }}% of your goals{% endif %}</div>
-      <h3>{{ g.goal_name }}</h3>
-      <div class="facts">
-        <div class="fact"><small>Target</small>{{ g.target or "set with your manager" }}</div>
-        {% if g.baseline %}<div class="fact"><small>Where you start</small>{{ g.baseline }}</div>{% endif %}
-        <div class="fact"><small>Measured from</small>{{ g.source }}</div>
-        <div class="fact"><small>How</small>{{ g.how }}</div>
+  <section class="signs">
+    <h2>What you are measured on</h2>
+    <div class="signrow">
+      {% for k in kras %}
+      <div class="sign">
+        <div class="board"><b>{{ k.weight|num }}%</b><span>{{ k.kra }}</span></div>
+        <div class="post" style="--h: {{ (20 + (k.weight|float) * 1.2)|round|int }}px"></div>
       </div>
-      <div class="reading">
-        {% if g.progress is not none %}
-        <span class="track"><i style="--w: {{ g.progress|num }}%"></i></span>
-        <span>{{ g.progress|num }}% on {{ g.reading_date|day }}</span>
-        {% else %}
-        <span class="none">No reading yet. The first readings land on 01-Oct-2026; October is a learning month.</span>
-        {% endif %}
-      </div>
-    </article>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
+  </section>
 
-  <h2>How the score is built</h2>
-  <div class="score">
-    {% for label, weight in score %}<div><b>{{ weight|num }}%</b><span>{{ label }}</span></div>{% endfor %}
-  </div>
-  <p class="who">Goals are measured by the goal meter from the systems of record. The feedback half comes from your manager at the reviews: mid-cycle on {{ cycle.mid_review|day }}, final on {{ cycle.final_review|day }}. Progress is written into the appraisal from 01-Nov-2026.</p>
+  <section class="dash">
+    <h2>How the score is built</h2>
+    <svg class="gauge" viewBox="0 0 300 175" aria-hidden="true">
+      <g id="gauge-arcs" transform="translate(150,150)"></g>
+      <g id="needle" transform="translate(150,150)"><path d="M-4,0 L0,-118 L4,0 Z" fill="var(--ink)"/><circle r="8" fill="var(--ink)"/><circle r="3.5" fill="var(--paper)"/></g>
+      <text x="150" y="170" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-size="14" fill="var(--cool)">goals 50, feedback 50</text>
+    </svg>
+    <ul>
+      {% for label, weight in score %}<li><i style="background: {{ ['var(--purple)', 'var(--deep)', 'var(--cool)', 'var(--glow)', 'var(--tint)'][loop.index0] }}"></i><span>{{ label }}</span><b>{{ weight|num }}%</b></li>{% endfor %}
+    </ul>
+    <p>Goals are measured by the goal meter from the systems of record. The feedback half comes from your manager at the reviews: mid-cycle on {{ cycle.mid_review|day }}, final on {{ cycle.final_review|day }}. Progress is written into the appraisal from 01-Nov-2026.</p>
+  </section>
   {% else %}
-  <div class="empty">There are no goals in the ERP for you in this cycle yet. Your manager sets them with you at the goal setting 1:1; this page is regenerated when they exist.</div>
+  <div class="empty">There are no goals in the ERP for you in this cycle yet. Your manager sets them with you at the goal setting 1:1.</div>
   {% endif %}
 
-  <h2>Your 1:1 and acknowledgement</h2>
-  <div class="ack">
-    {% if one_on_one %}
-    <p class="state {% if one_on_one.employee_acknowledged %}ok{% endif %}">Status: {{ ack_state }}</p>
-    <p>Goal setting 1:1 with {{ p.manager_name }} on {{ one_on_one.meeting_date|day }}. The acknowledgement is recorded in the ERP, on your own record, with your own login.</p>
-    {% if not one_on_one.employee_acknowledged %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record in the ERP and press Acknowledge</a>{% else %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record</a>{% endif %}
-    {% else %}
-    <p class="state">1:1 not scheduled yet</p>
-    <p>Your manager creates the goal setting 1:1 in the ERP; you acknowledge the goals there afterwards.</p>
-    {% endif %}
-  </div>
+  <section class="start">
+    <h2>Your 1:1 and the start line</h2>
+    <div class="startline">
+      <svg viewBox="0 0 220 120" aria-hidden="true">
+        <path d="M0,96 C40,90 80,102 140,94 S200,88 220,94" fill="none" stroke="var(--stroke)" stroke-width="3" stroke-linecap="round" filter="url(#rough)"/>
+        <g transform="translate(150,10)">
+          <rect x="0" y="0" width="4" height="86" fill="var(--stroke)"/>
+          {% if one_on_one and one_on_one.employee_acknowledged %}
+          <g transform="translate(4,2)">{% for r in range(3) %}{% for c in range(4) %}<rect x="{{ c * 12 }}" y="{{ r * 10 }}" width="12" height="10" fill="{{ 'var(--ink)' if (r + c) % 2 == 0 else 'var(--paper)' }}" stroke="var(--stroke)" stroke-width="0.5"/>{% endfor %}{% endfor %}</g>
+          {% else %}
+          <path d="M4,4 L52,14 L4,30 Z" fill="var(--tint)" stroke="var(--stroke)" stroke-width="2"/>
+          {% endif %}
+        </g>
+        {{ yaar("start-yaar", "translate(26,44) scale(0.072)") }}
+      </svg>
+      <div>
+        {% if one_on_one %}
+        <p class="state {% if one_on_one.employee_acknowledged %}ok{% endif %}">Status: {{ ack_state }}</p>
+        <p>Goal setting 1:1 with {{ p.manager_name }} on {{ one_on_one.meeting_date|day }}. The acknowledgement is recorded in the ERP, on your own record, with your own login. That is the start line: the road counts from there.</p>
+        {% if not one_on_one.employee_acknowledged %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record in the ERP and press Acknowledge</a>{% else %}<a href="https://erp.caryaar.com/app/goal-one-on-one/{{ one_on_one.name }}">Open your 1:1 record</a>{% endif %}
+        {% else %}
+        <p class="state">1:1 not scheduled yet</p>
+        <p>Your manager creates the goal setting 1:1 in the ERP; you acknowledge the goals there afterwards, and the road counts from that day.</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
 
   <footer>Generated from the ERP on {{ generated_on|day }}. Questions go to your manager or to humanresource@caryaar.com.</footer>
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/ScrollTrigger.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.13.0/MotionPathPlugin.min.js"></script>
 <script>
-  (function () {
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (!window.gsap || reduce) return;
-    gsap.registerPlugin(MotionPathPlugin);
-    gsap.set("#car", { transformOrigin: "50% 50%" });
-    gsap.to("#car", { duration: 42, repeat: -1, ease: "none",
-      motionPath: { path: "#lane", align: "#lane", alignOrigin: [0.5, 0.75], autoRotate: true } });
-    gsap.to("#car", { y: "-=1.5", duration: 0.9, yoyo: true, repeat: -1, ease: "sine.inOut" });
-    gsap.from(".goal", { y: 16, duration: 0.9, stagger: 0.12, ease: "power2.out", clearProps: "transform" });
-    gsap.from(".kra .bar i, .reading .track i", { scaleX: 0, duration: 1.4, ease: "power3.out", stagger: 0.08, clearProps: "transform" });
-  })();
+(function () {
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var score = {{ score|tojson }};
+  var colors = ["var(--purple)", "var(--deep)", "var(--cool)", "var(--glow)", "var(--tint)"];
+
+  // the gauge is drawn at rest, always
+  var arcs = document.getElementById("gauge-arcs");
+  if (arcs) {
+    var total = score.reduce(function (s, x) { return s + x[1]; }, 0), a0 = Math.PI;
+    score.forEach(function (row, i) {
+      var a1 = a0 - (row[1] / total) * Math.PI, r1 = 128, r0 = 96;
+      var p = ["M", r0 * Math.cos(a0), -r0 * Math.sin(a0), "L", r1 * Math.cos(a0), -r1 * Math.sin(a0),
+               "A", r1, r1, 0, 0, 1, r1 * Math.cos(a1), -r1 * Math.sin(a1),
+               "L", r0 * Math.cos(a1), -r0 * Math.sin(a1), "A", r0, r0, 0, 0, 0, r0 * Math.cos(a0), -r0 * Math.sin(a0), "Z"].join(" ");
+      var el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      el.setAttribute("d", p); el.setAttribute("fill", colors[i]); el.setAttribute("stroke", "var(--paper)"); el.setAttribute("stroke-width", "2");
+      arcs.appendChild(el); a0 = a1;
+    });
+  }
+
+  // the road between milestones is built from where the cards actually sit
+  var journey = document.getElementById("journey"), cards = Array.prototype.slice.call(document.querySelectorAll(".goal"));
+  var ahead = document.getElementById("road-ahead"), drawn = document.getElementById("road-drawn"), stones = document.getElementById("stones");
+  function buildRoad() {
+    if (!journey || !cards.length) return null;
+    var box = journey.getBoundingClientRect(), list = document.getElementById("milestones").getBoundingClientRect();
+    var x = (box.width > 640) ? 38 : 27, top = list.top - box.top, pts = [[x, top - 6]];
+    cards.forEach(function (c) { var r = c.getBoundingClientRect(); pts.push([x, r.top - box.top + r.height / 2]); });
+    pts.push([x, list.bottom - box.top + 10]);
+    var d = "M" + pts[0][0] + "," + pts[0][1];
+    for (var i = 1; i < pts.length; i++) {
+      var p0 = pts[i - 1], p1 = pts[i], my = (p0[1] + p1[1]) / 2, wob = (i % 2 ? 1 : -1) * Math.min(14, (p1[1] - p0[1]) / 6);
+      d += " C" + (p0[0] + wob) + "," + my + " " + (p1[0] - wob) + "," + my + " " + p1[0] + "," + p1[1];
+    }
+    ahead.setAttribute("d", d); drawn.setAttribute("d", d);
+    stones.innerHTML = "";
+    pts.slice(1, -1).forEach(function (p, i) {
+      var g = document.createElementNS("http://www.w3.org/2000/svg", "g");
+      g.setAttribute("class", "stone");
+      var c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", p[0]); c.setAttribute("cy", p[1]); c.setAttribute("r", 14);
+      var t = document.createElementNS("http://www.w3.org/2000/svg", "text");
+      t.setAttribute("x", p[0]); t.setAttribute("y", p[1] + 4.5); t.setAttribute("text-anchor", "middle"); t.textContent = i + 1;
+      g.appendChild(c); g.appendChild(t); stones.appendChild(g);
+    });
+    var len = drawn.getTotalLength();
+    drawn.style.strokeDasharray = len; drawn.style.strokeDashoffset = reduce ? 0 : len;
+    return { d: d, len: len, pts: pts };
+  }
+  var road = buildRoad();
+
+  if (!window.gsap) return;
+  gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+
+  // the character idles: it breathes, glances around, blinks, the headlights warm up; now and then a small hop
+  function idle(sel, s) {
+    gsap.set(sel, { transformOrigin: "50% 100%" });
+    gsap.to(sel, { y: "-=" + (3 * s), duration: 1.7, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    gsap.to(sel, { rotation: 1.2, duration: 2.9, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.4 });
+    gsap.to(sel + " .pupil, " + sel + " .shine", { x: 14 * s, duration: 2.6, yoyo: true, repeat: -1, ease: "sine.inOut", delay: Math.random() });
+    var blink = gsap.timeline({ repeat: -1, repeatDelay: 2.8 + Math.random() * 3 });
+    blink.to(sel + " .lid", { attr: { height: 150 }, duration: 0.08, ease: "power1.in" }).to(sel + " .lid", { attr: { height: 0 }, duration: 0.16, ease: "power1.out" });
+    gsap.to(sel + " .lamp", { opacity: 0.45, duration: 1.2, yoyo: true, repeat: -1, ease: "sine.inOut" });
+    var hop = gsap.timeline({ repeat: -1, repeatDelay: 6 + Math.random() * 4, delay: 2 });
+    hop.to(sel, { scaleY: 0.94, scaleX: 1.04, duration: 0.14, ease: "power1.in" })
+       .to(sel, { scaleY: 1.06, scaleX: 0.97, y: "-=" + (10 * s), duration: 0.22, ease: "power2.out" })
+       .to(sel, { scaleY: 1, scaleX: 1, y: "+=" + (10 * s), duration: 0.3, ease: "bounce.out" });
+  }
+
+  // hero: the road draws itself under the character, which settles in with a small bounce and then idles
+  var heroDrawn = document.getElementById("hero-drawn");
+  if (heroDrawn) {
+    var hl = heroDrawn.getTotalLength();
+    heroDrawn.style.strokeDasharray = hl;
+    if (reduce) {
+      heroDrawn.style.strokeDashoffset = 0;
+    } else {
+      heroDrawn.style.strokeDashoffset = hl;
+      gsap.to(heroDrawn, { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" });
+      gsap.from("#hero-yaar", { scale: 0.86, y: 12, transformOrigin: "50% 100%", duration: 1.1, ease: "back.out(1.6)", delay: 0.5,
+        onComplete: function () { idle("#hero-yaar", 1); } });
+    }
+  }
+  if (!reduce) { idle("#start-yaar", 0.5); }
+
+  // the journey: scrubbed by scroll, the road draws itself and the character rides down it, upright, facing you
+  if (road && !reduce) {
+    var car = "#road-yaar";
+    var st = gsap.timeline({ scrollTrigger: { trigger: "#milestones", start: "top 70%", end: "bottom 60%", scrub: 0.6,
+      onUpdate: function (self) {
+        var n = Math.round(self.progress * (road.pts.length - 2));
+        document.querySelectorAll(".stone").forEach(function (s, i) { s.classList.toggle("reached", i < n); });
+      } } });
+    st.to(drawn, { strokeDashoffset: 0, ease: "none" }, 0)
+      .to(car, { ease: "none", motionPath: { path: "#road-drawn", align: "#road-drawn", alignOrigin: [0.5, 0.97], autoRotate: false, start: 0, end: 1 } }, 0);
+    idle("#road-yaar", 0.35);
+    gsap.from(".goal", { y: 18, duration: 0.8, ease: "power2.out", stagger: 0.1, clearProps: "transform" });
+    gsap.from(".sign .board", { y: 10, duration: 0.7, ease: "power2.out", stagger: 0.08, clearProps: "transform",
+      scrollTrigger: { trigger: ".signs", start: "top 85%" } });
+  } else if (road) {
+    gsap.set("#road-yaar", { motionPath: { path: "#road-drawn", align: "#road-drawn", alignOrigin: [0.5, 0.97], autoRotate: false, start: 1, end: 1 } });
+    document.querySelectorAll(".stone").forEach(function (s) { s.classList.add("reached"); });
+  }
+
+  // the gauge needle rests on the goals half and breathes a little
+  if (!reduce) gsap.fromTo("#needle", { rotation: -92, transformOrigin: "0 0" }, { rotation: -88, duration: 3, yoyo: true, repeat: -1, ease: "sine.inOut" });
+  else gsap.set("#needle", { rotation: -90, transformOrigin: "0 0" });
+
+  var resizeTimer;
+  window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { road = buildRoad(); ScrollTrigger.refresh(); }, 150); });
+})();
 </script>

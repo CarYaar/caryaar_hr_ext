@@ -31,6 +31,8 @@ from caryaar_hr_ext.performance import one_on_one_rules as rules  # noqa: E402
 
 CYCLE = {"name": "Oct 2026 - Mar 2027", "start": "2026-10-01", "end": "2027-03-31",
          "mid_review": "2027-01-15", "final_review": "2027-03-15"}
+WORDMARK = "".join(f'<path d="{d}"/>' for d in __import__("re").findall(
+    r'<path class="st0" d="([^"]+)"', (HERE / "wordmark.svg").read_text()))
 SCORE = [["Goals", 50], ["Competencies", 20], ["Behaviour and culture", 12.5], ["Process adherence", 7.5],
          ["Initiative and innovation", 10]]
 
@@ -49,7 +51,8 @@ def render(person: dict, generated_on: date | None = None) -> str:
     ack = rules.acknowledgement_state(bool(one and one.get("employee_acknowledged")), one.get("acknowledged_on") if one else None)
     return env.get_template("template.html").render(
         p=person, cycle=person.get("cycle") or CYCLE, kras=person.get("kras") or [], goals=person.get("goals") or [],
-        one_on_one=one, ack_state=ack, score=person.get("score") or SCORE, generated_on=generated_on or date.today())
+        one_on_one=one, ack_state=ack, score=person.get("score") or SCORE, generated_on=generated_on or date.today(),
+        WORDMARK=WORDMARK)
 
 
 # ─── the ERP, read only except the two named writes ───────────────────────────
