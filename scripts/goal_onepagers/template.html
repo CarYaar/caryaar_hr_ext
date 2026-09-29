@@ -112,7 +112,9 @@
   }
 </style>
 
-{% macro yaar(id, transform) %}<g id="{{ id }}" class="yaar"><g transform="{{ transform }}">
+{# three groups: the outer one is the motion path's target, the middle one holds the placement and scale and is never
+   animated (GSAP drops an SVG group's attribute transform when it takes the group over), the rig is what idles #}
+{% macro yaar(id, transform) %}<g id="{{ id }}" class="yaar"><g transform="{{ transform }}"><g class="rig">
   <ellipse class="shadow" cx="592" cy="700" rx="360" ry="22"/>
   <g class="bumper">
     <path class="body" d="M574.31,658.58h172.3c8.28,0,15.98-4.21,20.46-11.17l86.75-134.94c2.24-3.48,6.09-5.58,10.23-5.58h156.05c4.45,0,8.54-2.43,10.67-6.33l54.07-98.94c4.43-8.1-1.44-17.99-10.67-17.99h-167.16c-8.34,0-16.11,4.28-20.56,11.34l-67.11,106.26c-2.23,3.53-6.11,5.67-10.28,5.67h-443.33c-4.17,0-8.05-2.14-10.28-5.67l-67.11-106.26c-4.46-7.06-12.22-11.34-20.57-11.34H100.59c-9.24,0-15.1,9.89-10.67,17.99l54.07,98.94c2.13,3.9,6.22,6.33,10.67,6.33h156.05c4.14,0,7.99,2.11,10.23,5.58l86.75,134.94c4.48,6.96,12.18,11.17,20.46,11.17h146.17Z"/>
@@ -125,7 +127,7 @@
     <g class="eye-l"><circle class="eye" cx="492" cy="198" r="44"/><circle class="pupil" cx="500" cy="204" r="19"/><circle class="shine" cx="508" cy="194" r="6"/><rect class="lid" x="444" y="150" width="96" height="0" rx="20"/></g>
     <g class="eye-r"><circle class="eye" cx="692" cy="198" r="44"/><circle class="pupil" cx="700" cy="204" r="19"/><circle class="shine" cx="708" cy="194" r="6"/><rect class="lid" x="644" y="150" width="96" height="0" rx="20"/></g>
   </g>
-</g></g>{% endmacro %}
+</g></g></g>{% endmacro %}
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <filter id="rough" x="-5%" y="-5%" width="110%" height="110%">
@@ -306,7 +308,7 @@
 
   // the character idles: it breathes, glances around, blinks, the headlights warm up; now and then a small hop
   function idle(outer, s) {
-    var sel = outer + " > g";                       // the inner group idles; the outer one is the motion path's
+    var sel = outer + " .rig";                      // the rig idles; the outer group is the motion path's, the middle one keeps the scale
     gsap.set(sel, { transformOrigin: "50% 100%" });
     gsap.to(sel, { y: "-=" + (3 * s), duration: 1.7, yoyo: true, repeat: -1, ease: "sine.inOut" });
     gsap.to(sel, { rotation: 0.8, duration: 3.4, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.4 });
@@ -330,7 +332,7 @@
     } else {
       heroDrawn.style.strokeDashoffset = hl;
       gsap.to(heroDrawn, { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" });
-      gsap.from("#hero-yaar > g", { scale: 0.86, y: 12, transformOrigin: "50% 100%", duration: 1.1, ease: "back.out(1.6)", delay: 0.5,
+      gsap.from("#hero-yaar .rig", { scale: 0.86, y: 12, transformOrigin: "50% 100%", duration: 1.1, ease: "back.out(1.6)", delay: 0.5,
         onComplete: function () { idle("#hero-yaar", 1); } });
     }
   }

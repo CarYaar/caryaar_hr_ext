@@ -23,3 +23,15 @@ def test_page_states():
     empty = dict(FIX, goals=[])
     html = build.render(empty)
     assert "no goals" in html.lower() and "Anagha Khedekar" in html
+
+
+def test_character_scale_lives_on_a_group_the_animation_never_touches():
+    """29-Sep-2026: GSAP drops an SVG group's attribute transform when it takes the group over, and the
+    idle hop ends on scaleX/scaleY 1. With the static scale on the idled group the hero grew to 1007px
+    at a 1000px viewport (the road car by 15x). The scale group must wrap a separate rig that idles."""
+    html = build.render(json.loads((Path(build.HERE) / "fixture_anagha.json").read_text()))
+    for transform in ("translate(300,68) scale(0.27)", "scale(0.064)", "translate(26,44) scale(0.072)"):
+        assert f'<g transform="{transform}"><g class="rig">' in html, transform
+    assert 'outer + " .rig"' in html                                   # the idle helper targets the rig
+    assert '"#hero-yaar .rig"' in html                                  # and so does the hero entrance
+    assert '"#hero-yaar > g"' not in html and 'outer + " > g"' not in html
