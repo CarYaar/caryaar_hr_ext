@@ -15,7 +15,7 @@
  "owner": "Administrator",
  "modified_by": "Administrator",
  "creation": "2026-09-26 18:00:00.000000",
- "modified": "2026-09-29 13:00:00.000000",
+ "modified": "2026-09-29 16:00:00.000000",
  "field_order": [
   "employee",
   "employee_name",
@@ -348,7 +348,7 @@
    "fieldname": "section_ops",
    "fieldtype": "Section Break",
    "label": "Operations",
-   "depends_on": "eval:doc.jobs_moved || doc.estimates_created || doc.partner_changes || doc.sweep_items_closed || /Operations/.test(doc.department || '')"
+   "depends_on": "eval:doc.jobs_moved || doc.estimates_created || doc.partner_changes || doc.sweep_items_closed"
   },
   {
    "fieldname": "jobs_moved",
@@ -382,7 +382,7 @@
    "fieldname": "section_partners",
    "fieldtype": "Section Break",
    "label": "Service Partners",
-   "depends_on": "eval:doc.partners_created || doc.partners_verified || doc.partners_activated || doc.partner_documents || doc.agreements_created || doc.agreements_approved || doc.agreements_signed || doc.partner_checkins_closed || /Workshop Relations|Partnerships/.test(doc.department || '')"
+   "depends_on": "eval:doc.partners_created || doc.partners_verified || doc.partners_activated || doc.partner_documents || doc.agreements_created || doc.agreements_approved || doc.agreements_signed || doc.partner_checkins_closed || /Workshop Relations/.test(doc.department || '')"
   },
   {
    "fieldname": "partners_created",

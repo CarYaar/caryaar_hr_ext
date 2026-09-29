@@ -166,3 +166,10 @@ def test_a_cycle_is_live_by_its_dates_not_only_its_status():
     assert mr.cycle_is_live("Not Started", date(2026, 10, 1), date(2027, 3, 31), date(2026, 9, 30)) is True
     assert mr.cycle_is_live("Not Started", date(2026, 10, 1), date(2027, 3, 31), date(2026, 9, 30), started_only=True) is False
     assert mr.cycle_is_live("In Progress", None, None, d) is True
+
+
+def test_metric_keys_text_lists_every_key_by_role():
+    text = mr.metric_keys_text()
+    for key in mr.SOURCE_OF:
+        assert key in text, key
+    assert text.index("agents:") < text.index("marketing:") < text.index("finance:")

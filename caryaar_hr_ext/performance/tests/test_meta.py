@@ -317,3 +317,14 @@ def test_employee_reads_own_goal_meter_readings():
     assert f["employee"]["fetch_from"] == "goal.employee"
     perms = {p["role"]: p for p in d["permissions"]}
     assert perms["Employee"].get("read") == 1 and not perms["Employee"].get("write")
+
+
+def test_goal_meter_metric_field_describes_every_key_and_role_sections_hide_when_empty():
+    from caryaar_hr_ext.performance import meter_rules as mr
+
+    f = _fields(_load("goal_meter"))
+    for key in mr.SOURCE_OF:
+        assert key in f["metric"]["description"], key
+    w = _fields(_load("work_activity_day"))
+    assert "Operations" not in w["section_ops"]["depends_on"]           # Nayan sits in Technology; agents sit in Operations
+    assert "Partnerships" not in w["section_partners"]["depends_on"]    # Zoeb's row carries no partner keys

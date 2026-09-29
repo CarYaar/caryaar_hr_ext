@@ -340,7 +340,8 @@ class FakeFrappe:
         return u
 
 
-TARGET_MODULES = ("caryaar_hr_ext.performance.meter", "caryaar_hr_ext.performance.review_pack",
+TARGET_MODULES = (
+    "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter","caryaar_hr_ext.performance.meter", "caryaar_hr_ext.performance.review_pack",
                   "caryaar_hr_ext.performance.setup", "caryaar_hr_ext.performance.api",
                   "caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter_reading.goal_meter_reading")
 
@@ -371,6 +372,7 @@ def install(monkeypatch, today: date, roles=("HR Manager",), user="hr@caryaar.te
             importlib.import_module(mod)
     ctrl = sys.modules[TARGET_MODULES[-1]]
     fake.controllers["Goal Meter Reading"] = ctrl.GoalMeterReading
+    fake.controllers["Goal Meter"] = sys.modules["caryaar_hr_ext.caryaar_hr_ext.doctype.goal_meter.goal_meter"].GoalMeter
     return fake
 
 

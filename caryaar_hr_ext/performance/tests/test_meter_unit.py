@@ -281,3 +281,16 @@ def test_a_goal_without_a_value_gets_no_reading_row(monkeypatch):
     out = meter.run_meter(as_of=date(2026, 10, 2))
     assert "HR-GOAL-1|2026-10-02" not in fake.db.store.get("Goal Meter Reading", {})
     assert out["no_value"] == 1 and out["readings"] == 0
+
+
+def test_goal_meter_refuses_a_metric_key_the_meter_does_not_know(monkeypatch):
+    # a misspelt key used to save fine and then silently produce no reading, forever
+    stub.install(monkeypatch, date(2026, 10, 20))
+    import frappe
+
+    bad = frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Ratio to target", "metric": "jobs_from_booking"})
+    with pytest.raises(frappe.ValidationError, match="jobs_from_booking"):
+        bad.validate()
+    frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Ratio to target", "metric": "jobs_from_bookings"}).validate()
+    frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Manual", "metric": ""}).validate()
+    frappe.get_doc({"doctype": "Goal Meter", "goal": "HR-GOAL-1", "method": "Plane module"}).validate()

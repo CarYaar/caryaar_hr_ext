@@ -121,6 +121,23 @@ ROLE_METRICS = ("jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings
                 "jobs_moved",                                                                      # ops
                 "partners_activated", "agreements_signed",                                         # Service Partners
                 "payouts_triggered", "unpaid_cleared")                                             # finance
+METRIC_ROLES: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("agents", ("conversion_pct", "followups_on_time_pct", "leads_statused_48h_pct",
+                "jobs_from_bookings", "bookings_to_jobs_pct", "calls_to_bookings_pct")),
+    ("marketing", ("campaigns_sent", "campaign_leads_reached", "creatives_approved", "leads_from_channels")),
+    ("operations", ("jobs_moved",)),
+    ("service partners", ("partners_activated", "agreements_signed")),
+    ("finance", ("payouts_triggered", "unpaid_cleared")),
+    ("tech", ("incidents_fixed_24h_pct", "support_on_time_pct", "release_bugs_14d")),
+    ("everyone", ("module_completion", "wiki_pages")),
+)
+
+
+def metric_keys_text() -> str:
+    """The metric keys HR may put on a Goal Meter, by role (the Setup page and the validation error)."""
+    return "; ".join(f"{role}: {', '.join(keys)}" for role, keys in METRIC_ROLES)
+
+
 SOURCE_OF = {"conversion_pct": "CY Admin", "followups_on_time_pct": "CY Admin", "leads_statused_48h_pct": "CY Admin",
              "module_completion": "Plane items", "incidents_fixed_24h_pct": "Plane items",
              "support_on_time_pct": "Plane items", "release_bugs_14d": "Plane items", "wiki_pages": "ERP",
