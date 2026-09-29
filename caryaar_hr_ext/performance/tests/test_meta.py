@@ -438,3 +438,10 @@ def test_activity_board_page_is_wired_for_hr_with_one_filter_bar():
     src = (APP / "performance" / "api.py").read_text()
     body = src.split("def activity_board(", 1)[1].split("\ndef ", 1)[0]
     assert "@frappe.whitelist()" in src.split("def activity_board(", 1)[0][-200:] and 'frappe.only_for(("HR Manager", "System Manager"))' in body
+
+
+def test_one_on_one_goal_rows_hold_a_full_target_sentence():
+    """29-Sep-2026: Shruti's 1:1 record was refused because a manual goal's Target line (150 characters)
+    did not fit the 140-character Data field on the goals row. The row must take a sentence."""
+    fields = _fields(_load("goal_one_on_one_goal"))
+    assert fields["target_text"]["fieldtype"] == "Small Text" and fields["measured_from"]["fieldtype"] == "Small Text"

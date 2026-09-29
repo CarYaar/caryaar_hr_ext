@@ -1,18 +1,9 @@
 {
- "doctype": "DocType",
- "module": "Caryaar Hr Ext",
- "custom": 0,
- "istable": 1,
- "issingle": 0,
- "engine": "InnoDB",
- "track_changes": 0,
- "owner": "Administrator",
- "modified_by": "Administrator",
+ "autoname": "hash",
  "creation": "2026-09-28 20:30:00.000000",
- "name": "Goal One on One Goal",
- "modified": "2026-09-30 10:00:00.000000",
- "sort_field": "modified",
- "sort_order": "DESC",
+ "custom": 0,
+ "doctype": "DocType",
+ "engine": "InnoDB",
  "field_order": [
   "goal",
   "goal_name",
@@ -26,49 +17,58 @@
   {
    "fieldname": "goal",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Goal",
-   "options": "Goal",
-   "in_list_view": 1
+   "options": "Goal"
   },
   {
+   "columns": 3,
    "fieldname": "goal_name",
    "fieldtype": "Data",
-   "label": "Goal",
    "in_list_view": 1,
-   "columns": 3
+   "label": "Goal"
   },
   {
    "fieldname": "kra",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "KRA",
-   "options": "KRA",
-   "in_list_view": 1
+   "options": "KRA"
   },
   {
    "fieldname": "weight",
    "fieldtype": "Percent",
-   "label": "Weight",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "label": "Weight"
   },
   {
    "fieldname": "target_text",
-   "fieldtype": "Data",
-   "label": "Target",
-   "in_list_view": 1
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "Target"
   },
   {
    "fieldname": "measured_from",
-   "fieldtype": "Data",
+   "fieldtype": "Small Text",
    "label": "Measured from"
   },
   {
    "fieldname": "progress",
    "fieldtype": "Percent",
-   "label": "Progress",
-   "in_list_view": 1
+   "in_list_view": 1,
+   "label": "Progress"
   }
  ],
+ "issingle": 0,
+ "istable": 1,
+ "modified": "2026-09-30 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Caryaar Hr Ext",
+ "name": "Goal One on One Goal",
+ "naming_rule": "Random",
+ "owner": "Administrator",
  "permissions": [],
- "autoname": "hash",
- "naming_rule": "Random"
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "track_changes": 0
 }
