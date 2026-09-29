@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>{{ p.employee_name }} goals</title>
 <meta name="description" content="Goals for the {{ cycle.name }} cycle as a road: every goal a milestone, and where to acknowledge them.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -7,15 +8,15 @@
   :root {
     --paper: #F5F3F0; --ink: #17131F; --purple: #6D28D9; --tint: #E8D5F5; --cool: #8E86AA; --deep: #2B2440;
     --card: #FFFFFF; --line: #DDD6E6; --stroke: #2B2440; --faint: rgba(43, 36, 64, 0.22); --ok: #2E7D4F; --glow: #FFD47A;
-    --grain: rgba(23, 19, 31, 0.035); --btn-text: #F5F3F0;
+    --grain: rgba(23, 19, 31, 0.035); --btn-text: #F5F3F0; --eye: #F5F3F0; --seg5: #B9AFD6;
     --serif: "Newsreader", Georgia, "Times New Roman", serif; --sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
-      --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; color-scheme: dark; }
+      --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; --eye: #F5F3F0; --seg5: #6E6390; color-scheme: dark; }
   }
   :root[data-theme="dark"] { --paper: #17131F; --ink: #F5F3F0; --purple: #C9A6F0; --tint: #2B2440; --cool: #A9A1C4; --deep: #E8D5F5;
-    --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; color-scheme: dark; }
+    --card: #211B2E; --line: #3A3150; --stroke: #E8D5F5; --faint: rgba(232, 213, 245, 0.25); --ok: #7CCB9B; --glow: #FFD47A; --grain: rgba(245, 243, 240, 0.03); --btn-text: #17131F; --eye: #F5F3F0; --seg5: #6E6390; color-scheme: dark; }
 
   body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.55;
          background-image: radial-gradient(var(--grain) 1px, transparent 1.2px); background-size: 7px 7px; }
@@ -90,13 +91,13 @@
 
   /* the character */
   .yaar .body { fill: var(--purple); }
-  .yaar .eye { fill: var(--paper); }
+  .yaar .eye { fill: var(--eye); }
   .yaar .pupil { fill: var(--ink); }
-  .yaar .shine { fill: var(--paper); }
+  .yaar .shine { fill: var(--eye); }
   .yaar .lid { fill: var(--purple); }
-  .yaar .smile { fill: none; stroke: var(--paper); stroke-width: 22; stroke-linecap: round; }
+  .yaar .smile { fill: none; stroke: var(--eye); stroke-width: 22; stroke-linecap: round; }
   .yaar .lamp { fill: var(--glow); opacity: 0.85; }
-  .yaar .lampcore { fill: var(--paper); }
+  .yaar .lampcore { fill: var(--eye); }
   .yaar .shadow { fill: var(--ink); opacity: 0.1; }
 
   @media (max-width: 640px) {
@@ -206,7 +207,7 @@
       <text x="150" y="170" text-anchor="middle" font-family="Newsreader, Georgia, serif" font-size="14" fill="var(--cool)">goals 50, feedback 50</text>
     </svg>
     <ul>
-      {% for label, weight in score %}<li><i style="background: {{ ['var(--purple)', 'var(--deep)', 'var(--cool)', 'var(--glow)', 'var(--tint)'][loop.index0] }}"></i><span>{{ label }}</span><b>{{ weight|num }}%</b></li>{% endfor %}
+      {% for label, weight in score %}<li><i style="background: {{ ['var(--purple)', 'var(--deep)', 'var(--cool)', 'var(--glow)', 'var(--seg5)'][loop.index0] }}"></i><span>{{ label }}</span><b>{{ weight|num }}%</b></li>{% endfor %}
     </ul>
     <p>Goals are measured by the goal meter from the systems of record. The feedback half comes from your manager at the reviews: mid-cycle on {{ cycle.mid_review|day }}, final on {{ cycle.final_review|day }}. Progress is written into the appraisal from 01-Nov-2026.</p>
   </section>
@@ -252,7 +253,7 @@
 (function () {
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var score = {{ score|tojson }};
-  var colors = ["var(--purple)", "var(--deep)", "var(--cool)", "var(--glow)", "var(--tint)"];
+  var colors = ["var(--purple)", "var(--deep)", "var(--cool)", "var(--glow)", "var(--seg5)"];
 
   // the gauge is drawn at rest, always
   var arcs = document.getElementById("gauge-arcs");
@@ -304,7 +305,8 @@
   gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
   // the character idles: it breathes, glances around, blinks, the headlights warm up; now and then a small hop
-  function idle(sel, s) {
+  function idle(outer, s) {
+    var sel = outer + " > g";                       // the inner group idles; the outer one is the motion path's
     gsap.set(sel, { transformOrigin: "50% 100%" });
     gsap.to(sel, { y: "-=" + (3 * s), duration: 1.7, yoyo: true, repeat: -1, ease: "sine.inOut" });
     gsap.to(sel, { rotation: 0.8, duration: 3.4, yoyo: true, repeat: -1, ease: "sine.inOut", delay: 0.4 });
@@ -328,7 +330,7 @@
     } else {
       heroDrawn.style.strokeDashoffset = hl;
       gsap.to(heroDrawn, { strokeDashoffset: 0, duration: 2.2, ease: "power2.inOut" });
-      gsap.from("#hero-yaar", { scale: 0.86, y: 12, transformOrigin: "50% 100%", duration: 1.1, ease: "back.out(1.6)", delay: 0.5,
+      gsap.from("#hero-yaar > g", { scale: 0.86, y: 12, transformOrigin: "50% 100%", duration: 1.1, ease: "back.out(1.6)", delay: 0.5,
         onComplete: function () { idle("#hero-yaar", 1); } });
     }
   }
@@ -356,7 +358,11 @@
   // the gauge needle rests on the split between goals and feedback and breathes a little, pivoting on the dial centre
   if (!reduce) gsap.fromTo("#needle", { rotation: -2.5, svgOrigin: "150 150" }, { rotation: 2.5, duration: 3.2, yoyo: true, repeat: -1, ease: "sine.inOut" });
 
-  var resizeTimer;
-  window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { road = buildRoad(); ScrollTrigger.refresh(); }, 150); });
+  var resizeTimer, lastWidth = window.innerWidth;
+  window.addEventListener("resize", function () {
+    if (window.innerWidth === lastWidth) return;                 // phones fire resize on scroll; only a width change matters
+    lastWidth = window.innerWidth;
+    clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { window.location.reload(); }, 250);
+  });
 })();
 </script>

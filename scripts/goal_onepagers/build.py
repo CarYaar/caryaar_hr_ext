@@ -88,7 +88,9 @@ class Erp:
 
 
 def person_payload(erp: Erp, employee: str, cycle_name: str = CYCLE["name"]) -> dict:
-    emp = erp.get_list("Employee", ["name", "employee_name", "designation", "department", "reports_to", "user_id"],
+    """Everything the page needs, read straight from the records (Goal, Goal Meter, the latest reading,
+    the template weights) through the same rules the 1:1 record uses, so the page and the record agree."""
+    emp = erp.get_list("Employee", ["name", "employee_name", "designation", "department", "reports_to", "user_id", "company_email"],
                        [["name", "=", employee]])[0]
     manager_name = ""
     if emp.get("reports_to"):
@@ -100,23 +102,32 @@ def person_payload(erp: Erp, employee: str, cycle_name: str = CYCLE["name"]) -> 
         kras = [{"kra": r["key_result_area"], "weight": float(r["per_weightage"] or 0)} for r in erp.get_list(
             "Appraisal Template Goal", ["key_result_area", "per_weightage"], [["parent", "=", template[0]["appraisal_template"]]])]
     weights = {k["kra"]: k["weight"] for k in kras}
-    pg = erp.call("caryaar_hr_ext.performance.api.person_goals", email=emp.get("user_id") or "")
+    goal_rows = erp.get_list("Goal", ["name", "goal_name", "kra", "description"],
+                             [["employee", "=", employee], ["appraisal_cycle", "=", cycle_name], ["is_group", "=", 0], ["status", "!=", "Archived"]])
+    names = [g["name"] for g in goal_rows]
+    meters = {m["goal"]: {"method": m["method"], "metric": m["metric"], "target": m["target_value"], "unit": m["unit"],
+                          "standard": m["standard_value"], "direction": m["direction"]}
+              for m in erp.get_list("Goal Meter", ["goal", "method", "metric", "target_value", "unit", "standard_value", "direction"],
+                                    [["goal", "in", names]])} if names else {}
+    readings: dict[str, dict] = {}
+    if names:
+        for r in sorted(erp.get_list("Goal Meter Reading", ["goal", "progress", "value", "reading_date"], [["goal", "in", names]], limit=2000),
+                        key=lambda r: str(r["reading_date"]), reverse=True):
+            readings.setdefault(r["goal"], r)
     goals = []
-    for c in pg.get("cycles") or []:
-        if c.get("cycle") != cycle_name:
-            continue
-        for g in c.get("goals") or []:
-            desc = erp.get_list("Goal", ["description"], [["name", "=", g["goal"]]])
-            baseline = _baseline(desc[0].get("description") if desc else "")
-            goals.append({"goal": g["goal"], "goal_name": g["goal_name"], "kra": g.get("kra") or "", "weight": weights.get(g.get("kra") or ""),
-                          "method": g.get("method"), "target": g.get("target") or "", "baseline": baseline, "source": g.get("source") or "",
-                          "how": g.get("how") or "", "value": g.get("value"), "progress": g.get("progress"),
-                          "reading_date": g.get("reading_date")})
+    for row, g in zip(rules.goal_rows(goal_rows, meters, readings, weights), goal_rows):
+        meter = meters.get(g["name"]) or {}
+        reading = readings.get(g["name"]) or {}
+        goals.append({"goal": g["name"], "goal_name": g["goal_name"], "kra": row["kra"], "weight": row["weight"],
+                      "method": meter.get("method") or "", "target": row["target_text"], "baseline": _baseline(g.get("description")),
+                      "source": mr.source_name(meter) if meter else "", "how": mr.describe_meter(meter) if meter else "",
+                      "value": reading.get("value"), "progress": row["progress"], "reading_date": reading.get("reading_date")})
     one = erp.get_list("Goal One on One", ["name", "meeting_date", "employee_acknowledged", "acknowledged_on"],
                        [["employee", "=", employee], ["appraisal_cycle", "=", cycle_name], ["meeting_type", "=", "Goal setting"]], limit=1)
     return {"employee": employee, "employee_name": emp["employee_name"], "designation": emp.get("designation") or "",
             "department": emp.get("department") or "", "manager_name": manager_name, "cycle": dict(CYCLE),
-            "kras": kras, "goals": goals, "one_on_one": one[0] if one else None, "score": SCORE}
+            "kras": kras, "goals": goals, "one_on_one": one[0] if one else None, "score": SCORE,
+            "login": emp.get("user_id") or emp.get("company_email") or ""}
 
 
 def _baseline(description: str) -> str:
@@ -135,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("employee", nargs="?", help="Employee id, e.g. HR-EMP-00012")
     ap.add_argument("--out", default=str(HERE / "out"))
     ap.add_argument("--fixture", action="store_true", help="render fixture_anagha.json instead of reading the ERP")
+    ap.add_argument("--allow-empty", action="store_true", help="write a page even when the person has no goals yet")
     ap.add_argument("--set-url", nargs=2, metavar=("EMPLOYEE", "URL"), help="write one_pager_url on the person's goal setting 1:1")
     ap.add_argument("--create-1on1", nargs=3, metavar=("EMPLOYEE", "MANAGER", "YYYY-MM-DD"), help="create the goal setting 1:1")
     a = ap.parse_args(argv)
@@ -167,6 +179,9 @@ def main(argv: list[str] | None = None) -> int:
         ap.print_help()
         return 2
     person = person_payload(erp, a.employee)
+    if not person["goals"] and not a.allow_empty:
+        print(f"{a.employee} has no live goals in {CYCLE['name']}; nothing written (use --allow-empty for a page that says so)")
+        return 1
     path = out_dir / f"{a.employee}.html"
     path.write_text(render(person))
     print("wrote", path, "|", len(person["goals"]), "goals |", rules.acknowledgement_state(
