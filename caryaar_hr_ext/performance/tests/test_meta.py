@@ -358,3 +358,13 @@ def test_workspace_lists_goal_one_on_ones():
     hit = [x for x in w["shortcuts"] if x["link_to"] == "Goal One on One"]
     assert len(hit) == 1 and hit[0]["label"] == "Goal 1:1s" and '"employee_acknowledged": 0' in hit[0]["stats_filter"]
     assert any(b.get("type") == "shortcut" and b["data"].get("shortcut_name") == "Goal 1:1s" for b in _json.loads(w["content"]))
+
+
+def test_activity_summary_report_is_registered_for_hr():
+    import json as _json
+
+    r = _json.loads((APP / "caryaar_hr_ext" / "report" / "activity_summary" / "activity_summary.json").read_text())
+    assert r["ref_doctype"] == "Work Activity Day" and r["report_type"] == "Script Report" and r["module"] == "Caryaar Hr Ext"
+    assert {x["role"] for x in r["roles"]} == {"HR Manager", "System Manager"}
+    w = _json.loads((APP / "caryaar_hr_ext" / "workspace" / "performance_and_adherence" / "performance_and_adherence.json").read_text())
+    assert any(x["type"] == "Report" and x["link_to"] == "Activity Summary" for x in w["shortcuts"])
