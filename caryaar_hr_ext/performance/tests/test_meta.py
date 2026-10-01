@@ -458,3 +458,24 @@ def test_one_on_one_goal_rows_hold_a_full_target_sentence():
     did not fit the 140-character Data field on the goals row. The row must take a sentence."""
     fields = _fields(_load("goal_one_on_one_goal"))
     assert fields["target_text"]["fieldtype"] == "Small Text" and fields["measured_from"]["fieldtype"] == "Small Text"
+
+
+def test_the_goal_form_carries_the_record_reading_action():
+    """The review pack links each Manual goal to /app/goal/<goal>?record_reading=1 (founder, 01-Oct-2026:
+    "there is no CTA to open the ERP and do the reading"). The Goal form script opens a dialog that
+    saves through meter.write_manual_reading, so evidence is required and nobody reads their own goal;
+    a raw Goal Meter Reading form would skip both checks."""
+    import ast
+    hooks = Path(__file__).resolve().parents[2] / "hooks.py"
+    tree = ast.parse(hooks.read_text())
+    doctype_js = next(ast.literal_eval(n.value) for n in tree.body
+                      if isinstance(n, ast.Assign) and getattr(n.targets[0], "id", None) == "doctype_js")
+    script = Path(__file__).resolve().parents[2] / doctype_js["Goal"]
+    src = script.read_text()
+    assert "caryaar_hr_ext.performance.meter.write_manual_reading" in src
+    assert "record_reading" in src and "Record reading" in src
+
+
+def test_the_review_pack_email_has_the_calls_to_action():
+    tpl = (Path(__file__).resolve().parents[2] / "caryaar_hr_ext" / "templates" / "emails" / "review_pack.html").read_text()
+    assert "{{ links.goals }}" in tpl and "{{ links.report }}" in tpl and "{{ r.action_url }}" in tpl

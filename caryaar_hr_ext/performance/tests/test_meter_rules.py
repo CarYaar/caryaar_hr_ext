@@ -186,3 +186,24 @@ def test_role_sources_follow_the_founders_precedence():
     assert mr.source_fits_role("Technology", "campaigns_sent") is False
     assert mr.source_fits_role("Customer Experience", "module_completion") is True   # Plane is allowed, just last
     assert mr.source_fits_role("Unknown template", "anything") is True              # no rule, no objection
+
+
+# ─── Calls to action in the review pack (founder, 01-Oct-2026: "there is no CTA to open the ERP
+# and do the reading") ────────────────────────────────────────────────────────────────────────
+
+def test_the_pack_links_open_the_persons_goals_and_their_report():
+    links = mr.pack_links("https://erp.caryaar.com/", "HR-EMP-00021", "Cycle Oct-2026")
+    assert links["goals"] == "https://erp.caryaar.com/app/goal?employee=HR-EMP-00021&appraisal_cycle=Cycle+Oct-2026"
+    assert links["report"] == ("https://erp.caryaar.com/app/query-report/Goal%20Review%20Pack"
+                               "?employee=HR-EMP-00021&appraisal_cycle=Cycle+Oct-2026")
+
+
+def test_only_manual_goals_get_a_record_reading_link():
+    pack = {"goals": [_goal(goal="HR-GOAL-2026-0401", method="Manual", progress=None, value=None, trend=[]),
+                      _goal(goal="HR-GOAL-2026-0402")]}
+    manual, ratio = mr.pack_rows(pack, base_url="https://erp.caryaar.com")
+    assert manual["action_url"] == "https://erp.caryaar.com/app/goal/HR-GOAL-2026-0401?record_reading=1"
+    assert manual["action_label"] == "Record reading"
+    assert ratio.get("action_url") is None
+    # the report builds the same rows without links
+    assert all(r.get("action_url") is None for r in mr.pack_rows(pack))

@@ -22,6 +22,9 @@ app_include_js = [
     "/assets/caryaar_hr_ext/js/handbook_launcher.js",   # the floating Handbook button on every desk page
 ]
 
+# "Record reading" on the Goal form: the review pack email links each Manual goal here (01-Oct-2026).
+doctype_js = {"Goal": "public/js/goal_manual_reading.js"}
+
 # ─── HRMS HTML rewrite ────────────────────────────────────────────────────
 # Injects a <script> tag for our tile loader into the HRMS PWA index
 # response. Runs on every request but only rewrites when the path matches

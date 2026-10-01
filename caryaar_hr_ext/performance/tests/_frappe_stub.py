@@ -365,6 +365,7 @@ class FakeFrappe:
         u.now_datetime = lambda: datetime.combine(fake.today, time(23, 45))
         u.formatdate = lambda v, fmt=None: getdate(v).strftime("%d-%b-%Y") if getdate(v) else ""
         u.add_days = lambda d, n: getdate(d) + __import__("datetime").timedelta(days=n)
+        u.get_url = lambda *a, **k: "https://erp.test"
         return u
 
 

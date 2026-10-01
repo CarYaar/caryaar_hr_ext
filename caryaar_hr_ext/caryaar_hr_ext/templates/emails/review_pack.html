@@ -4,11 +4,16 @@
     {% if pack.learning_month %}<b>October is the learning month:</b> readings are shown, the appraisal percentage is written from 01-Nov-2026.{% endif %}</p>
   <p>Adherence on judged working days so far: <b>{{ pack.adherence.pct if pack.adherence.pct is not none else "no judged days" }}</b>
     ({{ pack.adherence.days }} days). Open Plane items assigned but not tied to any goal: <b>{{ pack.uncounted_items }}</b>.</p>
-  {% if pack.manual_missing %}<p style="color: #E74C3C"><b>Needs a manual reading:</b> {{ pack.manual_missing | join(", ") | e }}</p>{% endif %}
+  {% if links %}<p style="margin: 14px 0">
+    <a href="{{ links.goals }}" style="display: inline-block; background: #6B2FA0; color: #ffffff; padding: 9px 16px; border-radius: 6px; text-decoration: none; font-weight: 600">Open {{ pack.employee_name | e }}'s goals in the ERP</a>
+    <a href="{{ links.report }}" style="display: inline-block; margin-left: 8px; color: #6B2FA0; padding: 9px 4px; font-weight: 600">Open the full review pack</a>
+  </p>{% endif %}
+  {% if pack.manual_missing %}<p style="color: #E74C3C"><b>Needs a manual reading:</b> {{ pack.manual_missing | join(", ") | e }}.
+    <span style="color: #2D2D2D">Use <b>Record reading</b> next to each goal below. A reading needs evidence and comes from the manager or HR, never from the person themself.</span></p>{% endif %}
   <table cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 12.5px">
     <tr style="background: #E8D5F5; text-align: left">
       <th>Goal / item</th><th>KRA</th><th>Weight</th><th>Method / state</th><th>Source</th><th>Target / due</th>
-      <th>Start</th><th>Assignee</th><th>Value</th><th>Reading</th><th>In appraisal</th><th>Trend</th><th>Flags</th>
+      <th>Start</th><th>Assignee</th><th>Value</th><th>Reading</th><th>In appraisal</th><th>Trend</th><th>Flags</th><th>Action</th>
     </tr>
     {% for r in rows %}
     <tr style="border-bottom: 1px solid #eee; {% if r.row_type == 'item' %}color: #555{% endif %}">
@@ -20,6 +25,7 @@
       <td>{{ (r.in_appraisal ~ "%") if r.in_appraisal is not none else "" }}</td>
       <td>{{ r.trend or "" }}</td>
       <td style="{% if 'overdue' in (r.flags or '') or 'no reading' in (r.flags or '') %}color: #E74C3C{% endif %}">{{ r.flags or "" }}</td>
+      <td>{% if r.action_url %}<a href="{{ r.action_url }}" style="color: #6B2FA0; font-weight: 600; white-space: nowrap">{{ r.action_label }}</a>{% endif %}</td>
     </tr>
     {% endfor %}
   </table>

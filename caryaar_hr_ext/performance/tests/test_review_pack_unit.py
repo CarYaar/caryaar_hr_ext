@@ -49,3 +49,17 @@ def test_adherence_counts_only_judged_days(monkeypatch):
               adherence_date="2026-10-20", adherence_pct=0, checks_applicable=0)   # today: not judged yet
     pack = review_pack.build_pack(ANAGHA, CYCLE, date(2026, 10, 20))
     assert pack["adherence"] == {"days": 1, "pct": 100.0}
+
+
+def test_the_emailed_pack_carries_the_erp_links(monkeypatch):
+    fake = stub.install(monkeypatch, date(2026, 10, 15))
+    from caryaar_hr_ext.performance import review_pack
+
+    _cycle_with_person(fake)
+    fake.db.singles[("Performance Sync Settings", "review_pack_recipients")] = "sahaib@caryaar.test"
+    seen = {}
+    monkeypatch.setattr(review_pack.frappe, "render_template", lambda tpl, ctx: seen.update(ctx) or "<html/>")
+    monkeypatch.setattr(review_pack.frappe.utils, "get_url", lambda *a, **k: "https://erp.caryaar.com", raising=False)
+    review_pack.send_pack(ANAGHA, CYCLE, date(2026, 10, 15))
+    assert seen["links"]["goals"].startswith("https://erp.caryaar.com/app/goal?employee=" + ANAGHA)
+    assert "rows" in seen

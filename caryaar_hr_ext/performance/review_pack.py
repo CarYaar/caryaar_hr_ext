@@ -107,7 +107,9 @@ def send_pack(employee: str, cycle: str, as_of: date) -> list[str]:
                          message="No manager (Employee.reports_to) and Performance Sync Settings has no "
                                  "review pack recipients. Nothing was sent.")
         return []
-    html = frappe.render_template(TEMPLATE, {"pack": pack, "rows": pack_rows(pack)})
+    base = frappe.utils.get_url()
+    html = frappe.render_template(TEMPLATE, {"pack": pack, "rows": pack_rows(pack, base_url=base),
+                                             "links": mr.pack_links(base, employee, cycle)})
     frappe.sendmail(recipients=recipients,
                     subject=f"Review pack: {pack['employee_name']}, {as_of.strftime('%d-%b-%Y')}",
                     message=html, now=False)

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timedelta
 from typing import Sequence
+from urllib.parse import quote, urlencode
 
 PROGRESS_GATE = date(2026, 11, 1)   # G8: readings from 01-Oct, Goal.progress written from 01-Nov
 METHODS = ("Ratio to target", "Months meeting standard", "Plane module", "Manual")
@@ -252,17 +253,34 @@ def trend_text(trend) -> str:
     return ", ".join(f"{_pct_text(p)} ({fmt_day(d)})" for d, p in trend if p is not None)
 
 
-def pack_rows(pack: dict) -> list[dict]:
+def pack_links(base_url: str, employee: str, cycle: str) -> dict[str, str]:
+    """The review pack's calls to action (founder, 01-Oct-2026: the pack named what was missing but
+    gave no way to open the ERP and do it): the person's goals in this cycle, and their pack report."""
+    base = (base_url or "").rstrip("/")
+    q = urlencode({"employee": employee, "appraisal_cycle": cycle})
+    return {"goals": f"{base}/app/goal?{q}", "report": f"{base}/app/query-report/Goal%20Review%20Pack?{q}"}
+
+
+def record_reading_url(base_url: str, goal: str) -> str:
+    """Opens the goal with its Record reading dialog (public/js/goal_manual_reading.js), which saves
+    through meter.write_manual_reading: evidence required, never one's own goal."""
+    return f"{(base_url or '').rstrip('/')}/app/goal/{quote(goal, safe='')}?record_reading=1"
+
+
+def pack_rows(pack: dict, base_url: str | None = None) -> list[dict]:
     """The review pack as rows: one per goal (source, target, latest value and progress, the
-    percentage HRMS averages, the trend) and one per Plane item counted under it."""
+    percentage HRMS averages, the trend) and one per Plane item counted under it. With a base_url
+    (the email), a Manual goal's row carries the link that records its reading."""
     rows = []
     for g in pack["goals"]:
         flags = [f for f, on in (("stale", g.get("stale")), ("no reading", g.get("progress") is None)) if on]
+        action = record_reading_url(base_url, g["goal"]) if base_url and g.get("method") == "Manual" else None
         rows.append({"row_type": "goal", "goal": g["goal"], "text": g["goal_name"], "kra": g.get("kra"),
                      "weight": g.get("weight"), "method": g.get("method"), "source": source_text(g),
                      "target": target_text(g), "start": "", "assignee": "", "value": g.get("value"),
                      "progress": g.get("progress"), "in_appraisal": g.get("erp_progress"),
-                     "trend": trend_text(g.get("trend") or []), "flags": ", ".join(flags)})
+                     "trend": trend_text(g.get("trend") or []), "flags": ", ".join(flags),
+                     "action_url": action, "action_label": "Record reading" if action else None})
         for i in g.get("items") or []:
             iflags = [f for f, on in (("overdue", i.get("overdue")), ("archived", i.get("archived"))) if on]
             if i.get("completed_at"):
