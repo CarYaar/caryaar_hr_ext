@@ -205,14 +205,8 @@ def card_back(fonts_dir: pathlib.Path) -> str:
 </style>
 <div class="print-format">
 <div class="card">
-  <!-- serial channel: left 12mm stays ink free for the factory RFID serial;
-       only the label (top 24mm) and the boundary hairline are ours -->
-  <div style="position: absolute; left: 2.2mm; top: 21mm; width: 20mm; height: 3mm;
-       -webkit-transform: rotate(-90deg); -webkit-transform-origin: left top;
-       font-size: 4.4pt; font-weight: 700; letter-spacing: 0.4mm; color: {GREY};
-       text-transform: uppercase; white-space: nowrap;">Card serial</div>
-  <div style="position: absolute; left: 12mm; top: 0; width: 0.3mm; height: 89.6mm; background: {INK};"></div>
-  <div style="position: absolute; left: 13.6mm; top: 4.6mm; width: 41mm;">
+  <!-- Printed on plain PVC (founder, 02-Oct-2026); the content takes the full card width. -->
+  <div style="position: absolute; left: 4.6mm; top: 4.6mm; width: 48.8mm;">
     <div style="font-family: 'Outfit ExtraBold', 'Outfit', sans-serif; font-weight: normal; font-size: 6.4pt; line-height: 1.3;">This card belongs to CarYaar Auto Pvt. Ltd.</div>
     <div class="small" style="color: {BODY}; margin-top: 1mm;">If found, please return it to the address below or call us. The finder's courtesy is appreciated.</div>
     <div style="position: relative; margin-top: 2mm;">
@@ -242,13 +236,14 @@ def card_back(fonts_dir: pathlib.Path) -> str:
         <div class="small" style="color: {BODY};">Scan to verify this card.</div>
         <div class="small" style="font-weight: 700; color: {ENGINE};">verify.caryaar.com</div></td>
     </tr></table>
-    <div style="text-align: right; margin-top: 2.2mm;">
-      <div style="display: inline-block; width: 17mm; height: 0.3mm; background: {INK};"></div>
-      <div class="small" style="color: {GREY};">Authorised signatory</div>
-    </div>
   </div>
-  <div style="position: absolute; left: 12.3mm; bottom: 0; right: 0; height: 6mm; background: {ENGINE}; text-align: center; border-radius: 0 0 4.2mm 0;">
-    <span style="display: inline-block; margin-top: 1.7mm; color: #FFFFFF; font-size: 4.2pt; font-weight: 500; letter-spacing: 0.15mm;">125 kHz access card &middot; do not punch or bend</span>
+  <!-- The signatory sits on the band so the card's lower half is the signing space, not an empty gap. -->
+  <div style="position: absolute; right: 4.6mm; bottom: 8.6mm; text-align: right;">
+    <div style="display: inline-block; width: 22mm; height: 0.3mm; background: {INK};"></div>
+    <div class="small" style="color: {GREY};">Authorised signatory</div>
+  </div>
+  <div style="position: absolute; left: 0; bottom: 0; right: 0; height: 6mm; background: {ENGINE}; text-align: center; border-radius: 0 0 4.2mm 4.2mm;">
+    <span style="display: inline-block; margin-top: 1.7mm; color: #FFFFFF; font-size: 4.2pt; font-weight: 500; letter-spacing: 0.15mm;">CarYaar employee identity card &middot; not transferable</span>
   </div>
 </div>
 </div>"""
